@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tank Water Flow Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid #333;
+            background-color: white;
+        }
+        #statusBox {
+            margin: 10px auto;
+            padding: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #simulationInfo {
+            margin: 10px auto;
+            padding: 10px;
+            max-width: 600px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: left;
+        }
+        #simulationInfo div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tank Water Flow Simulation</h1>
+    <div id="statusBox" class="disconnected">WebSocket: Disconnected</div>
+    <div id="simulationInfo">
+        <div>Tank Width: <span id="tankWidthValue">150</span> cm (Max: <span id="maxTankWidthValue">300</span> cm)</div>
+        <div>Tank Height: <span id="tankHeightValue">200</span> cm (Max Water Level: <span id="maxWaterLevelValue">200</span> cm)</div>
+        <div>Hole Diameter: <span id="holeDiameterValue">8</span> cm (Max: <span id="maxHoleDiameterValue">20</span> cm)</div>
+        <div>Hole Height: <span id="holeHeightValue">40</span> cm</div>
+        <div>Simulation Time: <span id="timeValue">0.00</span> s</div>
+    </div>
+    <canvas id="tankCanvas"></canvas>
+    
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('tankCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusBox = document.getElementById('statusBox');
+        const tankWidthValue = document.getElementById('tankWidthValue');
+        const tankHeightValue = document.getElementById('tankHeightValue');
+        const holeDiameterValue = document.getElementById('holeDiameterValue');
+        const holeHeightValue = document.getElementById('holeHeightValue');
+        const maxTankWidthValue = document.getElementById('maxTankWidthValue');
+        const maxWaterLevelValue = document.getElementById('maxWaterLevelValue');
+        const maxHoleDiameterValue = document.getElementById('maxHoleDiameterValue');
+        const timeValue = document.getElementById('timeValue');
+        
+        // Tank parameters (will be updated by init message)
+        let tankHeight = 200;       // Height of tank in cm
+        let tankWidth = 150;        // Width of tank in cm
+        let maxFlowDistance = 300;  // Maximum distance water can flow in cm
+        let holeHeight = 40;        // Hole height from bottom in cm
+        let holeSize = 8;           // Hole diameter in cm
+        let maxWaterLevel = 200;    // Maximum water level in cm
+        let maxHoleDiameter = 20;   // Maximum hole diameter in cm
+        let maxTankWidth = 300;     // Maximum tank width in cm
+        
+        // Display parameters
+        const padding = 50;         // Padding around the tank in pixels
+        let pixelsPerCm = 1;        // Conversion factor from cm to pixels
+        
+        // Variables for animation
+        let currentWaterLevel = 80;   // Current water level in cm
+        let currentFlowDistance = 0;  // Current flow distance in cm
+        let currentFlowRate = 0;      // Flow rate in m³/s
+        let simulationTime = 0;       // Simulation time in seconds
+        let isFlowing = true;         // Whether water is flowing
+        let websocket = null;         // WebSocket connection
+        
+        // Calculate the appropriate pixels per cm ratio
+        function calculatePixelsPerCm() {
+            // Get available space
+            const availableWidth = window.innerWidth * 0.8;
+            const availableHeight = window.innerHeight * 0.6;
+            
+            // Calculate max width needed (tank + max flow distance + padding)
+            const totalWidthCm = maxTankWidth + maxFlowDistance;
+            const totalHeightCm = maxWaterLevel * 1.2; // 20% extra for labels
+            
+            // Calculate pixels per cm for width and height constraints
+            const widthRatio = (availableWidth - padding * 2) / totalWidthCm;
+            const heightRatio = (availableHeight - padding * 2) / totalHeightCm;
+            
+            // Use the smaller ratio to ensure everything fits
+            pixelsPerCm = Math.min(widthRatio, heightRatio, 2); // Cap at 2 pixels per cm
+            
+            console.log(`Calculated pixelsPerCm: ${pixelsPerCm}`);
+            return pixelsPerCm;
+        }
+        
+        // Convert cm to pixels
+        function cmToPixels(cm) {
+            return cm * pixelsPerCm;
+        }
+        
+        // Initialize canvas size
+        function setupCanvas() {
+            // Calculate pixels per cm
+            calculatePixelsPerCm();
+            
+            // Convert tank dimensions to pixels
+            const tankWidthPx = cmToPixels(tankWidth);
+            const tankHeightPx = cmToPixels(tankHeight);
+            const maxFlowDistancePx = cmToPixels(maxFlowDistance);
+            
+            // Set canvas size
+            canvas.width = tankWidthPx + maxFlowDistancePx + padding * 2;
+            canvas.height = tankHeightPx + padding * 2;
+            
+            // Update parameter display
+            tankWidthValue.textContent = tankWidth;
+            tankHeightValue.textContent = tankHeight;
+            holeDiameterValue.textContent = holeSize;
+            holeHeightValue.textContent = holeHeight;
+            maxTankWidthValue.textContent = maxTankWidth;
+            maxWaterLevelValue.textContent = maxWaterLevel;
+            maxHoleDiameterValue.textContent = maxHoleDiameter;
+            
+            // Draw initial state
+            drawTank();
+            
+            console.log("Canvas setup complete:", {
+                tankWidth, tankHeight, holeHeight, holeSize,
+                tankWidthPx, tankHeightPx, pixelsPerCm,
+                canvasWidth: canvas.width, canvasHeight: canvas.height
+            });
+        }
+        
+        // Draw the tank and water
+        function drawTank() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Convert dimensions to pixels
+            const tankWidthPx = cmToPixels(tankWidth);
+            const tankHeightPx = cmToPixels(tankHeight);
+            const holeSizePx = cmToPixels(holeSize);
+            
+            const tankX = padding;
+            const tankY = padding;
+            
+            // Draw tank outline
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(tankX, tankY, tankWidthPx, tankHeightPx);
+            
+            // Calculate water height in pixels
+            const waterHeightPx = cmToPixels(currentWaterLevel);
+            
+            // Draw water in tank - ensure it doesn't exceed tank height
+            ctx.fillStyle = '#3498db';
+            const actualWaterHeightPx = Math.min(waterHeightPx, tankHeightPx);
+            ctx.fillRect(
+                tankX, 
+                tankY + (tankHeightPx - actualWaterHeightPx), 
+                tankWidthPx, 
+                actualWaterHeightPx
+            );
+            
+            // Calculate hole position - from the bottom of the tank
+            const holeHeightPx = cmToPixels(holeHeight);
+            const holeY = tankY + tankHeightPx - holeHeightPx; // Position from top
+            const holeX = tankX + tankWidthPx;
+            
+            // Draw hole
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(holeX, holeY, holeSizePx/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw water stream if water level is above hole height
+            if (isFlowing && currentWaterLevel > holeHeight) {
+                drawWaterStream(holeX, holeY);
+            }
+            
+            // Add labels
+            ctx.fillStyle = '#000';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Water Level: ${currentWaterLevel.toFixed(1)} cm`, canvas.width / 2, tankY);
+            
+            // Calculate flow distance in pixels
+            const flowDistancePx = cmToPixels(currentFlowDistance);
+            
+            ctx.fillText(`Flow Distance: ${currentFlowDistance.toFixed(1)} cm`, canvas.width / 2, tankY + 20);
+            
+            ctx.fillText(`Flow Rate: ${(currentFlowRate).toFixed(2)} L/s`, canvas.width / 2, tankY + 40);
+        }
+        
+        // Draw the water stream
+        function drawWaterStream(startX, startY) {
+            // Convert dimensions to pixels
+            const holeSizePx = cmToPixels(holeSize);
+            const flowDistancePx = cmToPixels(currentFlowDistance);
+            const tankHeightPx = cmToPixels(tankHeight);
+            
+            // Calculate pressure based on water height above hole
+            const waterHeightAboveHole = currentWaterLevel - holeHeight;
+            const pressure = Math.min(1, waterHeightAboveHole / maxWaterLevel);
+            
+            // Adjust flow height based on pressure and hole size
+            const flowHeight = holeSizePx + pressure * cmToPixels(5);
+            
+            // Draw water stream
+            ctx.fillStyle = '#3498db';
+            
+            // Stream path
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            
+            // Calculate end point and control point for curve
+            const endX = startX + flowDistancePx;
+            const endY = padding + tankHeightPx; // Water hits the ground at tank bottom level
+            
+            // Control point for quadratic curve - adjust for parabolic path
+            const controlPointX = startX + flowDistancePx * 0.5;
+            const controlPointY = startY + cmToPixels(30 * pressure);
+            
+            // Draw parabolic curve
+            ctx.quadraticCurveTo(controlPointX, controlPointY, endX, endY);
+            ctx.lineTo(endX, endY);
+            ctx.lineTo(startX, startY + flowHeight/2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw splash effect if water is flowing a significant distance
+            if (flowDistancePx > cmToPixels(10)) {
+                ctx.fillStyle = 'rgba(52, 152, 219, 0.5)';
+                ctx.beginPath();
+                ctx.arc(endX, endY, flowHeight + Math.random() * cmToPixels(5), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Handle "init" messages to set up the tank parameters
+        function handleInitMessage(data) {
+            console.log("Initializing tank with:", data);
+            
+            // Store old values for comparison
+            const oldTankWidth = tankWidth;
+            const oldTankHeight = tankHeight;
+            const oldHoleHeight = holeHeight;
+            
+            // Update tank parameters
+            if (data.tank_width !== undefined) tankWidth = data.tank_width;
+            if (data.tank_height !== undefined) tankHeight = data.tank_height;
+            if (data.hole_diameter !== undefined) holeSize = data.hole_diameter;
+            if (data.hole_height !== undefined) holeHeight = data.hole_height;
+            if (data.max_water_level !== undefined) maxWaterLevel = data.max_water_level;
+            if (data.max_hole_diameter !== undefined) maxHoleDiameter = data.max_hole_diameter;
+            if (data.max_tank_width !== undefined) maxTankWidth = data.max_tank_width;
+            
+            // Set initial water distance if provided
+            if (data.water_distance !== undefined) currentFlowDistance = data.water_distance;
+            
+            // Reset simulation state
+            currentWaterLevel = tankHeight * 0.8; // Start at 80% of tank height
+            currentFlowRate = 0;
+            simulationTime = 0;
+            timeValue.textContent = "0.00";
+            
+            // Log changes for debugging
+            console.log(`Tank dimensions changed: 
+                Width: ${oldTankWidth} -> ${tankWidth}, 
+                Height: ${oldTankHeight} -> ${tankHeight}, 
+                Hole height: ${oldHoleHeight} -> ${holeHeight}`);
+            
+            // Reinitialize the canvas with new dimensions
+            setupCanvas();
+        }
+        
+        // Handle "data" messages to update simulation state
+        function handleDataMessage(data) {
+            // Update simulation variables
+            if (data.water_level !== undefined) {
+                currentWaterLevel = data.water_level;
+            }
+            
+            if (data.flow_distance !== undefined) {
+                currentFlowDistance = data.flow_distance;
+            }
+            
+            if (data.flow_rate !== undefined) {
+                currentFlowRate = data.flow_rate;
+            }
+            
+            if (data.time !== undefined) {
+                simulationTime = data.time;
+                timeValue.textContent = simulationTime.toFixed(2);
+            }
+            
+            // Update flowing state
+            isFlowing = currentWaterLevel > holeHeight;
+            
+            // Redraw with new data
+            drawTank();
+        }
+        
+        // Connect to WebSocket server
+        function connectWebSocket() {
+            const wsURL = `ws://127.0.0.1:8081`;
+            websocket = new WebSocket(wsURL);
+            
+            websocket.onopen = function(event) {
+                console.log("WebSocket connected");
+                statusBox.className = "connected";
+                statusBox.textContent = "WebSocket: Connected";
+            };
+            
+            websocket.onclose = function(event) {
+                console.log("WebSocket disconnected");
+                statusBox.className = "disconnected";
+                statusBox.textContent = "WebSocket: Disconnected";
+                
+                // Try to reconnect after a delay
+                setTimeout(connectWebSocket, 1000);
+            };
+            
+            websocket.onerror = function(event) {
+                console.error("WebSocket error:", event);
+                statusBox.className = "disconnected";
+                statusBox.textContent = "WebSocket: Error";
+            };
+            
+            websocket.onmessage = function(event) {
+                try {
+                    // Parse the JSON message
+                    const data = JSON.parse(event.data);
+                    console.log("Received message:", data);
+                    
+                    // Handle message based on method
+                    if (data.method === "init") {
+                        handleInitMessage(data);
+                    } else if (data.method === "data") {
+                        handleDataMessage(data);
+                    }
+                    
+                } catch (error) {
+                    console.error("Error processing message:", error);
+                }
+            };
+        }
+        
+        // Initialize the application
+        function init() {
+            setupCanvas();
+            connectWebSocket();
+            
+            // Handle window resize
+            window.addEventListener('resize', setupCanvas);
+            
+            // Draw instructions
+            ctx.fillStyle = '#000';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Waiting for simulation data...', canvas.width / 2, 30);
+        }
+        
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
