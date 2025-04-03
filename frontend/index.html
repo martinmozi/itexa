@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tank Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .parameter {
+            margin-bottom: 15px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        .slider-container input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tank Simulation</h1>
+    
+    <div class="parameter">
+        <label for="water-level">Water Level (cm):</label>
+        <div class="slider-container">
+            <input type="range" id="water-level" min="1" max="200" value="100" step="1">
+            <span id="water-level-value">100</span>
+        </div>
+    </div>
+    
+    <div class="parameter">
+        <label for="hole-height">Hole Height (cm):</label>
+        <div class="slider-container">
+            <input type="range" id="hole-height" min="1" max="100" value="20" step="1">
+            <span id="hole-height-value">20</span>
+        </div>
+    </div>
+    
+    <div class="parameter">
+        <label for="hole-diameter">Hole Diameter (cm):</label>
+        <div class="slider-container">
+            <input type="range" id="hole-diameter" min="1" max="20" value="5" step="0.5">
+            <span id="hole-diameter-value">5</span>
+        </div>
+    </div>
+    
+    <div class="parameter">
+        <label for="tank-width">Tank Width (cm):</label>
+        <div class="slider-container">
+            <input type="range" id="tank-width" min="10" max="300" value="100" step="5">
+            <span id="tank-width-value">100</span>
+        </div>
+    </div>
+    
+    <button id="simulate-btn">Start Simulation</button>
+    
+    <script>
+        // Fetch limits from server and set slider max values
+        async function fetchLimits() {
+            try {
+                const response = await fetch('http://82.25.97.52/martin/api/tank/limits');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch limits');
+                }
+                
+                const limits = await response.json();
+                
+                // Set max values for sliders based on limits
+                document.getElementById('water-level').max = limits.MAX_WATER_LEVEL;
+                document.getElementById('hole-diameter').max = limits.MAX_HOLE_DIAMETER;
+                document.getElementById('tank-width').max = limits.MAX_TANK_WIDTH;
+                
+            } catch (error) {
+                console.error('Error fetching limits:', error);
+                alert('Could not fetch parameter limits');
+            }
+        }
+        
+        // Update displayed values when sliders change
+        document.getElementById('water-level').addEventListener('input', function() {
+            document.getElementById('water-level-value').textContent = this.value;
+        });
+        
+        document.getElementById('hole-height').addEventListener('input', function() {
+            document.getElementById('hole-height-value').textContent = this.value;
+        });
+        
+        document.getElementById('hole-diameter').addEventListener('input', function() {
+            document.getElementById('hole-diameter-value').textContent = this.value;
+        });
+        
+        document.getElementById('tank-width').addEventListener('input', function() {
+            document.getElementById('tank-width-value').textContent = this.value;
+        });
+        
+        // Handle simulate button click
+        document.getElementById('simulate-btn').addEventListener('click', async function() {
+            // Get parameter values
+            const params = {
+                water_level: parseFloat(document.getElementById('water-level').value),
+                hole_height: parseFloat(document.getElementById('hole-height').value),
+                hole_diameter: parseFloat(document.getElementById('hole-diameter').value),
+                tank_width: parseFloat(document.getElementById('tank-width').value)
+            };
+            
+            try {
+                // Send POST request to /tank/simulate
+                const response = await fetch('http://82.25.97.52/martin/api/tank/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+                
+                const data = await response.json();
+                console.log('Simulation started:', data);
+                alert('Simulation started');
+                
+            } catch (error) {
+                console.error('Error starting simulation:', error);
+                alert('Error starting simulation');
+            }
+        });
+        
+        // Initialize by fetching limits
+        fetchLimits();
+    </script>
+</body>
+</html>

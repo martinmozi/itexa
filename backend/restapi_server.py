@@ -70,3 +70,13 @@ async def simulate_tank(params: TankParameters):
     """
     fastApi.state.simulation.simulate(limits, params.water_level, params.hole_height, params.hole_diameter, params.tank_width)
     return {"status": "new simulation started"}
+    
+@fastApi.get("/tank/limits", response_model=Dict[str, float])
+async def get_tank_limits():
+    """
+    Get the maximum limits for tank parameters
+    
+    Returns:
+        Dict[str, float]: Dictionary containing the maximum limits for tank parameters
+    """
+    return limits
