@@ -1,31 +1,20 @@
 from websocket_server import ItexaWebSocketServer
 from restapi_server import fastApi
-import sys
-import signal
-import threading
 import uvicorn
 from simulation import Simulation
+from fastapi.middleware.cors import CORSMiddleware
 
 if __name__ == "__main__":
-    terminateEvent = threading.Event()
     websocketServer = ItexaWebSocketServer(host='0.0.0.0', port=9000)
     websocketServer.start()
 
-    def signal_handler(sig, frame):
-        print("SIGTERM received, shutting down...")
-        websocketServer.stop()
-        terminateEvent.set()
-        sys.exit(0)
-
-    signal.signal(signal.SIGTERM, signal_handler)
+    fastApi.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
     fastApi.state.simulation = Simulation(websocketServer)
-    uvicorn.run(fastApi, host="0.0.0.0", port=8080)
-
     try:
-        terminateEvent.wait()
+        uvicorn.run(fastApi, host="0.0.0.0", port=8080)
     except KeyboardInterrupt:
-        # Extra safety in case the signal handler doesn't catch it
         print("Keyboard interrupt received, shutting down...")
+    finally:
         websocketServer.stop()
 
     print("Server has been shut down successfully")
