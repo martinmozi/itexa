@@ -19,7 +19,7 @@ class SimpleClient(WebSocket):
 
 
 class ItexaWebSocketServer:
-    def __init__(self, host="0.0.0.0", port=8765):
+    def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
         self.server = None
@@ -54,11 +54,28 @@ class ItexaWebSocketServer:
             return
 
         if self.server:
-            self.server.server_close()
-            self.running = False
-            if self.thread.is_alive():
-                self.thread.join(timeout=5)
-            print("WebSocket server stopped")
+            try:
+                # For simple_websocket_server, we need to close the server differently
+                # First, notify all clients to close their connections
+                for client in list(self.server.clients):
+                    client.close()
+
+                # Access the internal socket using the server's private attributes
+                if hasattr(self.server, 'socket'):
+                    self.server.socket.close()
+                elif hasattr(self.server, '_socket'):
+                    self.server._socket.close()
+                elif hasattr(self.server, 'sock'):
+                    self.server.sock.close()
+
+                # Set running to false and wait for thread to terminate
+                self.running = False
+                if self.thread and self.thread.is_alive():
+                    self.thread.join(timeout=5)
+
+                print("WebSocket server stopped")
+            except Exception as e:
+                print(f"Error stopping server: {e}")
 
     def send_data(self, data):
         """Send data to all connected clients"""
