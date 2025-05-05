@@ -1,4 +1,5 @@
 import threading
+import socket
 from simple_websocket_server import WebSocketServer, WebSocket
 
 
@@ -36,6 +37,9 @@ class ItexaWebSocketServer:
         class ServerWithClients(WebSocketServer):
             def __init__(self, host, port):
                 super().__init__(host, port, SimpleClient)
+                # Enable socket reuse to prevent "Address already in use" errors
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 self.clients = set()
 
         self.server = ServerWithClients(self.host, self.port)
