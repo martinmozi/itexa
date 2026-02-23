@@ -1,0 +1,11 @@
+[project]
+name = "water-tank-simulation"
+version = "0.1.0"
+description = "Water tank simulation with WebSocket and REST API"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "simple-websocket-server",
+]

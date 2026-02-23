@@ -1,0 +1,14 @@
+[Unit]
+Description=Martin's Demo Backend Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/martin/demo/backend
+ExecStart=/bin/bash -c "source .venv/bin/activate && python main.py"
+Restart=on-failure
+RestartSec=5s
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target
