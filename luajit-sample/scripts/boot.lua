@@ -8,6 +8,10 @@
 
 local DEBUG_MODE = ...
 
+-- Make the on-disk scripts resolvable (including the debugger module) before we
+-- require any of them -- everything below loads from here.
+package.path = './scripts/?.lua;' .. package.path
+
 if DEBUG_MODE then
     -- Disable the JIT compiler so the debugger can step line-by-line.
     local okjit, jit_mod = pcall(require, 'jit')
@@ -18,25 +22,40 @@ if DEBUG_MODE then
         print('[debug] jit module unavailable')
     end
 
-    -- Allow loading the native EmmyLua debugger placed next to the executable.
-    package.cpath = './?.dll;./?.so;' .. package.cpath
-
-    -- emmy_core opens a TCP socket and waits for VS Code (EmmyLua extension) to attach.
-    local ok, dbg = pcall(require, 'emmy_core')
-    if ok then
-        local host = os.getenv('EMMY_HOST') or 'localhost'
-        local port = tonumber(os.getenv('EMMY_PORT') or '9966')
-        dbg.tcpListen(host, port)
-        print(('[debug] EmmyLua debugger listening on %s:%d'):format(host, port))
-        print('[debug] waiting for VS Code to attach...')
-        dbg.waitIDE()
-        dbg.breakHere()
+    -- LuaPanda's debug LOGIC is pure Lua (scripts/LuaPanda.lua, found via the
+    -- package.path above), but its TRANSPORT is a TCP socket. Stock LuaPanda
+    -- borrows that socket from luasocket -- a NATIVE module (socket/core.dll) --
+    -- which is awkward to build/ship for LuaJIT. Instead we provide the SAME API
+    -- in pure Lua via FFI: requiring 'luapanda_ffi_socket' registers a drop-in
+    -- under package.loaded['socket.core'] (and 'socket'), so the later
+    -- require('socket.core') inside LuaPanda transparently gets our FFI TCP
+    -- client -- no .dll and no "get Socket fail, please install luasocket!".
+    -- This MUST run BEFORE require('LuaPanda') and replaces the old
+    -- package.cpath/'./scripts/?.dll' approach entirely.
+    local oksock, sockerr = pcall(require, 'luapanda_ffi_socket')
+    if oksock then
+        print('[debug] luapanda_ffi_socket installed (socket.core via FFI)')
     else
-        print('[debug] emmy_core not found; running without an attached debugger')
+        print('[debug] luapanda_ffi_socket failed to load (' .. tostring(sockerr) .. ')')
+    end
+
+    -- Unlike EmmyLua, LuaPanda does NOT listen; it CONNECTS to the LuaPanda debug
+    -- server in VS Code, then BP() forces an immediate break. (Start VS Code
+    -- listening first, then run --debug.)
+    local ok, panda = pcall(require, 'LuaPanda')
+    if ok then
+        local host = os.getenv('LUAPANDA_HOST') or 'localhost'
+        local port = tonumber(os.getenv('LUAPANDA_PORT') or '8818')
+        print(('[debug] LuaPanda connecting to %s:%d'):format(host, port))
+        panda.start(host, port)
+        print('[debug] attached; breaking for VS Code...')
+        panda.BP()
+    else
+        -- `panda` holds the failure reason here; printing it distinguishes a
+        -- missing module from a file that exists but fails to compile.
+        print('[debug] LuaPanda not loaded (' .. tostring(panda) .. '); running without an attached debugger')
     end
 end
-
-package.path = './scripts/?.lua;' .. package.path
 
 local ffi = require('ffi')
 require('host_ffi')              -- installs the World/Inventory/Account metatypes

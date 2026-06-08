@@ -173,35 +173,62 @@ warm avg over 1000000 calls: <ns> ns/call (<ms> ms total)
 
 Porovnaj teplé `ns/call` (po JIT-e) so studeným volaním a uvidíš efekt JIT-u.
 
-## Debugovanie z VS Code (EmmyLua)
+## Debugovanie z VS Code (LuaPanda)
 
-Debug režim vypne JIT (`jit.off()`, aby debugger vedel krokovať riadok po riadku)
-a načíta natívny **EmmyLua** debugger (`emmy_core`), ktorý otvorí TCP socket a
-čaká, kým sa IDE pripojí.
+Debug režim vypne JIT (`jit.off`, aby debugger vedel krokovať riadok po riadku)
+a načíta čisto-Lua debugger **LuaPanda** (`LuaPanda.lua`). Na rozdiel od EmmyLuy
+**nepočúva** a nečaká na IDE — naopak sa **pripojí** k debug serveru bežiacemu vo
+VS Code a `BP()` hneď zastaví beh na breakpointe.
 
-```powershell
-./build/Release/luajit_embed.exe --debug
-```
+> Poradie je preto opačné ako pri EmmyLue: najprv spusti počúvanie vo VS Code
+> (**F5**), až potom aplikáciu s `--debug`.
 
 Kroky:
+`
+1. Nainštaluj rozšírenie **LuaPanda** vo VS Code (vyhľadaj „LuaPanda" v Extensions;
+   projekt [Tencent/LuaPanda](https://github.com/Tencent/LuaPanda)).
+2. Stiahni `LuaPanda.lua` z
+   [LuaPanda repozitára](https://github.com/Tencent/LuaPanda) (súbor
+   `Debugger/LuaPanda.lua`) a polož ho do priečinka `scripts/`. Žiadna zmena v
+   `CMakeLists.txt` netreba — `copy_directory` celý `scripts/` skopíruje vedľa
+   executable, takže ho `require` nájde cez `package.path`.
+3. Vo VS Code priprav LuaPanda konfiguráciu v `.vscode/launch.json` a stlač **F5**
+   (VS Code začne počúvať na porte 8818):
 
-1. Nainštaluj rozšírenie **EmmyLua** vo VS Code (publisher: `tangzx`).
-2. Stiahni zodpovedajúci natívny modul `emmy_core` z
-   [EmmyLuaDebugger releases](https://github.com/EmmyLua/EmmyLuaDebugger/releases)
-   (build pre LuaJIT / Lua 5.1 pre tvoju platformu/architektúru) a polož ho vedľa
-   executable (`emmy_core.dll` na Windowse, `emmy_core.so` na Linuxe).
-3. Spusti aplikáciu v debug režime (zablokuje sa na `waitIDE()`).
-4. Vo VS Code stlač **F5**, vyber attach konfiguráciu, daj breakpointy do
-   `scripts/mod_a.lua` / `mod_b.lua` a krokuj.
+   ```json
+   {
+       "version": "0.2.0",
+       "configurations": [
+           {
+               "type": "lua",
+               "request": "launch",
+               "name": "LuaPanda",
+               "cwd": "${workspaceFolder}",
+               "connectionPort": 8818,
+               "stopOnEntry": true
+           }
+       ]
+   }
+   ```
 
-Voliteľné prepísanie pred spustením:
+4. Spusti aplikáciu v debug režime — pripojí sa k VS Code a zastaví na `BP()`:
+
+   ```powershell
+   ./build/Release/luajit_embed.exe --debug
+   ```
+
+5. Daj breakpointy do `scripts/mod_a.lua` / `mod_b.lua` a krokuj.
+
+Voliteľné prepísanie hostiteľa/portu pred spustením (port musí sedieť s
+`connectionPort` v `launch.json`):
 
 ```powershell
-$env:EMMY_HOST = "localhost"
-$env:EMMY_PORT = "9966"
+$env:LUAPANDA_HOST = "localhost"
+$env:LUAPANDA_PORT = "8818"
 ```
 
-Ak sa `emmy_core` nenájde, aplikácia vypíše oznam a beží normálne.
+Ak sa `LuaPanda` nenájde, aplikácia vypíše oznam a beží normálne. Ak nechceš
+commitovať súbor tretej strany, pridaj `scripts/LuaPanda.lua` do `.gitignore`.
 
 ## Rozširovanie: pridanie nového typu C++ objektu
 
