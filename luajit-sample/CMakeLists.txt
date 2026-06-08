@@ -42,10 +42,12 @@ endif()
 add_executable(luajit_embed
     src/main.cpp
     src/Inventory.cpp
-    src/InventoryFFI.cpp
+    src/Account.cpp
+    src/World.cpp
+    src/HostFFI.cpp
 )
 
-# Export the C ABI symbols (inv_add, inv_remove, ...) from the executable so
+# Export the C ABI symbols (world_*, inv_*, acc_*) from the executable so
 # LuaJIT's ffi.C can resolve them at runtime. On Windows this produces an
 # import lib and honors __declspec(dllexport); on Unix it adds -rdynamic.
 set_target_properties(luajit_embed PROPERTIES ENABLE_EXPORTS ON)

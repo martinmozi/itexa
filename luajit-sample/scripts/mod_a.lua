@@ -1,19 +1,31 @@
--- `obj` is an Inventory* cdata that behaves like a complete Lua object: every
--- method (add/remove/get/total/...) is installed by inv_ffi via ffi.metatype and
--- runs the matching C++ method internally. The raw C functions are private to
--- inv_ffi, so this script never touches the FFI namespace directly.
-require('inv_ffi') -- installs the Inventory metatype (cached after first load)
+-- A hot-reloadable processing script. It receives the `world` registry and
+-- reaches the objects it needs by id; every method (add/remove/deposit/...) is
+-- installed by host_ffi via ffi.metatype and runs the matching C++ method
+-- internally. The raw C functions are private to host_ffi, so this script never
+-- touches the FFI namespace directly.
+--
+-- In the real system this is invoked once per incoming ISO message to mutate the
+-- target objects. It must stay on the hot path: work only, no I/O, no error
+-- raising. Missing ids come back as nil, so guard before use -- a bad id must
+-- not crash the host. (Direct field writes like `inv.apple = 1` are rejected by
+-- the object's __newindex.)
+require('host_ffi') -- installs the metatypes (cached after first load)
 
 local M = {}
 
--- On the timed hot path, so it performs work only -- no I/O.
-function M.main(obj)
-  obj:add("apple", 3)
-  obj:add("gold", 50)
-  obj:remove("gold", 20)
+function M.main(world)
+    local inv = world:inventory(1)
+    if inv then
+        inv:add("apple", 3)
+        inv:add("gold", 50)
+        inv:remove("gold", 20)
+    end
 
-  -- Direct field assignment is rejected by the object's __newindex.
-  pcall(function() obj.apple = 999 end)
+    local acc = world:account(1)
+    if acc then
+        acc:deposit(100)
+        acc:withdraw(30)
+    end
 end
 
 return M

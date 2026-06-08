@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "Inventory.h"
+#include "World.h"
 
 extern "C" {
 #include <lua.h>
@@ -10,41 +10,37 @@ extern "C" {
 #include <lualib.h>
 }
 
-static bool run_string(lua_State* L, const std::string& source, const char* chunk_name) {
-    if (luaL_loadbuffer(L, source.c_str(), source.size(), chunk_name) != LUA_OK) {
-        std::cerr << "[load error] " << lua_tostring(L, -1) << "\n";
-        lua_pop(L, 1);
-        return false;
-    }
+// How many times to run the hot path before measuring. LuaJIT only traces and
+// compiles a function/loop after it crosses its hotcount threshold (~56 by
+// default), so a couple of runs would still be interpreted. We run it many
+// thousands of times so the JIT is fully warmed before timing.
+constexpr int WARMUP_RUNS  = 100000;
+constexpr int MEASURE_RUNS = 1000000;
 
-    if (lua_pcall(L, 0, LUA_MULTRET, 0) != LUA_OK) {
-        std::cerr << "[runtime error] " << lua_tostring(L, -1) << "\n";
-        lua_pop(L, 1);
-        return false;
-    }
-
-    return true;
-}
-
-// Runs the precompiled main chunk (stored in the registry under `chunk_ref`)
-// once, passing `inv` as its single argument. Returns the elapsed time in ms.
-static double run_main_once(lua_State* L, int chunk_ref, Inventory* inv) {
-    using clock = std::chrono::steady_clock;
-    const auto start = clock::now();
-
-    // Push a fresh copy of the compiled chunk and its argument. The Inventory
-    // pointer is handed over as a lightuserdata; the script turns it into a
-    // typed `Inventory*` cdata via ffi.cast.
-    lua_rawgeti(L, LUA_REGISTRYINDEX, chunk_ref);
-    lua_pushlightuserdata(L, inv);
-
+// Calls the cached `run` closure (stored in the registry under `run_ref`) once,
+// handing over the World registry as a lightuserdata. The script casts it to a
+// typed World* cdata and reaches its objects from there. The per-message hot path.
+static bool call_run(lua_State* L, int run_ref, World* world) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, run_ref);
+    lua_pushlightuserdata(L, world);
     if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
         std::cerr << "[runtime error] " << lua_tostring(L, -1) << "\n";
         lua_pop(L, 1);
+        return false;
     }
+    return true;
+}
 
-    const auto end = clock::now();
-    return std::chrono::duration<double, std::milli>(end - start).count();
+// Calls the cached `reload` closure: it drops the cached script chunks and
+// recompiles them from disk, so edited scripts take effect without restarting.
+static bool call_reload(lua_State* L, int reload_ref) {
+    lua_rawgeti(L, LUA_REGISTRYINDEX, reload_ref);
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+        std::cerr << "[reload error] " << lua_tostring(L, -1) << "\n";
+        lua_pop(L, 1);
+        return false;
+    }
+    return true;
 }
 
 int main(int argc, char** argv) {
@@ -58,99 +54,80 @@ int main(int argc, char** argv) {
 
     luaL_openlibs(L);
 
-    const char* mode = debug_mode ? "true" : "false";
-
-    // One-time setup script: JIT/debugger configuration + module search path.
-    // This runs only once, before any timed execution of the main script.
-    std::string setup_script =
-        "local DEBUG_MODE = " + std::string(mode) + "\n" +
-        R"lua(
-if DEBUG_MODE then
-  -- Disable the JIT compiler so the debugger can step line-by-line.
-  local okjit, jit_mod = pcall(require, 'jit')
-  if okjit and jit_mod and jit_mod.off then
-    jit_mod.off()
-    print('[debug] LuaJIT disabled via jit.off()')
-  else
-    print('[debug] jit module unavailable')
-  end
-
-  -- Allow loading the native EmmyLua debugger placed next to the executable.
-  package.cpath = './?.dll;./?.so;' .. package.cpath
-
-  -- emmy_core opens a TCP socket and waits for VS Code (EmmyLua extension) to attach.
-  local ok, dbg = pcall(require, 'emmy_core')
-  if ok then
-    local host = os.getenv('EMMY_HOST') or 'localhost'
-    local port = tonumber(os.getenv('EMMY_PORT') or '9966')
-    dbg.tcpListen(host, port)
-    print(('[debug] EmmyLua debugger listening on %s:%d'):format(host, port))
-    print('[debug] waiting for VS Code to attach...')
-    dbg.waitIDE()
-    dbg.breakHere()
-  else
-    print('[debug] emmy_core not found; running without an attached debugger')
-  end
-end
-
-package.path = './scripts/?.lua;' .. package.path
-
--- Pre-load the modules now (one-time disk read + compile, and the one-time
--- ffi.cdef inside inv_ffi) so that BOTH timed runs hit the in-memory
--- package.loaded cache and never touch disk.
-require('inv_ffi')
-require('mod_a')
-require('mod_b')
-)lua";
-
-    if (!run_string(L, setup_script, "setup")) {
-        lua_close(L);
-        return 1;
-    }
-
-    // Main Lua script (built in C++): receives the target pointer as its only
-    // argument, casts it to an Inventory* cdata once, and calls each module's
-    // main(). Modules are already cached in memory, so this runs with zero disk
-    // or console I/O -- it is the hot path we actually time. Compiled once,
-    // executed multiple times.
-    std::string main_script = R"lua(
-local ffi = require('ffi')
-require('inv_ffi') -- ensures the Inventory cdef exists before the cast
-local obj = ffi.cast('Inventory*', ...)
-local modules = { 'mod_a', 'mod_b' }
-for _, name in ipairs(modules) do
-  require(name).main(obj)
-end
-)lua";
-
-    // Compile the main script once with luaL_loadstring.
-    if (luaL_loadstring(L, main_script.c_str()) != LUA_OK) {
+    // Load the bootstrap from disk and run it once, passing the debug flag. It
+    // sets up package.path / JIT / debugger, resolves the FFI object and the
+    // processing scripts, and returns the runner table { run, reload }. Loaded
+    // by explicit path (relative to the working directory, where CMake copies
+    // the scripts), so it is what sets up package.path for everything else.
+    if (luaL_loadfile(L, "scripts/boot.lua") != LUA_OK) {
         std::cerr << "[load error] " << lua_tostring(L, -1) << "\n";
         lua_pop(L, 1);
         lua_close(L);
         return 1;
     }
-    // Store the compiled chunk in the registry so we can run it repeatedly.
-    const int chunk_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    lua_pushboolean(L, debug_mode);
+    if (lua_pcall(L, 1, 1, 0) != LUA_OK) { // expect one result: the runner table
+        std::cerr << "[runtime error] " << lua_tostring(L, -1) << "\n";
+        lua_pop(L, 1);
+        lua_close(L);
+        return 1;
+    }
 
-    // First run over the first object (cold: JIT not warmed up yet).
-    Inventory inventory_a;
-    inventory_a.add("gold", 100);
-    const double ms_first = run_main_once(L, chunk_ref, &inventory_a);
+    // Pull run/reload out of the returned table into their own registry refs so
+    // the hot loop never does a table lookup.
+    lua_getfield(L, -1, "run");
+    const int run_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    lua_getfield(L, -1, "reload");
+    const int reload_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    lua_pop(L, 1); // pop the runner table
 
-    // Second run over a different object (warm: JIT likely active now).
-    Inventory inventory_b;
-    inventory_b.add("silver", 50);
-    const double ms_second = run_main_once(L, chunk_ref, &inventory_b);
+    using clock = std::chrono::steady_clock;
 
-    // Release the cached chunk.
-    luaL_unref(L, LUA_REGISTRYINDEX, chunk_ref);
+    // Populate the registry the scripts will operate on. Objects live for the
+    // whole run, so the handles handed to Lua stay valid.
+    World world;
+    world.createInventory(1).add("gold", 100);
+    world.createInventory(2);
+    world.createAccount(1);
 
-    // All console output happens here, AFTER the timed section.
-    std::cout << "object A: " << inventory_a.toString() << "\n";
-    std::cout << "object B: " << inventory_b.toString() << "\n";
-    std::cout << "run #1 (cold): " << ms_first << " ms\n";
-    std::cout << "run #2 (warm): " << ms_second << " ms\n";
+    // Cold: the very first call, fully interpreted (JIT not warmed yet).
+    const auto cold_start = clock::now();
+    call_run(L, run_ref, &world);
+    const auto cold_end = clock::now();
+    const double ms_cold = std::chrono::duration<double, std::milli>(cold_end - cold_start).count();
+
+    // Warm-up: drive the hot path enough to trigger trace compilation.
+    for (int i = 0; i < WARMUP_RUNS; ++i) {
+        call_run(L, run_ref, &world);
+    }
+
+    // Measure: time a large batch and report the per-call average. One call
+    // here == processing one ISO message in the real system.
+    const auto m_start = clock::now();
+    for (int i = 0; i < MEASURE_RUNS; ++i) {
+        call_run(L, run_ref, &world);
+    }
+    const auto m_end = clock::now();
+    const double ms_total = std::chrono::duration<double, std::milli>(m_end - m_start).count();
+    const double ns_per_call = (ms_total * 1e6) / MEASURE_RUNS;
+
+    // Demonstrate hot reload: recompile the scripts from disk and run once more.
+    // In production you would call this when a file watcher reports a change.
+    const bool reloaded = call_reload(L, reload_ref);
+    call_run(L, run_ref, &world);
+
+    luaL_unref(L, LUA_REGISTRYINDEX, run_ref);
+    luaL_unref(L, LUA_REGISTRYINDEX, reload_ref);
+
+    // All console output happens here, after the timed section.
+    std::cout << "inventory 1: " << world.inventory(1)->toString() << "\n";
+    std::cout << "inventory 2: " << world.inventory(2)->toString() << "\n";
+    std::cout << "account 1:   " << world.account(1)->toString() << "\n";
+    std::cout << "reload: " << (reloaded ? "ok" : "FAILED") << "\n";
+    std::cout << "cold call (interpreted): " << ms_cold << " ms\n";
+    std::cout << "warm avg over " << MEASURE_RUNS << " calls: "
+              << ns_per_call << " ns/call ("
+              << ms_total << " ms total)\n";
 
     lua_close(L);
     return 0;
