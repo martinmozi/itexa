@@ -1,4 +1,4 @@
--- One-time bootstrap, loaded by the C++ host via luaL_loadfile + pcall(1, 1):
+﻿-- One-time bootstrap, loaded by the C++ host via luaL_loadfile + pcall(1, 1):
 -- it receives the debug flag as its single argument and returns the runner
 -- table { run, reload }. Loaded by an explicit path (not require), so it is what
 -- sets up package.path for everything that follows -- no chicken-and-egg.
@@ -95,7 +95,10 @@ load_scripts()
 local function run(ptr)
     local world = cast('World*', ptr)
     for i = 1, n do
-        mains[i](world)
+        local err = mains[i](world)
+        if err then                         -- nil = ok; string/tabuľka = abort
+            return SCRIPTS[i], err
+        end
     end
 end
 

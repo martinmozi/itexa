@@ -1,4 +1,4 @@
-#include <chrono>
+﻿#include <chrono>
 #include <iostream>
 #include <string>
 
@@ -17,18 +17,35 @@ extern "C" {
 constexpr int WARMUP_RUNS  = 100000;
 constexpr int MEASURE_RUNS = 1000000;
 
-// Calls the cached `run` closure (stored in the registry under `run_ref`) once,
-// handing over the World registry as a lightuserdata. The script casts it to a
-// typed World* cdata and reaches its objects from there. The per-message hot path.
-static bool call_run(lua_State* L, int run_ref, World* world) {
+// Kontrolovaný abort zo skriptu (return false, msg). Oddelený typ, aby ho
+// host vedel odlíšiť od skutočného Lua crashu.
+struct ScriptAbort : std::runtime_error {
+    std::string script;
+    ScriptAbort(std::string s, const std::string& msg)
+        : std::runtime_error(s + ": " + msg), script(std::move(s)) {}
+};
+
+static void call_run(lua_State* L, int run_ref, World* world) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, run_ref);
     lua_pushlightuserdata(L, world);
-    if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-        std::cerr << "[runtime error] " << lua_tostring(L, -1) << "\n";
+
+    // (B) Skutočná Lua chyba (raised error / bug): pcall vráti != LUA_OK.
+    if (lua_pcall(L, 1, 2, 0) != LUA_OK) {
+        const char* m = lua_tostring(L, -1);
+        std::string msg = m ? m : "unknown Lua error";
         lua_pop(L, 1);
-        return false;
+        throw std::runtime_error("script crashed: " + msg);
     }
-    return true;
+
+    // (A) Kontrolovaný abort: run() vrátil (script, err); úspech => (nil, nil).
+    if (!lua_isnil(L, -2)) {
+        const char* s = lua_tostring(L, -2);
+        const char* e = lua_tostring(L, -1);
+        ScriptAbort ex(s ? s : "?", e ? e : "?");  // skopíruje do std::string...
+        lua_pop(L, 2);                              // ...PRED popom (potom GC)
+        throw ex;
+    }
+    lua_pop(L, 2);
 }
 
 // Calls the cached `reload` closure: it drops the cached script chunks and

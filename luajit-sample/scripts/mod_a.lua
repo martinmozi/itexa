@@ -1,4 +1,4 @@
--- A hot-reloadable processing script. It receives the `world` registry and
+﻿-- A hot-reloadable processing script. It receives the `world` registry and
 -- reaches the objects it needs by id; every method (add/remove/deposit/...) is
 -- installed by host_ffi via ffi.metatype and runs the matching C++ method
 -- internally. The raw C functions are private to host_ffi, so this script never
@@ -15,17 +15,18 @@ local M = {}
 
 function M.main(world)
     local inv = world:inventory(1)
-    if inv then
-        inv:add("apple", 3)
-        inv:add("gold", 50)
-        inv:remove("gold", 20)
+    if not inv then
+        return "inventory 1 missing"        -- error = abort; nil/nič = úspech
     end
 
-    local acc = world:account(1)
-    if acc then
-        acc:deposit(100)
-        acc:withdraw(30)
+    inv:add("apple", 3)
+    inv:add("gold", 50)
+    local removed = inv:remove("gold", 20)
+    if removed < 20 then
+        return "inventory 1: not enough gold"
     end
+
+    -- happy path: prepadne na koniec => return nil => úspech
 end
 
 return M
