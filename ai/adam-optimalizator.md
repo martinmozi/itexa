@@ -6,6 +6,48 @@ siete — bez použitia hotového frameworku.
 
 ---
 
+## 0. Anatómia feed-forward siete — kde sú váhy, bias a aktivačná funkcia
+
+Než sa pustíme do optimalizátora, treba vedieť, **čo vlastne Adam upravuje**. Nasledujúci
+obrázok ukazuje jednoduchú doprednú sieť s troma vrstvami. Signál tečie zľava doprava
+(preto „feed-forward"): vstupy → skrytá vrstva → výstupy.
+
+![Prehľad feed-forward neurónovej siete: vstupná, skrytá a výstupná vrstva prepojené váhami](images/ff-siet-prehlad.svg)
+
+Medzi každými dvoma susednými vrstvami je jedna **váhová matica `W`** a jeden **vektor
+biasov `b`** (na obrázku `W₁, b₁` medzi vstupom a skrytou vrstvou, `W₂, b₂` medzi skrytou
+a výstupnou). Vnútri každého neurónu (okrem vstupných) sa navyše aplikuje **aktivačná
+funkcia `σ`**. Práve `W` a `b` sú **učené parametre** — to sú tie, ktoré Adam v každom kroku
+posúva. Aktivačná funkcia `σ` je pevne daná a nemení sa.
+
+### Čo sa deje v jednom neuróne
+
+Aby bolo jasné, kde presne váhy, bias a aktivácia vstupujú do výpočtu, priblížme si jeden
+neurón:
+
+![Detail jedného neurónu: vstupy vážené váhami w, pripočítaný bias b, výsledok z prejde aktivačnou funkciou σ na výstup a](images/neuron-detail.svg)
+
+Neurón robí dva kroky:
+
+1. **Vážený súčet + bias** — každý vstup `xᵢ` sa vynásobí svojou **váhou `wᵢ`**, sčíta sa
+   a pripočíta sa **bias `b`**:  `z = w₁x₁ + w₂x₂ + … + b`  (skrátene `z = w·x + b`).
+2. **Aktivácia** — na `z` sa aplikuje **aktivačná funkcia `σ`** (napr. ReLU, sigmoid, tanh),
+   ktorá dá výstup neurónu `a = σ(z)`. Aktivácia vnáša do siete nelinearitu — bez nej by
+   celá sieť bola len jedna lineárna funkcia.
+
+Zhrnutie mapovania na algoritmus nižšie:
+
+| Prvok na obrázku | Symbol | Učený parameter? | Adam ho upravuje? |
+|---|---|---|---|
+| váhy | `W` (`wᵢ`) | áno | **áno** |
+| bias | `b` | áno | **áno** |
+| aktivačná funkcia | `σ` | nie (pevná voľba) | nie |
+
+Adam teda pracuje s gradientmi `dW` a `db` (parciálne derivácie chyby podľa `W` a `b`) —
+presne s tými, ktoré vypadnú z backpropu.
+
+---
+
 ## 1. Kontext: kde sa Adam nachádza v tréningovej slučke
 
 Tréning siete je opakovanie štyroch krokov nad mini-batchmi dát:
@@ -26,6 +68,12 @@ b ← b − lr · db
 **Adam nahrádza iba krok 4.** Forward, loss aj backprop ostávajú nezmenené — Adam pracuje
 s presne tými istými gradientmi `dW`, `db`, ktoré už z backpropu máte. Mení len *spôsob*,
 akým sa z gradientu vypočíta krok.
+
+![Tréningová slučka: forward → loss → backprop → update, pričom krok update je Adam](images/treningova-slucka.svg)
+
+Slučka beží dokola nad jednotlivými mini-batchmi. Adam sedí **iba v kroku 4 (update)** —
+dostane gradienty `dW`, `db` z backpropu (krok 3) a rozhodne, ako veľmi a ktorým smerom
+posunúť `W` a `b`. Ostatné tri kroky sú od optimalizátora nezávislé.
 
 ---
 

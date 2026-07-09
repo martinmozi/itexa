@@ -697,6 +697,47 @@ Toto je kľúčové rozlíšenie, lebo vysvetľuje, prečo je jeden malý model 
 
 ---
 
+### 2.4 Reranking – čo to je a kedy sa oplatí
+
+**Čo je reranking.** Vyhľadanie cez bi-encoder (`top-k` z FAISS) je **rýchle, ale hrubé** – zoraďuje podľa podobnosti dvoch *nezávisle* spočítaných vektorov, takže niekedy vytiahne chunk, ktorý je len povrchovo podobný (spoločné slová), no na otázku vlastne neodpovedá. **Reranking je druhý, presnejší priechod**, ktorý tento zoznam kandidátov **preusporiada** podľa skutočnej relevancie k otázke. Robí ho **cross-encoder** (viď 2.3): každú dvojicu *(otázka, kandidát)* prečíta **spolu** a dá jej skóre relevancie; podľa tých skóre sa kandidáti zoradia nanovo a do promptu ide finálny `top-3–5`.
+
+Kľúčové je poradie krokov – **dvojfázový retrieval**:
+
+```text
+otázka
+  │
+  ├─(1) bi-encoder + FAISS ──►  top-k kandidátov (napr. 20–50)   ← rýchle, hrubé
+  │
+  └─(2) cross-encoder rerank ─►  preusporiadať, vziať top-3–5    ← pomalé, presné
+                                  │
+                                  └──►  do promptu pre generatívny LLM
+```
+
+Fáza 1 zúži milióny chunkov na desiatky (lacno). Fáza 2 tých pár desiatok **dôkladne prehodnotí** (draho, ale už len `k`-krát). Bez fázy 1 by bol reranker neúnosne drahý (bežal by `N`×), bez fázy 2 zas do promptu prepadnú „falošne podobné" chunky.
+
+**Prečo to zvyšuje kvalitu.** Do generatívneho LLM sa zmestí len pár chunkov. Ak je medzi nimi ten správny, ale až na 8. mieste, a vy berete `top-5`, **odpoveď v kontexte vôbec nie je** a model buď mlží, alebo povie „neviem". Reranker ten správny chunk posunie z 8. na 1.–2. miesto → **recall v rámci malého okna sa zásadne zlepší** (metrika *nDCG* / *recall@k*).
+
+#### Kedy má reranking zmysel
+
+- **Otázky vyžadujú porozumenie, nie len zhodu slov** – parafrázy, súvislosti, „prečo/ako". Tu čistý bi-encoder najviac chybuje.
+- **Veľká alebo šumivá databáza** – veľa chunkov, ktoré sú si navzájom podobné; treba jemne rozlíšiť, ktorý *naozaj* odpovedá.
+- **Malé okno kontextu / drahý generatívny LLM** – keď si môžete dovoliť poslať len 3–5 chunkov, kvalita tých pár rozhoduje o všetkom.
+- **Používate hybridný alebo ANN retrieval** – kombinujete BM25 + vektory alebo ANN index (IVF/HNSW), ktorý vracia širší, „hrubší" set; reranker ho dočistí.
+- **Kvalita odpovede je dôležitejšia než pár desiatok ms latencie** – interné vyhľadávanie, právo, medicína, podpora.
+
+#### Kedy sa (zatiaľ) neoplatí
+
+- **Malá databáza a jasné, kľúčovkové otázky** – ak `top-5` z bi-encodera už spoľahlivo obsahuje odpoveď, reranker nič nepridá, len pridá latenciu.
+- **Prísny latency rozpočet bez GPU** – cross-encoder na CPU vie pridať stovky ms až sekundy na dotaz (viď nižšie); v real-time chate to môže byť neúnosné.
+- **Málo kandidátov** – rerankovať `top-3` nemá zmysel, keď aj tak všetky tri idú do promptu.
+- **Skôr rieš základy** – ak je slabý **chunking** alebo nevhodný **embedding model**, reranker to nezachráni; najprv oprav fázu 1.
+
+> **Pravidlo palca:** začni **bez** rerankera (bi-encoder + `top-5`). Zmeraj kvalitu. Ak vidíš, že správny chunk *sa vyhľadá, ale je príliš nízko* (je v `top-20`, ale nie v `top-5`), pridaj reranker – vytiahni `top-20–50` a nechaj ho vybrať finálnych 3–5. To je presne situácia, keď reranking dáva najväčší zisk za najmenšiu prácu.
+
+**Voľba modelu.** Bežné rerankery: `cross-encoder/ms-marco-MiniLM-L-6-v2` (rýchly, anglický), `BAAI/bge-reranker-v2-m3` (viacjazyčný, aj slovenčina), `jina-reranker`. Používajú sa cez `sentence-transformers` (`CrossEncoder`) – dostanú zoznam dvojíc *(otázka, chunk)* a vrátia skóre.
+
+---
+
 ### Výpočtové nároky: kde to tlačí na CPU/GPU
 
 Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:

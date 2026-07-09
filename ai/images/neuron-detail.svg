@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 500" font-size="18">
+
+  <style>
+    .bg   { fill: #ffffff; }
+    .txt  { fill: #1f2937; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .muted{ fill: #6b7280; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .node { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2.5; }
+    .wcol { stroke: #2563eb; }   /* váhy - modrá */
+    .wtxt { fill: #2563eb; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 600; }
+    .bcol { stroke: #d97706; }   /* bias - oranžová */
+    .btxt { fill: #d97706; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 600; }
+    .acol { stroke: #059669; }   /* aktivácia - zelená */
+    .atxt { fill: #059669; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 600; }
+    .edge { stroke: #93c5fd; stroke-width: 1.4; fill: none; opacity: 0.7; }
+    @media (prefers-color-scheme: dark) {
+      .bg   { fill: #0d1117; }
+      .txt  { fill: #e6edf3; }
+      .muted{ fill: #9ca3af; }
+      .node { fill: #16233b; stroke: #60a5fa; }
+      .wcol { stroke: #60a5fa; }
+      .wtxt { fill: #93c5fd; }
+      .bcol { stroke: #fbbf24; }
+      .btxt { fill: #fbbf24; }
+      .acol { stroke: #34d399; }
+      .atxt { fill: #6ee7b7; }
+      .edge { stroke: #2b4a6f; }
+    }
+  </style>
+
+
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+    <marker id="arwB" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#d97706"/>
+    </marker>
+    <marker id="arwG" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#059669"/>
+    </marker>
+  </defs>
+
+<rect class="bg" x="0" y="0" width="880" height="500" rx="10"/>
+<circle class="node" cx="110" cy="100" r="28"/>
+<text class="txt" x="110" y="106" text-anchor="middle">x<tspan font-size="13" dy="4">1</tspan></text>
+<line class="wcol" stroke-width="2.6" marker-end="url(#arw)" x1="138" y1="100" x2="396" y2="200"/>
+<text class="wtxt" x="268.0" y="140.0" text-anchor="middle">w<tspan font-size="13" dy="4">1</tspan></text>
+<circle class="node" cx="110" cy="200" r="28"/>
+<text class="txt" x="110" y="206" text-anchor="middle">x<tspan font-size="13" dy="4">2</tspan></text>
+<line class="wcol" stroke-width="2.6" marker-end="url(#arw)" x1="138" y1="200" x2="396" y2="200"/>
+<text class="wtxt" x="268.0" y="186.0" text-anchor="middle">w<tspan font-size="13" dy="4">2</tspan></text>
+<circle class="node" cx="110" cy="300" r="28"/>
+<text class="txt" x="110" y="306" text-anchor="middle">x<tspan font-size="13" dy="4">3</tspan></text>
+<line class="wcol" stroke-width="2.6" marker-end="url(#arw)" x1="138" y1="300" x2="396" y2="200"/>
+<text class="wtxt" x="268.0" y="240.0" text-anchor="middle">w<tspan font-size="13" dy="4">3</tspan></text>
+<circle class="node" cx="250" cy="410" r="26" style="stroke:#d97706"/>
+<text class="btxt" x="250" y="416" text-anchor="middle">1</text>
+<line class="bcol" stroke-width="2.6" marker-end="url(#arwB)" x1="272" y1="394" x2="422" y2="236"/>
+<text class="btxt" x="351.0" y="333.0" text-anchor="middle">b</text>
+<circle class="node" cx="440" cy="200" r="42"/>
+<text class="txt" x="440" y="209" text-anchor="middle" font-size="30">Σ</text>
+<text class="muted" x="440" y="268" text-anchor="middle" font-size="15">z = w·x + b</text>
+<line class="acol" stroke-width="2.6" marker-end="url(#arwG)" x1="482" y1="200" x2="638" y2="200.0"/>
+<text class="txt" x="561.0" y="188.0" text-anchor="middle" font-size="15">z</text>
+<rect class="node" style="stroke:#059669" x="640" y="158" width="160" height="84" rx="12"/>
+<text class="atxt" x="720.0" y="196" text-anchor="middle" font-size="24">σ</text>
+<text class="muted" x="720.0" y="222" text-anchor="middle" font-size="14">aktivačná funkcia</text>
+<line class="acol" stroke-width="2.6" marker-end="url(#arwG)" x1="800" y1="200.0" x2="870" y2="200.0"/>
+<text class="atxt" x="880" y="207.0">a</text>
+<text class="muted" x="845" y="150" text-anchor="middle" font-size="14">a = σ(z)</text>
+<rect x="40" y="450" width="13" height="13" rx="2" fill="#2563eb"/>
+<text class="wtxt" x="60" y="462" font-size="15">w<tspan font-size="11" dy="3">i</tspan><tspan dy="-3"> = váhy</tspan></text>
+<rect x="200" y="450" width="13" height="13" rx="2" fill="#d97706"/>
+<text class="btxt" x="220" y="462" font-size="15">b = bias</text>
+<rect x="320" y="450" width="13" height="13" rx="2" fill="#059669"/>
+<text class="atxt" x="340" y="462" font-size="15">σ = aktivačná funkcia (nemá učené parametre)</text>
+<text class="muted" x="40" y="486" font-size="14">Adam v každom kroku upravuje učené parametre — všetky <tspan class="wtxt">w</tspan> a <tspan class="btxt">b</tspan>. Funkcia <tspan class="atxt">σ</tspan> sa nemení.</text>
+</svg>

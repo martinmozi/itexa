@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 470" font-size="17">
+
+  <style>
+    .bg   { fill: #ffffff; }
+    .txt  { fill: #1f2937; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .muted{ fill: #6b7280; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .node { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2.5; }
+    .wcol { stroke: #2563eb; }   /* váhy - modrá */
+    .wtxt { fill: #2563eb; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 600; }
+    .bcol { stroke: #d97706; }   /* bias - oranžová */
+    .btxt { fill: #d97706; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 600; }
+    .acol { stroke: #059669; }   /* aktivácia - zelená */
+    .atxt { fill: #059669; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 600; }
+    .edge { stroke: #93c5fd; stroke-width: 1.4; fill: none; opacity: 0.7; }
+    @media (prefers-color-scheme: dark) {
+      .bg   { fill: #0d1117; }
+      .txt  { fill: #e6edf3; }
+      .muted{ fill: #9ca3af; }
+      .node { fill: #16233b; stroke: #60a5fa; }
+      .wcol { stroke: #60a5fa; }
+      .wtxt { fill: #93c5fd; }
+      .bcol { stroke: #fbbf24; }
+      .btxt { fill: #fbbf24; }
+      .acol { stroke: #34d399; }
+      .atxt { fill: #6ee7b7; }
+      .edge { stroke: #2b4a6f; }
+    }
+  </style>
+
+
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+    <marker id="arwB" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#d97706"/>
+    </marker>
+    <marker id="arwG" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#059669"/>
+    </marker>
+  </defs>
+
+<rect class="bg" x="0" y="0" width="880" height="470" rx="10"/>
+<rect class="node" x="70" y="60" width="300" height="96" rx="14"/>
+<text class="txt" x="220.0" y="100" text-anchor="middle" font-size="21" font-weight="700">1. FORWARD</text>
+<text class="muted" x="220.0" y="130" text-anchor="middle" font-size="15">sieť spočíta predikciu ŷ</text>
+<rect class="node" x="510" y="60" width="300" height="96" rx="14"/>
+<text class="txt" x="660.0" y="100" text-anchor="middle" font-size="21" font-weight="700">2. LOSS</text>
+<text class="muted" x="660.0" y="130" text-anchor="middle" font-size="15">chyba L(ŷ, y)</text>
+<rect class="node" x="510" y="300" width="300" height="96" rx="14"/>
+<text class="txt" x="660.0" y="340" text-anchor="middle" font-size="21" font-weight="700">3. BACKPROP</text>
+<text class="muted" x="660.0" y="370" text-anchor="middle" font-size="15">gradienty dW, db</text>
+<rect x="70" y="300" width="300" height="96" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="3.5"/>
+<text class="atxt" x="220.0" y="340" text-anchor="middle" font-size="21" font-weight="700">4. UPDATE = ADAM</text>
+<text class="muted" x="220.0" y="370" text-anchor="middle" font-size="15">posun parametrov W, b</text>
+<line class="" stroke="#6b7280" stroke-width="2.6" marker-end="url(#arw)" x1="370" y1="108.0" x2="504" y2="108.0"/>
+<line class="" stroke="#6b7280" stroke-width="2.6" marker-end="url(#arw)" x1="660.0" y1="156" x2="660.0" y2="294"/>
+<line class="" stroke="#6b7280" stroke-width="2.6" marker-end="url(#arw)" x1="504" y1="348.0" x2="376" y2="348.0"/>
+<line stroke="#6b7280" stroke-width="2.6" marker-end="url(#arw)" x1="220.0" y1="294" x2="220.0" y2="162"/>
+<text class="muted" x="405" y="96.0" text-anchor="middle" font-size="14">ŷ</text>
+<text class="muted" x="674.0" y="228" font-size="14">L</text>
+<text class="muted" x="405" y="336.0" text-anchor="middle" font-size="14">dW, db</text>
+<text class="muted" x="232.0" y="228" font-size="14">nový batch</text>
+<text class="atxt" x="70" y="450" font-size="15" font-weight="600">Adam mení iba krok 4 — z gradientov dW, db vypočíta a vykoná posun W a b.</text>
+</svg>
