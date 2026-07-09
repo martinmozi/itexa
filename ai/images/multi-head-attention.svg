@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" font-size="14">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .in{ fill:#dcfce7; stroke:#059669; stroke-width:2; }
+    .int{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .head{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2; }
+    .headt{ fill:#1e3a8a; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .concat{ fill:#fef3c7; stroke:#d97706; stroke-width:2; }
+    .concatt{ fill:#92400e; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .out{ fill:#ede9fe; stroke:#7c3aed; stroke-width:2; }
+    .outt{ fill:#5b21b6; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .arr{ stroke:#6b7280; stroke-width:2; fill:none; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .in{ fill:#0f2e1e; stroke:#34d399; } .int{ fill:#6ee7b7; }
+      .head{ fill:#16233b; stroke:#60a5fa; } .headt{ fill:#93c5fd; }
+      .concat{ fill:#3a2a0d; stroke:#fbbf24; } .concatt{ fill:#fbbf24; }
+      .out{ fill:#231447; stroke:#a78bfa; } .outt{ fill:#c4b5fd; }
+      .arr{ stroke:#9ca3af; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="560" rx="10"/>
+  <text class="txt" x="440" y="34" text-anchor="middle" font-size="17" font-weight="700">Multi-Head Attention: viac paralelných „pohľadov" naraz</text>
+  <text class="muted" x="440" y="56" text-anchor="middle" font-size="13">Jedna attention-hlava vidí jeden typ vzťahu. Viac hláv = viac druhov vzťahov súčasne.</text>
+
+  <!-- input -->
+  <rect class="in" x="330" y="80" width="220" height="40" rx="8"/>
+  <text class="int" x="440" y="105" text-anchor="middle">vstupné vektory tokenov</text>
+
+  <!-- split to heads -->
+  <path class="arr" d="M440,120 L160,175" marker-end="url(#a)"/>
+  <path class="arr" d="M440,120 L360,175" marker-end="url(#a)"/>
+  <path class="arr" d="M440,120 L560,175" marker-end="url(#a)"/>
+  <path class="arr" d="M440,120 L760,175" marker-end="url(#a)"/>
+
+  <!-- heads -->
+  <g>
+    <rect class="head" x="70" y="180" width="180" height="110" rx="10"/>
+    <text class="headt" x="160" y="206" text-anchor="middle">Hlava 1</text>
+    <text class="txt" x="160" y="228" text-anchor="middle" font-size="12">vlastné W<tspan baseline-shift="sub" font-size="9">Q</tspan> W<tspan baseline-shift="sub" font-size="9">K</tspan> W<tspan baseline-shift="sub" font-size="9">V</tspan></text>
+    <text class="muted" x="160" y="252" text-anchor="middle" font-size="11.5">napr. sleduje</text>
+    <text class="muted" x="160" y="270" text-anchor="middle" font-size="11.5">syntax (podmet–sloveso)</text>
+  </g>
+  <g>
+    <rect class="head" x="270" y="180" width="180" height="110" rx="10"/>
+    <text class="headt" x="360" y="206" text-anchor="middle">Hlava 2</text>
+    <text class="txt" x="360" y="228" text-anchor="middle" font-size="12">vlastné W<tspan baseline-shift="sub" font-size="9">Q</tspan> W<tspan baseline-shift="sub" font-size="9">K</tspan> W<tspan baseline-shift="sub" font-size="9">V</tspan></text>
+    <text class="muted" x="360" y="252" text-anchor="middle" font-size="11.5">napr. sleduje</text>
+    <text class="muted" x="360" y="270" text-anchor="middle" font-size="11.5">zámená a odkazy</text>
+  </g>
+  <g>
+    <rect class="head" x="470" y="180" width="180" height="110" rx="10"/>
+    <text class="headt" x="560" y="206" text-anchor="middle">Hlava 3</text>
+    <text class="txt" x="560" y="228" text-anchor="middle" font-size="12">vlastné W<tspan baseline-shift="sub" font-size="9">Q</tspan> W<tspan baseline-shift="sub" font-size="9">K</tspan> W<tspan baseline-shift="sub" font-size="9">V</tspan></text>
+    <text class="muted" x="560" y="252" text-anchor="middle" font-size="11.5">napr. sleduje</text>
+    <text class="muted" x="560" y="270" text-anchor="middle" font-size="11.5">blízke slová</text>
+  </g>
+  <g>
+    <rect class="head" x="670" y="180" width="180" height="110" rx="10"/>
+    <text class="headt" x="760" y="206" text-anchor="middle">Hlava h …</text>
+    <text class="txt" x="760" y="228" text-anchor="middle" font-size="12">vlastné W<tspan baseline-shift="sub" font-size="9">Q</tspan> W<tspan baseline-shift="sub" font-size="9">K</tspan> W<tspan baseline-shift="sub" font-size="9">V</tspan></text>
+    <text class="muted" x="760" y="252" text-anchor="middle" font-size="11.5">napr. sleduje</text>
+    <text class="muted" x="760" y="270" text-anchor="middle" font-size="11.5">tému / kontext</text>
+  </g>
+
+  <text class="muted" x="440" y="315" text-anchor="middle" font-size="12">každá hlava spraví vlastnú self-attention (viď predchádzajúci obrázok) nezávisle</text>
+
+  <!-- to concat -->
+  <path class="arr" d="M160,290 L360,345" marker-end="url(#a)"/>
+  <path class="arr" d="M360,290 L420,345" marker-end="url(#a)"/>
+  <path class="arr" d="M560,290 L480,345" marker-end="url(#a)"/>
+  <path class="arr" d="M760,290 L540,345" marker-end="url(#a)"/>
+
+  <!-- concat -->
+  <rect class="concat" x="300" y="350" width="280" height="46" rx="8"/>
+  <text class="concatt" x="440" y="378" text-anchor="middle">Concat — spoj výstupy všetkých hláv</text>
+
+  <path class="arr" d="M440,396 L440,428" marker-end="url(#a)"/>
+
+  <!-- output linear -->
+  <rect class="out" x="300" y="432" width="280" height="46" rx="8"/>
+  <text class="outt" x="440" y="460" text-anchor="middle">Lineárna vrstva W<tspan baseline-shift="sub" font-size="10">O</tspan> → výstup</text>
+
+  <text class="muted" x="440" y="512" text-anchor="middle" font-size="12.5">Pozor: viac hláv NEZVYŠUJE výpočet — každá hlava pracuje s menším rozmerom (d/h), takže spolu to</text>
+  <text class="muted" x="440" y="532" text-anchor="middle" font-size="12.5">stojí zhruba to isté ako jedna veľká attention, ale model získa bohatšiu reprezentáciu.</text>
+
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+</svg>

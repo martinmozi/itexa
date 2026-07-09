@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" font-size="15">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .cell{ fill:#eff6ff; stroke:#93c5fd; stroke-width:1.5; }
+    .cellt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .win{ fill:none; stroke:#d97706; stroke-width:3.5; }
+    .kern{ fill:#fef3c7; stroke:#d97706; stroke-width:1.8; }
+    .kernt{ fill:#92400e; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .out{ fill:#dcfce7; stroke:#059669; stroke-width:1.8; }
+    .outhl{ fill:#86efac; stroke:#059669; stroke-width:3; }
+    .outt{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .arr{ stroke:#6b7280; stroke-width:2.5; fill:none; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .cell{ fill:#16233b; stroke:#3b6091; } .cellt{ fill:#cbd5e1; }
+      .kern{ fill:#3a2a0d; stroke:#fbbf24; } .kernt{ fill:#fbbf24; }
+      .out{ fill:#0f2e1e; stroke:#34d399; } .outhl{ fill:#1a5238; stroke:#34d399; } .outt{ fill:#6ee7b7; }
+      .win{ stroke:#fbbf24; } .arr{ stroke:#9ca3af; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="520" rx="10"/>
+
+  <!-- INPUT 5x5 -->
+  <text class="muted" x="150" y="40" text-anchor="middle" font-size="15">Vstup (5×5 pixelov)</text>
+  <g font-size="15" text-anchor="middle">
+    <!-- row/col cells, value grid -->
+    <!-- We'll render 5x5 with values -->
+    <!-- coordinates: x0=40, y0=60, cell 46 -->
+    <!-- Row 0 -->
+    <rect class="cell" x="40"  y="60" width="46" height="46"/><text class="cellt" x="63"  y="90">1</text>
+    <rect class="cell" x="86"  y="60" width="46" height="46"/><text class="cellt" x="109" y="90">1</text>
+    <rect class="cell" x="132" y="60" width="46" height="46"/><text class="cellt" x="155" y="90">1</text>
+    <rect class="cell" x="178" y="60" width="46" height="46"/><text class="cellt" x="201" y="90">0</text>
+    <rect class="cell" x="224" y="60" width="46" height="46"/><text class="cellt" x="247" y="90">0</text>
+    <!-- Row 1 -->
+    <rect class="cell" x="40"  y="106" width="46" height="46"/><text class="cellt" x="63"  y="136">0</text>
+    <rect class="cell" x="86"  y="106" width="46" height="46"/><text class="cellt" x="109" y="136">1</text>
+    <rect class="cell" x="132" y="106" width="46" height="46"/><text class="cellt" x="155" y="136">1</text>
+    <rect class="cell" x="178" y="106" width="46" height="46"/><text class="cellt" x="201" y="136">1</text>
+    <rect class="cell" x="224" y="106" width="46" height="46"/><text class="cellt" x="247" y="136">0</text>
+    <!-- Row 2 -->
+    <rect class="cell" x="40"  y="152" width="46" height="46"/><text class="cellt" x="63"  y="182">0</text>
+    <rect class="cell" x="86"  y="152" width="46" height="46"/><text class="cellt" x="109" y="182">0</text>
+    <rect class="cell" x="132" y="152" width="46" height="46"/><text class="cellt" x="155" y="182">1</text>
+    <rect class="cell" x="178" y="152" width="46" height="46"/><text class="cellt" x="201" y="182">1</text>
+    <rect class="cell" x="224" y="152" width="46" height="46"/><text class="cellt" x="247" y="182">1</text>
+    <!-- Row 3 -->
+    <rect class="cell" x="40"  y="198" width="46" height="46"/><text class="cellt" x="63"  y="228">0</text>
+    <rect class="cell" x="86"  y="198" width="46" height="46"/><text class="cellt" x="109" y="228">0</text>
+    <rect class="cell" x="132" y="198" width="46" height="46"/><text class="cellt" x="155" y="228">1</text>
+    <rect class="cell" x="178" y="198" width="46" height="46"/><text class="cellt" x="201" y="228">1</text>
+    <rect class="cell" x="224" y="198" width="46" height="46"/><text class="cellt" x="247" y="228">0</text>
+    <!-- Row 4 -->
+    <rect class="cell" x="40"  y="244" width="46" height="46"/><text class="cellt" x="63"  y="274">0</text>
+    <rect class="cell" x="86"  y="244" width="46" height="46"/><text class="cellt" x="109" y="274">1</text>
+    <rect class="cell" x="132" y="244" width="46" height="46"/><text class="cellt" x="155" y="274">1</text>
+    <rect class="cell" x="178" y="244" width="46" height="46"/><text class="cellt" x="201" y="274">0</text>
+    <rect class="cell" x="224" y="244" width="46" height="46"/><text class="cellt" x="247" y="274">0</text>
+  </g>
+  <!-- sliding window over top-left 3x3 -->
+  <rect class="win" x="40" y="60" width="138" height="138" rx="3"/>
+
+  <!-- KERNEL 3x3 -->
+  <text class="muted" x="400" y="40" text-anchor="middle" font-size="15">Filter / jadro (3×3)</text>
+  <g font-size="15" text-anchor="middle">
+    <rect class="kern" x="333" y="72" width="46" height="46"/><text class="kernt" x="356" y="102">1</text>
+    <rect class="kern" x="379" y="72" width="46" height="46"/><text class="kernt" x="402" y="102">0</text>
+    <rect class="kern" x="425" y="72" width="46" height="46"/><text class="kernt" x="448" y="102">1</text>
+    <rect class="kern" x="333" y="118" width="46" height="46"/><text class="kernt" x="356" y="148">0</text>
+    <rect class="kern" x="379" y="118" width="46" height="46"/><text class="kernt" x="402" y="148">1</text>
+    <rect class="kern" x="425" y="118" width="46" height="46"/><text class="kernt" x="448" y="148">0</text>
+    <rect class="kern" x="333" y="164" width="46" height="46"/><text class="kernt" x="356" y="194">1</text>
+    <rect class="kern" x="379" y="164" width="46" height="46"/><text class="kernt" x="402" y="194">0</text>
+    <rect class="kern" x="425" y="164" width="46" height="46"/><text class="kernt" x="448" y="194">1</text>
+  </g>
+  <text class="muted" x="402" y="238" text-anchor="middle" font-size="13">naučené váhy (rovnaké</text>
+  <text class="muted" x="402" y="256" text-anchor="middle" font-size="13">pre celý obrázok!)</text>
+
+  <!-- operation -->
+  <text class="txt" x="620" y="90" font-size="14">okno ⊙ jadro,</text>
+  <text class="txt" x="620" y="112" font-size="14">potom súčet:</text>
+  <text class="kernt" x="620" y="146" font-size="14">1·1+1·0+1·1</text>
+  <text class="kernt" x="620" y="168" font-size="14">+0·0+1·1+1·0</text>
+  <text class="kernt" x="620" y="190" font-size="14">+0·1+0·0+1·1 = 4</text>
+  <path class="arr" d="M505,140 L600,140" marker-end="url(#ar)"/>
+
+  <!-- OUTPUT feature map 3x3 -->
+  <text class="muted" x="720" y="270" text-anchor="middle" font-size="15">Mapa príznakov (3×3)</text>
+  <g font-size="15" text-anchor="middle">
+    <rect class="outhl" x="640" y="290" width="52" height="52"/><text class="outt" x="666" y="323">4</text>
+    <rect class="out" x="692" y="290" width="52" height="52"/><text class="outt" x="718" y="323">3</text>
+    <rect class="out" x="744" y="290" width="52" height="52"/><text class="outt" x="770" y="323">4</text>
+    <rect class="out" x="640" y="342" width="52" height="52"/><text class="outt" x="666" y="375">2</text>
+    <rect class="out" x="692" y="342" width="52" height="52"/><text class="outt" x="718" y="375">4</text>
+    <rect class="out" x="744" y="342" width="52" height="52"/><text class="outt" x="770" y="375">3</text>
+    <rect class="out" x="640" y="394" width="52" height="52"/><text class="outt" x="666" y="427">2</text>
+    <rect class="out" x="692" y="394" width="52" height="52"/><text class="outt" x="718" y="427">3</text>
+    <rect class="out" x="744" y="394" width="52" height="52"/><text class="outt" x="770" y="427">4</text>
+  </g>
+  <path class="arr" d="M620,200 C620,300 634,312 640,314" marker-end="url(#ar)"/>
+
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <text class="muted" x="270" y="330" font-size="13.5">Okno kĺže po obrázku (krok = stride).</text>
+  <text class="muted" x="270" y="352" font-size="13.5">Pre každú pozíciu spočíta jedno číslo</text>
+  <text class="muted" x="270" y="374" font-size="13.5">→ vznikne mapa príznakov. Ten istý</text>
+  <text class="muted" x="270" y="396" font-size="13.5">filter zdieľa váhy → detektor hrán,</text>
+  <text class="muted" x="270" y="418" font-size="13.5">rohov, textúr… nezávisle od polohy.</text>
+</svg>

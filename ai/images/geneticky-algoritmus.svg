@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" font-size="15">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .step{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2.5; }
+    .stept{ fill:#1e3a8a; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .init{ fill:#dcfce7; stroke:#059669; stroke-width:2.5; }
+    .initt{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .done{ fill:#fef3c7; stroke:#d97706; stroke-width:2.5; }
+    .donet{ fill:#92400e; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .arr{ stroke:#3b82f6; stroke-width:2.6; fill:none; }
+    .gene{ font-family:'Courier New',monospace; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .step{ fill:#16233b; stroke:#60a5fa; } .stept{ fill:#bfdbfe; }
+      .init{ fill:#0f2e1e; stroke:#34d399; } .initt{ fill:#6ee7b7; }
+      .done{ fill:#3a2a0d; stroke:#fbbf24; } .donet{ fill:#fbbf24; }
+      .arr{ stroke:#60a5fa; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="520" rx="10"/>
+  <text class="muted" x="440" y="34" text-anchor="middle" font-size="15">Genetický algoritmus — optimalizácia inšpirovaná prirodzeným výberom</text>
+
+  <!-- init -->
+  <rect class="init" x="330" y="60" width="220" height="56" rx="12"/>
+  <text class="initt" x="440" y="86" text-anchor="middle">1. Počiatočná populácia</text>
+  <text class="initt" x="440" y="106" text-anchor="middle" font-size="13">náhodné riešenia (jedince)</text>
+
+  <!-- cycle: fitness (right), selection, crossover, mutation (left) -->
+  <!-- fitness -->
+  <rect class="step" x="620" y="160" width="210" height="70" rx="12"/>
+  <text class="stept" x="725" y="188" text-anchor="middle">2. Fitness</text>
+  <text class="txt" x="725" y="208" text-anchor="middle" font-size="13">ohodnoť, ako dobré</text>
+  <text class="txt" x="725" y="224" text-anchor="middle" font-size="13">je každé riešenie</text>
+
+  <!-- selection -->
+  <rect class="step" x="620" y="270" width="210" height="70" rx="12"/>
+  <text class="stept" x="725" y="298" text-anchor="middle">3. Selekcia</text>
+  <text class="txt" x="725" y="318" text-anchor="middle" font-size="13">vyber najlepších</text>
+  <text class="txt" x="725" y="334" text-anchor="middle" font-size="13">rodičov</text>
+
+  <!-- crossover -->
+  <rect class="step" x="330" y="270" width="210" height="70" rx="12"/>
+  <text class="stept" x="435" y="298" text-anchor="middle">4. Kríženie</text>
+  <text class="txt" x="435" y="318" text-anchor="middle" font-size="13">skombinuj gény</text>
+  <text class="txt" x="435" y="334" text-anchor="middle" font-size="13">dvoch rodičov</text>
+
+  <!-- mutation -->
+  <rect class="step" x="50" y="270" width="210" height="70" rx="12"/>
+  <text class="stept" x="155" y="298" text-anchor="middle">5. Mutácia</text>
+  <text class="txt" x="155" y="318" text-anchor="middle" font-size="13">náhodne zmeň</text>
+  <text class="txt" x="155" y="334" text-anchor="middle" font-size="13">malú časť génov</text>
+
+  <!-- new generation -->
+  <rect class="step" x="50" y="160" width="210" height="70" rx="12"/>
+  <text class="stept" x="155" y="188" text-anchor="middle">6. Nová generácia</text>
+  <text class="txt" x="155" y="212" text-anchor="middle" font-size="13">potomkovia → späť na 2</text>
+
+  <!-- termination -->
+  <rect class="done" x="330" y="410" width="220" height="60" rx="12"/>
+  <text class="donet" x="440" y="436" text-anchor="middle">Ukončenie</text>
+  <text class="donet" x="440" y="456" text-anchor="middle" font-size="13">dosť dobré riešenie / N generácií</text>
+
+  <!-- arrows -->
+  <path class="arr" d="M550,100 C640,110 700,130 720,158" marker-end="url(#g)"/>
+  <path class="arr" d="M725,230 L725,268" marker-end="url(#g)"/>
+  <path class="arr" d="M620,305 L542,305" marker-end="url(#g)"/>
+  <path class="arr" d="M330,305 L262,305" marker-end="url(#g)"/>
+  <path class="arr" d="M155,270 L155,232" marker-end="url(#g)"/>
+  <path class="arr" d="M260,190 C330,175 300,120 330,100" marker-end="url(#g)"/>
+  <path class="arr" d="M725,340 C725,390 560,430 552,435" marker-end="url(#g)" stroke-dasharray="5 5"/>
+  <text class="muted" x="640" y="405" font-size="12">keď je splnená podmienka →</text>
+
+  <!-- gene illustration -->
+  <text class="gene muted" x="440" y="365" text-anchor="middle" font-size="12.5">rodič A: 1011|0110   rodič B: 0110|1101   →  potomok: 1011|1101  →  mutácia: 1011|11<tspan fill="#dc2626">0</tspan>1</text>
+
+  <defs>
+    <marker id="g" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+</svg>

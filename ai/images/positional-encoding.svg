@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 500" font-size="14">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .emb{ fill:#dcfce7; stroke:#059669; stroke-width:2; }
+    .embt{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .pos{ fill:#ede9fe; stroke:#7c3aed; stroke-width:2; }
+    .post{ fill:#5b21b6; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .sum{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2; }
+    .sumt{ fill:#1e3a8a; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .w1{ stroke:#dc2626; stroke-width:2.2; fill:none; }
+    .w2{ stroke:#d97706; stroke-width:2.2; fill:none; }
+    .w3{ stroke:#059669; stroke-width:2.2; fill:none; }
+    .w4{ stroke:#7c3aed; stroke-width:2.2; fill:none; }
+    .arr{ stroke:#6b7280; stroke-width:2; fill:none; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .emb{ fill:#0f2e1e; stroke:#34d399; } .embt{ fill:#6ee7b7; }
+      .pos{ fill:#231447; stroke:#a78bfa; } .post{ fill:#c4b5fd; }
+      .sum{ fill:#16233b; stroke:#60a5fa; } .sumt{ fill:#93c5fd; }
+      .w1{ stroke:#f87171; } .w2{ stroke:#fbbf24; } .w3{ stroke:#34d399; } .w4{ stroke:#a78bfa; }
+      .arr{ stroke:#9ca3af; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="500" rx="10"/>
+  <text class="txt" x="440" y="32" text-anchor="middle" font-size="17" font-weight="700">Positional Encoding: ako dostať do modelu poradie slov</text>
+  <text class="muted" x="440" y="54" text-anchor="middle" font-size="12.5">Attention sama o sebe poradie nevníma („Pes hrýzol muža" = „Muža hrýzol pes"). Preto ku každému tokenu pripočítame vektor jeho pozície.</text>
+
+  <!-- left: embeddings -->
+  <text class="embt" x="120" y="92" text-anchor="middle" font-size="13">Embedding slova</text>
+  <text class="muted" x="120" y="108" text-anchor="middle" font-size="11">(význam, bez poradia)</text>
+  <rect class="emb" x="60" y="120" width="120" height="30" rx="5"/><text class="embt" x="120" y="140" text-anchor="middle" font-size="12">„Zajtra"</text>
+  <rect class="emb" x="60" y="160" width="120" height="30" rx="5"/><text class="embt" x="120" y="180" text-anchor="middle" font-size="12">„bude"</text>
+  <rect class="emb" x="60" y="200" width="120" height="30" rx="5"/><text class="embt" x="120" y="220" text-anchor="middle" font-size="12">„pekne"</text>
+
+  <!-- plus -->
+  <text class="txt" x="210" y="180" text-anchor="middle" font-size="26" font-weight="700">+</text>
+
+  <!-- middle: positional vectors -->
+  <text class="post" x="330" y="92" text-anchor="middle" font-size="13">Vektor pozície</text>
+  <text class="muted" x="330" y="108" text-anchor="middle" font-size="11">(0, 1, 2, …)</text>
+  <rect class="pos" x="250" y="120" width="160" height="30" rx="5"/><text class="post" x="330" y="140" text-anchor="middle" font-size="12">PE(poz=0)</text>
+  <rect class="pos" x="250" y="160" width="160" height="30" rx="5"/><text class="post" x="330" y="180" text-anchor="middle" font-size="12">PE(poz=1)</text>
+  <rect class="pos" x="250" y="200" width="160" height="30" rx="5"/><text class="post" x="330" y="220" text-anchor="middle" font-size="12">PE(poz=2)</text>
+
+  <!-- equals -->
+  <text class="txt" x="440" y="180" text-anchor="middle" font-size="26" font-weight="700">=</text>
+
+  <!-- right: sum -->
+  <text class="sumt" x="560" y="92" text-anchor="middle" font-size="13">Vstup do transformera</text>
+  <text class="muted" x="560" y="108" text-anchor="middle" font-size="11">(význam + poloha)</text>
+  <rect class="sum" x="480" y="120" width="160" height="30" rx="5"/><text class="sumt" x="560" y="140" text-anchor="middle" font-size="12">„Zajtra" @ 0</text>
+  <rect class="sum" x="480" y="160" width="160" height="30" rx="5"/><text class="sumt" x="560" y="180" text-anchor="middle" font-size="12">„bude" @ 1</text>
+  <rect class="sum" x="480" y="200" width="160" height="30" rx="5"/><text class="sumt" x="560" y="220" text-anchor="middle" font-size="12">„pekne" @ 2</text>
+
+  <path class="arr" d="M640,180 L690,180" marker-end="url(#a)"/>
+  <text class="muted" x="740" y="176" font-size="12">→ attention</text>
+  <text class="muted" x="740" y="192" font-size="12">už vníma poradie</text>
+
+  <!-- bottom: sine/cosine construction -->
+  <text class="txt" x="440" y="290" text-anchor="middle" font-size="14" font-weight="700">Ako vzniká PE: každá dimenzia = sínus/kosínus s inou frekvenciou</text>
+  <rect x="80" y="310" width="720" height="140" rx="8" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <!-- axes -->
+  <line x1="110" y1="380" x2="780" y2="380" class="arr" stroke-width="1.2" opacity="0.5"/>
+  <!-- 4 sine waves of different frequency -->
+  <path class="w1" d="M110,380 Q140,320 170,380 Q200,440 230,380 Q260,320 290,380 Q320,440 350,380 Q380,320 410,380 Q440,440 470,380 Q500,320 530,380 Q560,440 590,380 Q620,320 650,380 Q680,440 710,380 Q740,320 770,380"/>
+  <path class="w2" d="M110,380 Q155,335 200,380 Q245,425 290,380 Q335,335 380,380 Q425,425 470,380 Q515,335 560,380 Q605,425 650,380 Q695,335 740,380 Q762,357 770,368"/>
+  <path class="w3" d="M110,380 Q185,340 260,380 Q335,420 410,380 Q485,340 560,380 Q635,420 710,380 Q745,362 770,372"/>
+  <path class="w4" d="M110,380 Q260,345 410,380 Q560,415 710,380 Q745,372 770,376"/>
+  <text class="w1" x="795" y="345" font-size="11" fill="#dc2626">dim 0</text>
+  <text class="muted" x="440" y="440" text-anchor="middle" font-size="11.5">Nízke dimenzie = vysoká frekvencia (rozlišujú susedné pozície), vysoké dimenzie = nízka frekvencia (rozlišujú vzdialené). Model tak vie určiť relatívnu vzdialenosť medzi tokenmi.</text>
+
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+</svg>

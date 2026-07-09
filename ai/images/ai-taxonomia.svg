@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 580" font-size="17">
+  <style>
+    .bg   { fill: #ffffff; }
+    .txt  { fill: #1f2937; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .muted{ fill: #6b7280; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .b1 { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2.5; }
+    .b2 { fill: #dbeafe; stroke: #2563eb; stroke-width: 2.5; }
+    .b3 { fill: #bfdbfe; stroke: #1d4ed8; stroke-width: 2.5; }
+    .b4 { fill: #93c5fd; stroke: #1e40af; stroke-width: 2.5; }
+    .sym{ fill: #fef3c7; stroke: #d97706; stroke-width: 2.5; }
+    .symt{ fill: #92400e; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    @media (prefers-color-scheme: dark) {
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .b1{ fill:#0f1e33; stroke:#60a5fa; } .b2{ fill:#132844; stroke:#60a5fa; }
+      .b3{ fill:#17325a; stroke:#93c5fd; } .b4{ fill:#1d3f70; stroke:#bfdbfe; }
+      .sym{ fill:#3a2a0d; stroke:#fbbf24; } .symt{ fill:#fbbf24; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="580" rx="10"/>
+
+  <!-- AI -->
+  <rect class="b1" x="30" y="30" width="820" height="520" rx="14"/>
+  <text class="txt" x="50" y="62" font-size="20" font-weight="700">Umelá inteligencia (AI)</text>
+  <text class="muted" x="50" y="86" font-size="14">systémy, ktoré riešia úlohy vyžadujúce „inteligenciu"</text>
+
+  <!-- symbolic AI branch -->
+  <rect class="sym" x="50" y="110" width="230" height="410" rx="12"/>
+  <text class="symt" x="70" y="140" font-size="17" font-weight="700">Symbolická AI</text>
+  <text class="symt" x="70" y="166" font-size="14">pravidlá „ak–tak"</text>
+  <text class="symt" x="70" y="190" font-size="14">expertné systémy</text>
+  <text class="symt" x="70" y="214" font-size="14">logika, plánovanie</text>
+  <text class="symt" x="70" y="238" font-size="14">prehľadávanie stavov</text>
+  <text class="symt" x="70" y="270" font-size="13" font-style="italic">poznatky vloží človek</text>
+
+  <!-- ML -->
+  <rect class="b2" x="310" y="110" width="510" height="410" rx="12"/>
+  <text class="txt" x="330" y="140" font-size="18" font-weight="700">Strojové učenie (ML)</text>
+  <text class="muted" x="330" y="162" font-size="13">vzory sa naučia z dát, nie sú naprogramované</text>
+
+  <!-- classical ML box -->
+  <rect class="sym" x="330" y="180" width="215" height="320" rx="10"/>
+  <text class="symt" x="348" y="208" font-size="15" font-weight="700">Klasické ML</text>
+  <text class="symt" x="348" y="234" font-size="13.5">rozhodovacie stromy</text>
+  <text class="symt" x="348" y="258" font-size="13.5">random forest</text>
+  <text class="symt" x="348" y="282" font-size="13.5">XGBoost (boosting)</text>
+  <text class="symt" x="348" y="306" font-size="13.5">SVM, kNN</text>
+  <text class="symt" x="348" y="330" font-size="13.5">lineárna regresia</text>
+  <text class="symt" x="348" y="354" font-size="13.5">k-means</text>
+  <text class="symt" x="348" y="392" font-size="12.5" font-style="italic">skvelé na tabuľkové dáta</text>
+
+  <!-- NN -->
+  <rect class="b3" x="565" y="180" width="235" height="320" rx="10"/>
+  <text class="txt" x="583" y="208" font-size="15" font-weight="700">Neurónové siete</text>
+
+  <!-- Deep learning -->
+  <rect class="b4" x="583" y="228" width="200" height="255" rx="10"/>
+  <text class="txt" x="599" y="254" font-size="14" font-weight="700">Hlboké učenie</text>
+  <text class="txt" x="599" y="278" font-size="13">feed-forward (MLP)</text>
+  <text class="txt" x="599" y="302" font-size="13">konvolučné (CNN)</text>
+  <text class="txt" x="599" y="326" font-size="13">rekurentné (RNN)</text>
+  <text class="txt" x="599" y="350" font-size="13">transformery</text>
+  <text class="txt" x="599" y="374" font-size="13">difúzne modely</text>
+  <text class="txt" x="599" y="398" font-size="13">GAN</text>
+  <text class="txt" x="599" y="440" font-size="12" font-style="italic">obraz, reč, jazyk,</text>
+  <text class="txt" x="599" y="458" font-size="12" font-style="italic">generatívne modely (LLM)</text>
+
+  <text class="muted" x="440" y="540" text-anchor="middle" font-size="13">Vnorené rámčeky = podmnožina. Genetické algoritmy stoja bokom (optimalizácia inšpirovaná evolúciou).</text>
+</svg>

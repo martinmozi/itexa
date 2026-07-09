@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" font-size="15">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .node{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2.5; }
+    .leafA{ fill:#dcfce7; stroke:#059669; stroke-width:2.5; }
+    .leafB{ fill:#fee2e2; stroke:#dc2626; stroke-width:2.5; }
+    .leafAt{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .leafBt{ fill:#991b1b; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .edge{ stroke:#94a3b8; stroke-width:2; fill:none; }
+    .yes{ fill:#059669; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .no{ fill:#dc2626; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .node{ fill:#16233b; stroke:#60a5fa; }
+      .leafA{ fill:#0f2e1e; stroke:#34d399; } .leafB{ fill:#3a1414; stroke:#f87171; }
+      .leafAt{ fill:#6ee7b7; } .leafBt{ fill:#fca5a5; }
+      .edge{ stroke:#475569; } .yes{ fill:#34d399; } .no{ fill:#f87171; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="520" rx="10"/>
+  <text class="muted" x="440" y="34" text-anchor="middle" font-size="15">Príklad: schválime úver? (tabuľkové dáta)</text>
+
+  <!-- edges -->
+  <path class="edge" d="M440,110 L220,190"/>
+  <path class="edge" d="M440,110 L660,190"/>
+  <path class="edge" d="M220,250 L120,330"/>
+  <path class="edge" d="M220,250 L340,330"/>
+  <path class="edge" d="M660,250 L560,330"/>
+  <path class="edge" d="M660,250 L780,330"/>
+
+  <text class="yes" x="300" y="150">áno</text>
+  <text class="no"  x="560" y="150">nie</text>
+  <text class="yes" x="150" y="300">áno</text>
+  <text class="no"  x="300" y="300">nie</text>
+  <text class="yes" x="590" y="300">áno</text>
+  <text class="no"  x="740" y="300">nie</text>
+
+  <!-- root -->
+  <rect class="node" x="330" y="80" width="220" height="60" rx="10"/>
+  <text class="txt" x="440" y="106" text-anchor="middle">Príjem &gt; 1500 €?</text>
+  <text class="muted" x="440" y="126" text-anchor="middle" font-size="12">koreň — najlepší split</text>
+
+  <!-- level 2 -->
+  <rect class="node" x="115" y="190" width="210" height="60" rx="10"/>
+  <text class="txt" x="220" y="216" text-anchor="middle">Vek &gt; 25 ?</text>
+  <text class="muted" x="220" y="236" text-anchor="middle" font-size="12">vnútorný uzol</text>
+
+  <rect class="node" x="555" y="190" width="210" height="60" rx="10"/>
+  <text class="txt" x="660" y="216" text-anchor="middle">Má ručiteľa?</text>
+  <text class="muted" x="660" y="236" text-anchor="middle" font-size="12">vnútorný uzol</text>
+
+  <!-- leaves -->
+  <rect class="leafA" x="45" y="330" width="150" height="56" rx="10"/>
+  <text class="leafAt" x="120" y="363" text-anchor="middle">Schváliť ✓</text>
+  <rect class="leafB" x="265" y="330" width="150" height="56" rx="10"/>
+  <text class="leafBt" x="340" y="363" text-anchor="middle">Zamietnuť ✗</text>
+  <rect class="leafA" x="485" y="330" width="150" height="56" rx="10"/>
+  <text class="leafAt" x="560" y="363" text-anchor="middle">Schváliť ✓</text>
+  <rect class="leafB" x="705" y="330" width="150" height="56" rx="10"/>
+  <text class="leafBt" x="780" y="363" text-anchor="middle">Zamietnuť ✗</text>
+
+  <text class="muted" x="440" y="440" text-anchor="middle" font-size="13.5">Každý uzol delí dáta podľa jednej otázky. Listy = predpoveď. Strom sa učí tak,</text>
+  <text class="muted" x="440" y="462" text-anchor="middle" font-size="13.5">že v každom uzle vyberie split, ktorý najviac „vyčistí" skupiny (Gini / entropia).</text>
+</svg>

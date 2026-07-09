@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" font-size="14">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .tok{ fill:#dcfce7; stroke:#059669; stroke-width:2; }
+    .tokt{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .q{ fill:#fee2e2; stroke:#dc2626; stroke-width:2; }
+    .qt{ fill:#991b1b; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .k{ fill:#fef3c7; stroke:#d97706; stroke-width:2; }
+    .kt{ fill:#92400e; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .v{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2; }
+    .vt{ fill:#1e3a8a; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .op{ fill:#ede9fe; stroke:#7c3aed; stroke-width:2; }
+    .opt{ fill:#5b21b6; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .arr{ stroke:#6b7280; stroke-width:1.8; fill:none; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .tok{ fill:#0f2e1e; stroke:#34d399; } .tokt{ fill:#6ee7b7; }
+      .q{ fill:#3a1414; stroke:#f87171; } .qt{ fill:#fca5a5; }
+      .k{ fill:#3a2a0d; stroke:#fbbf24; } .kt{ fill:#fbbf24; }
+      .v{ fill:#16233b; stroke:#60a5fa; } .vt{ fill:#93c5fd; }
+      .op{ fill:#231447; stroke:#a78bfa; } .opt{ fill:#c4b5fd; }
+      .arr{ stroke:#9ca3af; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="900" height="640" rx="10"/>
+  <text class="txt" x="450" y="32" text-anchor="middle" font-size="17" font-weight="700">Self-Attention: každý token sa „pýta" všetkých ostatných</text>
+  <text class="muted" x="450" y="54" text-anchor="middle" font-size="13">Príklad: pri spracovaní slova „to" chceme zistiť, na čo sa vzťahuje</text>
+
+  <!-- tokens -->
+  <text class="muted" x="70" y="98" font-size="12">tokeny →</text>
+  <rect class="tok" x="150" y="80" width="90" height="34" rx="6"/><text class="tokt" x="195" y="102" text-anchor="middle">Mačka</text>
+  <rect class="tok" x="260" y="80" width="90" height="34" rx="6"/><text class="tokt" x="305" y="102" text-anchor="middle">videla</text>
+  <rect class="tok" x="370" y="80" width="90" height="34" rx="6"/><text class="tokt" x="415" y="102" text-anchor="middle">rybu</text>
+  <rect class="tok" x="480" y="80" width="90" height="34" rx="6" stroke-width="3.5"/><text class="tokt" x="525" y="102" text-anchor="middle">a zjedla</text>
+  <rect class="tok" x="590" y="80" width="90" height="34" rx="6"/><text class="tokt" x="635" y="102" text-anchor="middle">ju</text>
+
+  <!-- projections -->
+  <text class="muted" x="450" y="150" text-anchor="middle" font-size="13">každý token sa 3× premietne naučenými maticami W<tspan baseline-shift="sub" font-size="10">Q</tspan>, W<tspan baseline-shift="sub" font-size="10">K</tspan>, W<tspan baseline-shift="sub" font-size="10">V</tspan></text>
+
+  <rect class="q" x="120" y="170" width="150" height="40" rx="6"/><text class="qt" x="195" y="188" text-anchor="middle">Query (Q)</text><text class="qt" x="195" y="204" text-anchor="middle" font-size="11">„čo hľadám?"</text>
+  <rect class="k" x="375" y="170" width="150" height="40" rx="6"/><text class="kt" x="450" y="188" text-anchor="middle">Key (K)</text><text class="kt" x="450" y="204" text-anchor="middle" font-size="11">„čo ponúkam?"</text>
+  <rect class="v" x="630" y="170" width="150" height="40" rx="6"/><text class="vt" x="705" y="188" text-anchor="middle">Value (V)</text><text class="vt" x="705" y="204" text-anchor="middle" font-size="11">„akú informáciu nesiem?"</text>
+
+  <path class="arr" d="M400,118 C300,140 240,150 210,168" marker-end="url(#a)"/>
+  <path class="arr" d="M420,118 C440,140 448,150 450,168" marker-end="url(#a)"/>
+  <path class="arr" d="M440,118 C560,140 660,150 700,168" marker-end="url(#a)"/>
+
+  <!-- step 1: scores -->
+  <rect class="op" x="120" y="250" width="660" height="52" rx="8"/>
+  <text class="opt" x="140" y="272" font-size="14" font-weight="700">1. Skóre podobnosti</text>
+  <text class="txt" x="140" y="292" font-size="13">score(i,j) = Q<tspan baseline-shift="sub" font-size="10">i</tspan> · K<tspan baseline-shift="sub" font-size="10">j</tspan>  — skalárny súčin: ako veľmi query tokenu i „sedí" na key tokenu j</text>
+  <path class="arr" d="M195,210 L400,246" marker-end="url(#a)"/>
+  <path class="arr" d="M450,210 L450,246" marker-end="url(#a)"/>
+
+  <!-- step 2: scale + softmax -->
+  <rect class="op" x="120" y="322" width="660" height="52" rx="8"/>
+  <text class="opt" x="140" y="344" font-size="14" font-weight="700">2. Škálovanie + Softmax</text>
+  <text class="txt" x="140" y="364" font-size="13">α<tspan baseline-shift="sub" font-size="10">ij</tspan> = softmax( score(i,j) / √d<tspan baseline-shift="sub" font-size="10">k</tspan> )  — normuje na váhy 0–1, ktoré v riadku dávajú súčet 1 (√d<tspan baseline-shift="sub" font-size="10">k</tspan> stabilizuje gradienty)</text>
+  <path class="arr" d="M450,302 L450,318" marker-end="url(#a)"/>
+
+  <!-- step 3: weighted sum -->
+  <rect class="op" x="120" y="394" width="660" height="52" rx="8"/>
+  <text class="opt" x="140" y="416" font-size="14" font-weight="700">3. Vážený súčet hodnôt</text>
+  <text class="txt" x="140" y="436" font-size="13">výstup<tspan baseline-shift="sub" font-size="10">i</tspan> = Σ<tspan baseline-shift="sub" font-size="10">j</tspan> α<tspan baseline-shift="sub" font-size="10">ij</tspan> · V<tspan baseline-shift="sub" font-size="10">j</tspan>  — nový vektor tokenu i = zmes hodnôt tých tokenov, na ktoré „dáva pozor"</text>
+  <path class="arr" d="M450,374 L450,390" marker-end="url(#a)"/>
+  <path class="arr" d="M705,210 C760,300 760,360 500,418" marker-end="url(#a)"/>
+
+  <!-- result visualization: attention weights for "ju" -->
+  <text class="txt" x="450" y="490" text-anchor="middle" font-size="14" font-weight="700">Výsledok — na čo sa pozerá „ju":</text>
+  <g font-size="13" text-anchor="middle">
+    <rect x="150" y="505" width="90" height="30" rx="5" fill="#3b82f6" opacity="0.18"/><text class="txt" x="195" y="525">Mačka</text><text class="muted" x="195" y="552" font-size="12">0.05</text>
+    <rect x="260" y="505" width="90" height="30" rx="5" fill="#3b82f6" opacity="0.10"/><text class="txt" x="305" y="525">videla</text><text class="muted" x="305" y="552" font-size="12">0.03</text>
+    <rect x="370" y="505" width="90" height="30" rx="5" fill="#3b82f6" opacity="0.80"/><text class="txt" x="415" y="525">rybu</text><text class="muted" x="415" y="552" font-size="12">0.78</text>
+    <rect x="480" y="505" width="90" height="30" rx="5" fill="#3b82f6" opacity="0.12"/><text class="txt" x="525" y="525">a zjedla</text><text class="muted" x="525" y="552" font-size="12">0.06</text>
+    <rect x="590" y="505" width="90" height="30" rx="5" fill="#3b82f6" opacity="0.14"/><text class="txt" x="635" y="525">ju</text><text class="muted" x="635" y="552" font-size="12">0.08</text>
+  </g>
+  <text class="muted" x="450" y="590" text-anchor="middle" font-size="13">Najväčšiu váhu (0.78) dostane „rybu" → model sa naučil, že zámeno „ju" odkazuje na rybu.</text>
+  <text class="muted" x="450" y="612" text-anchor="middle" font-size="12.5">Toto sa deje pre KAŽDÝ token naraz a paralelne — v tom je sila transformera oproti RNN, ktorá musí ísť postupne.</text>
+
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+</svg>

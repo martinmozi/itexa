@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" font-size="14">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .tree{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2.2; }
+    .agg{ fill:#dcfce7; stroke:#059669; stroke-width:2.5; }
+    .aggt{ fill:#065f46; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .res{ fill:#fef3c7; stroke:#d97706; stroke-width:2.2; }
+    .rest{ fill:#92400e; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .edge{ stroke:#94a3b8; stroke-width:2; fill:none; }
+    .arr{ stroke:#d97706; stroke-width:2.5; fill:none; }
+    .leaf{ stroke:#3b82f6; stroke-width:1.6; fill:none; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; }
+      .tree{ fill:#16233b; stroke:#60a5fa; } .leaf{ stroke:#60a5fa; }
+      .agg{ fill:#0f2e1e; stroke:#34d399; } .aggt{ fill:#6ee7b7; }
+      .res{ fill:#3a2a0d; stroke:#fbbf24; } .rest{ fill:#fbbf24; }
+      .edge{ stroke:#475569; } .arr{ stroke:#fbbf24; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="880" height="560" rx="10"/>
+
+  <!-- divider -->
+  <line x1="440" y1="40" x2="440" y2="520" class="edge" stroke-dasharray="6 6"/>
+
+  <!-- ===== LEFT: Random Forest (bagging) ===== -->
+  <text class="txt" x="210" y="40" text-anchor="middle" font-size="18" font-weight="700">Random Forest — bagging</text>
+  <text class="muted" x="210" y="62" text-anchor="middle" font-size="13">stromy sa učia NEZÁVISLE, paralelne</text>
+
+  <!-- 3 independent trees -->
+  <g>
+    <rect class="tree" x="40" y="90" width="100" height="120" rx="8"/>
+    <line class="leaf" x1="90" y1="105" x2="65" y2="140"/>
+    <line class="leaf" x1="90" y1="105" x2="115" y2="140"/>
+    <line class="leaf" x1="65" y1="140" x2="52" y2="175"/>
+    <line class="leaf" x1="65" y1="140" x2="78" y2="175"/>
+    <line class="leaf" x1="115" y1="140" x2="102" y2="175"/>
+    <line class="leaf" x1="115" y1="140" x2="128" y2="175"/>
+    <text class="muted" x="90" y="200" text-anchor="middle" font-size="12">strom 1</text>
+  </g>
+  <g>
+    <rect class="tree" x="160" y="90" width="100" height="120" rx="8"/>
+    <line class="leaf" x1="210" y1="105" x2="185" y2="140"/>
+    <line class="leaf" x1="210" y1="105" x2="235" y2="140"/>
+    <line class="leaf" x1="185" y1="140" x2="172" y2="175"/>
+    <line class="leaf" x1="185" y1="140" x2="198" y2="175"/>
+    <line class="leaf" x1="235" y1="140" x2="248" y2="175"/>
+    <text class="muted" x="210" y="200" text-anchor="middle" font-size="12">strom 2</text>
+  </g>
+  <g>
+    <rect class="tree" x="280" y="90" width="100" height="120" rx="8"/>
+    <line class="leaf" x1="330" y1="105" x2="305" y2="140"/>
+    <line class="leaf" x1="330" y1="105" x2="355" y2="140"/>
+    <line class="leaf" x1="305" y1="140" x2="292" y2="175"/>
+    <line class="leaf" x1="355" y1="140" x2="342" y2="175"/>
+    <line class="leaf" x1="355" y1="140" x2="368" y2="175"/>
+    <text class="muted" x="330" y="200" text-anchor="middle" font-size="12">… strom N</text>
+  </g>
+
+  <path class="edge" d="M90,210 L210,250"/>
+  <path class="edge" d="M210,210 L210,250"/>
+  <path class="edge" d="M330,210 L210,250"/>
+
+  <rect class="agg" x="110" y="250" width="200" height="54" rx="10"/>
+  <text class="aggt" x="210" y="274" text-anchor="middle" font-size="14">priemer / hlasovanie</text>
+  <text class="aggt" x="210" y="294" text-anchor="middle" font-size="13">= finálna predpoveď</text>
+
+  <text class="muted" x="210" y="340" text-anchor="middle" font-size="12.5">každý strom vidí iný náhodný</text>
+  <text class="muted" x="210" y="358" text-anchor="middle" font-size="12.5">podvzorok dát a stĺpcov →</text>
+  <text class="muted" x="210" y="376" text-anchor="middle" font-size="12.5">znižuje rozptyl (variance)</text>
+
+  <!-- ===== RIGHT: Boosting (XGBoost) ===== -->
+  <text class="txt" x="660" y="40" text-anchor="middle" font-size="18" font-weight="700">XGBoost — boosting</text>
+  <text class="muted" x="660" y="62" text-anchor="middle" font-size="13">stromy sa učia POSTUPNE, opravujú chyby</text>
+
+  <rect class="tree" x="480" y="95" width="90" height="70" rx="8"/>
+  <text class="txt" x="525" y="130" text-anchor="middle" font-size="13">strom 1</text>
+  <text class="muted" x="525" y="150" text-anchor="middle" font-size="11">hrubý odhad</text>
+
+  <path class="arr" d="M570,130 L610,130" marker-end="url(#a1)"/>
+  <rect class="res" x="580" y="80" width="0" height="0"/>
+
+  <rect class="tree" x="610" y="95" width="90" height="70" rx="8"/>
+  <text class="txt" x="655" y="130" text-anchor="middle" font-size="13">strom 2</text>
+  <text class="rest" x="655" y="150" text-anchor="middle" font-size="11">na rezíduá</text>
+
+  <path class="arr" d="M700,130 L740,130" marker-end="url(#a1)"/>
+
+  <rect class="tree" x="740" y="95" width="90" height="70" rx="8"/>
+  <text class="txt" x="785" y="130" text-anchor="middle" font-size="13">strom 3…</text>
+  <text class="rest" x="785" y="150" text-anchor="middle" font-size="11">na rezíduá</text>
+
+  <text class="rest" x="605" y="205" text-anchor="middle" font-size="12">rezíduum</text>
+  <text class="rest" x="735" y="205" text-anchor="middle" font-size="12">rezíduum</text>
+  <path class="arr" d="M525,165 C525,220 605,220 605,205" marker-end="url(#a1)"/>
+  <path class="arr" d="M655,165 C655,225 735,225 735,205" marker-end="url(#a1)"/>
+
+  <rect class="agg" x="560" y="250" width="200" height="54" rx="10"/>
+  <text class="aggt" x="660" y="274" text-anchor="middle" font-size="14">súčet všetkých stromov</text>
+  <text class="aggt" x="660" y="294" text-anchor="middle" font-size="13">= finálna predpoveď</text>
+  <path class="edge" d="M660,205 L660,250"/>
+
+  <text class="muted" x="660" y="340" text-anchor="middle" font-size="12.5">každý ďalší strom sa učí</text>
+  <text class="muted" x="660" y="358" text-anchor="middle" font-size="12.5">chyby predchádzajúcich →</text>
+  <text class="muted" x="660" y="376" text-anchor="middle" font-size="12.5">znižuje skreslenie (bias)</text>
+
+  <defs>
+    <marker id="a1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#d97706"/>
+    </marker>
+  </defs>
+
+  <text class="muted" x="440" y="500" text-anchor="middle" font-size="13">Obe metódy skladajú veľa „slabých" stromov do jedného silného modelu — líšia sa len tým, či sa učia naraz alebo postupne.</text>
+</svg>
