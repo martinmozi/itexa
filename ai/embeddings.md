@@ -773,3 +773,24 @@ Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:
 - **Vyhľadávanie** = `N` dot productov + zoradenie (flat index), alebo **ANN** (IVF/HNSW/PQ) pre veľké `N` – rýchlejšie za cenu drobnej straty presnosti; preto sa dočisťuje rerankerom.
 - V RAG bežia **tri modely**: embedding (lacný, bi-encoder), reranker (drahý, cross-encoder, beží `k`× na dotaz), generatívny LLM (samostatná kategória).
 - Výpočet drží **transformer vrstvy** (`O(n²)` attention + maticové násobenia). Embedding zvládne **CPU**, reranker si pýta **GPU**.
+
+---
+
+## Kontrolné otázky
+
+1. Prečo slovo „banka" dostane po prechode transformerom iný vektor vo vete o financiách než vo vete o rieke — v ktorom kroku presne sa to stane?
+2. Zaindexovali ste databázu modelom A a otázky embeddujete modelom B (rovnaká dimenzia výstupu). Prečo vyhľadávanie vráti nezmysly?
+3. Prečo po L2-normalizácii platí `cosine = dot product`? Ukážte na vzorci.
+4. Kolega navrhuje chunky po 5 000 tokenov, „aby sa nič nestratilo". Vysvetlite mu dva problémy, ktoré tým vzniknú.
+5. Prečo sa cross-encoder (reranker) nikdy nepúšťa na celú databázu, ale bi-encoder áno? (Kľúč: čo sa dá predpočítať.)
+6. Otázka „Kedy vzniká nárok na dovolenku?" má odpoveď presne na hranici dvoch chunkov. Ktorý mechanizmus z tohto dokumentu tento problém rieši a ako?
+
+---
+
+### Súvisiace dokumenty
+
+- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [transformer-siete.md](transformer-siete.md) — attention mechanika, ktorá tu beží vo vnútri
+- [llm-trening.md](llm-trening.md) — ako sa trénuje generatívny LLM na konci RAG pipeline
+- [llm-trendy.md](llm-trendy.md) — moderný retrieval (hybrid, small-to-big, agentic RAG)
+- [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — praktické zadanie na RAG

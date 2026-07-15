@@ -162,9 +162,22 @@ Tento „autoregresívny" cyklus — *predpovedz ďalší token, priraď ho, opa
 
 ---
 
+## Kontrolné otázky
+
+1. Vysvetlite roly Query, Key a Value vlastnou analógiou (inou než vyhľadávač). Prečo nestačí jeden vektor na tokena?
+2. Prečo by veta „Pes hrýzol muža" a „Muža hrýzol pes" dali bez positional encodingu identický výstup?
+3. Vo vete „Auto nezastavilo, lebo **mu** zlyhali brzdy" — na ktoré slovo by mala attention hlava dať najväčšiu váhu pri spracovaní „mu" a ako k tomu výpočtovo dôjde (Q·K → softmax → …)?
+4. Prečo decoder pri generovaní používa masku? Čo by sa pokazilo pri tréningu bez nej?
+5. Kontext 10 000 tokenov vs. 1 000 tokenov — koľkokrát viac výpočtu potrebuje attention a prečo?
+6. Prečo je decoder-only model (GPT/Claude štýl) pri generovaní „autoregresívny" a čo to znamená pre rýchlosť generovania dlhých odpovedí?
+
+---
+
 ### Súvisiace dokumenty
 
+- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — kam transformery zapadajú v celej AI (stromy, XGBoost, CNN…)
 - [embeddings.md](embeddings.md) — ako sa z textu stane vektor (vstup do transformera) a RAG
 - [adam-optimalizator.md](adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam)
+- [llm-trening.md](llm-trening.md) — ako sa táto architektúra trénuje na jazyk (pretraining → Instruct)
 - [llm-trendy.md](llm-trendy.md) — aktuálne trendy vo veľkých jazykových modeloch

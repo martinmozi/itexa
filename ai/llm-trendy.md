@@ -1,3 +1,7 @@
+# Aktuálne trendy vo veľkých jazykových modeloch (2025–2026)
+
+> **Cieľ dokumentu:** rýchly prehľad toho, kam sa LLM svet hýbe a čo sa oplatí vedieť — moderný retrieval, agentic RAG a rozhodovanie, kedy má fine-tuning ešte zmysel. Základy, na ktoré tento text nadväzuje: [transformery](transformer-siete.md), [embeddingy a RAG](embeddings.md), [tréning LLM](llm-trening.md); prehľad konkrétnych modelov je v [llm-modely.md](llm-modely.md).
+
 ## 1. Čo je nové/na hrane (2025–2026)
 
 - Reasoning modely ako predvolený "engine" a test-time compute scaling namiesto len scaling parametrov.
@@ -96,4 +100,21 @@ Pri komplexných/multi-hop otázkach a heterogénnych zdrojoch dát.
 
 ---
 
+## Kontrolné otázky
+
+1. Prečo hybrid search (vektor + BM25) prekonáva čisto vektorové vyhľadávanie? Uveďte príklad dotazu, kde zlyhá samotný vektor.
+2. Vysvetlite princíp small-to-big retrievalu: prečo sa vyhľadáva na malých chunkoch, ale do promptu ide väčší text?
+3. Čím sa agentic RAG líši od klasického „retrieve raz → generuj"? Aká je cena za tú flexibilitu?
+4. Model „nepozná fakt X" — prečo to fine-tuning nerieši dobre a čo je správne riešenie?
+5. Vymenujte dve situácie, kedy sa fine-tuning naopak oplatí.
+
+---
+
 *Poznámka: ide o syntézu trendov bez prístupu k živému vyhľadávaniu – pri úplne najnovších zmenách (posledné týždne pred dátumom čítania) odporúčam doplniť aktuálne zdroje.*
+
+### Súvisiace dokumenty
+
+- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [llm-modely.md](llm-modely.md) — prehľad modelov (proprietárne / open-weight / open-source)
+- [llm-trening.md](llm-trening.md) — ako sa LLM trénujú (pretraining → Instruct)
+- [embeddings.md](embeddings.md) — embeddingy a RAG pipeline do detailu

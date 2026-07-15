@@ -374,3 +374,14 @@ Ako si overiť, že je Adam implementovaný dobre:
 Adam = SGD, v ktorom namiesto surového gradientu použijete jeho **vyhladený priemer** (`m`),
 podelený **typickou veľkosťou gradientu** daného parametra (`sqrt(v)`), s **korekciou
 rozbehu** (`m̂`, `v̂`) — čím každý parameter dostane vlastnú adaptívnu rýchlosť učenia.
+
+---
+
+## 10. Kontrolné otázky
+
+1. Ktoré z týchto vecí Adam mení a ktoré nie: forward pass, výpočet loss, backprop, update parametrov?
+2. Čo sa stane, keď `m` a `v` inicializujeme na nuly a bias correction vynecháme? Prečo je efekt najsilnejší v prvých krokoch?
+3. Parameter A má dlhodobo veľké gradienty, parameter B maličké. Ako sa líšia ich efektívne kroky pri SGD a ako pri Adame? Prečo je Adamovo správanie výhodné?
+4. Prečo `t` musí začínať od 1 a nie od 0? Čo presne by sa pokazilo?
+5. Ručne prepočítajte jeden Adam krok pre skalárny parameter: `P = 1.0`, `g = 0.5`, `m = v = 0`, `t = 1`, štandardné hyperparametre. (Očakávaný výsledok: krok ≈ `−lr`, teda `P ≈ 0.999`.)
+6. Loss pri tréningu „vybuchne" do NaN. Vymenujte tri miesta v implementácii Adama, kde budete hľadať chybu ako prvé.

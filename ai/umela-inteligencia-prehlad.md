@@ -194,7 +194,22 @@ Riešenie sa zakóduje ako **„chromozóm"** (napr. reťazec bitov alebo číse
 
 ---
 
+## Kontrolné otázky
+
+Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
+
+1. Vysvetlite vzťah vnorenia AI ⊃ ML ⊃ neurónové siete ⊃ deep learning. Kam patrí XGBoost a kam genetický algoritmus?
+2. Prečo jeden rozhodovací strom ľahko preučí (overfitting) a ako presne tento problém riešia Random Forest a boosting — každý inou cestou?
+3. Banka rieši predikciu nesplácania úverov z tabuľky s 50 stĺpcami. Kolega navrhuje hlbokú neurónovú sieť. Aký model navrhnete vy a ako to obhájite?
+4. Čo by sa stalo, keby mala MLP sieť len lineárne aktivácie (žiadne ReLU/sigmoid)? Prečo by potom nepomáhalo pridávať vrstvy?
+5. Prečo CNN potrebuje rádovo menej parametrov než MLP na ten istý obrázok? (Kľúčové slová: weight sharing, lokálnosť.)
+6. Kedy siahnete po genetickom algoritme namiesto gradientnej optimalizácie? Uveďte konkrétny príklad úlohy.
+
+---
+
 ### Súvisiace dokumenty v repozitári
+
+- [prehlad-predmetu.md](prehlad-predmetu.md) — **prehľad celého predmetu (8 lekcií)** — začnite tu
 
 - [transformer-siete.md](transformer-siete.md) — detailné vysvetlenie transformerov a attention (s obrázkami)
 - [adam-optimalizator.md](adam-optimalizator.md) — ako sa neurónové siete trénujú (backpropagation, Adam)
