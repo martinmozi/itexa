@@ -145,6 +145,7 @@ Fine-tuning ako „Fáza 2 v malom": LoRA/QLoRA — prečo stačia malé adapté
 | Dokument | Obsah | Lekcia |
 |---|---|---|
 | [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) | taxonómia AI, stromy, XGBoost, MLP, CNN, GA | 1–3 |
+| [vyvojove-prostredie.md](vyvojove-prostredie.md) | inštalácia (PyTorch, CUDA/MPS), vLLM, hardvér, cloud | príručka |
 | [adam-optimalizator.md](adam-optimalizator.md) | tréningová slučka, backprop, Adam do detailu | 3 |
 | [transformer-siete.md](transformer-siete.md) | attention, multi-head, positional encoding, generovanie | 4 |
 | [llm-trening.md](llm-trening.md) | pretraining → base → SFT → Instruct | 5 |

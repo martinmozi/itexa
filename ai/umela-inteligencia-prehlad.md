@@ -20,9 +20,13 @@ Historicky sa vyvinuli dva veľké prúdy:
 
 ![Taxonómia umelej inteligencie: AI obsahuje symbolickú AI a strojové učenie; strojové učenie obsahuje klasické metódy a neurónové siete; neurónové siete obsahujú hlboké učenie](images/ai-taxonomia.svg)
 
-Kľúčové je pochopiť **vzťah vnorenia**: hlboké učenie je podmnožinou neurónových sietí, tie sú podmnožinou strojového učenia a to je podmnožinou AI. Bežná chyba je používať „AI" a „neurónové siete" ako synonymá — v skutočnosti je neurónová sieť len jeden (dnes veľmi úspešný) nástroj vo veľkej škatuli AI.
+Kľúčové je pochopiť **vzťah vnorenia**: hlboké učenie je podmnožinou neurónových sietí, tie sú podmnožinou strojového učenia a to je podmnožinou AI. Bežná chyba je používať „AI" a „neurónové siete" ako synonymá — v skutočnosti je neurónová sieť len jeden (dnes veľmi úspešný) nástroj vo veľkej škatuli AI. **Hlboké učenie (deep learning)** pritom nie je samostatná technológia, ale jednoducho neurónové siete s väčším počtom vrstiev; hranica nie je ostrá, no zhruba od dvoch-troch skrytých vrstiev hovoríme o hlbokej sieti. Pojem sa ujal preto, že práve hĺbka — a s ňou schopnosť učiť sa hierarchiu príznakov — stála za prelomovými výsledkami v rozpoznávaní obrazu a reči po roku 2012.
 
-**Genetické algoritmy** stoja trochu bokom: nie sú to klasifikátory ani siete, ale **optimalizačná metóda** inšpirovaná evolúciou. Dajú sa použiť aj na trénovanie/ladenie iných modelov, preto ich spomíname v tomto prehľade samostatne na konci.
+Kde v tejto mape ležia modely z tohto dokumentu:
+
+- **Rozhodovacie stromy, random forest a XGBoost** patria do strojového učenia, ale nie sú to neurónové siete. Hovorí sa im aj „klasické" metódy ML — a ako uvidíme, na tabuľkových dátach klasické neznamená horšie.
+- **Feed-forward siete (MLP) a konvolučné siete (CNN)** sú neurónové siete; ak majú veľa vrstiev, spadajú do hlbokého učenia.
+- **Genetické algoritmy** stoja trochu bokom: nie sú to klasifikátory ani siete, ale **optimalizačná metóda** inšpirovaná evolúciou. Patria do AI (do rodiny evolučných výpočtov), ale nie do strojového učenia v užšom zmysle — nemajú trénovacie dáta, z ktorých by sa učili vzory; hľadajú čo najlepšie riešenie zadaného problému. Dajú sa však použiť aj na ladenie iných modelov, preto ich v prehľade uvádzame samostatne na konci.
 
 ---
 
@@ -54,6 +58,22 @@ Ešte jedno praktické rozdelenie dát, ktoré sa ťahá celým ML:
 
 Toto rozlíšenie je najdôležitejšia intuícia pri výbere modelu, preto sa k nemu budeme vracať pri každej rodine.
 
+### Zovšeobecnenie a preučenie
+
+Cieľom učenia nie je, aby model bezchybne zvládol trénovacie príklady — ich správne odpovede predsa už poznáme. Cieľom je **zovšeobecnenie (generalizácia)**: správne predpovedať aj na dátach, ktoré model počas tréningu nikdy nevidel. Preto sa dostupné dáta pred trénovaním rozdelia: väčšina (typicky okolo 80 %) tvorí **trénovaciu množinu**, na ktorej sa model učí, a zvyšok sa odloží bokom ako **testovacia množina**, na ktorej sa až na záver zmeria, ako model obstojí na neznámych príkladoch. Chyba na testovacej množine je jediný poctivý odhad kvality modelu — chyba na trénovacej množine sa dá „vylepšiť" obyčajným memorovaním.
+
+Pri učení hrozia dva opačné neduhy:
+
+- **Preučenie (overfitting):** model je príliš pružný a naučí sa trénovacie dáta doslova naspamäť — vrátane náhodného šumu a výnimiek, ktoré sa už nikdy nezopakujú. Poznávacie znamenie: na trénovacej množine takmer nulová chyba, na testovacej výrazne horšia. Model si nezapamätal vzor, ale konkrétne príklady.
+- **Nedoučenie (underfitting):** model je naopak príliš jednoduchý na to, aby vzor v dátach vôbec zachytil — chybuje na trénovacej aj testovacej množine. Typický obraz: zjavne zakrivený vzťah sa snažíme preložiť priamkou.
+
+S tým súvisí užitočný rozklad chyby na dve zložky, ktorý budeme potrebovať pri ansámbloch stromov:
+
+- **Skreslenie (bias)** je systematická chyba príliš jednoduchého modelu. Nech ho trénujeme na akejkoľvek vzorke, na skutočný vzor jednoducho „nedosiahne" — vždy sa mýli podobným smerom.
+- **Rozptyl (variance)** je nestálosť príliš pružného modelu. Na každej trénovacej vzorke sa naučí niečo trochu iné; jeho predpovede „lietajú" podľa toho, aké dáta náhodou dostal.
+
+Jednoduché modely mávajú vysoké skreslenie a nízky rozptyl, zložité modely naopak. Umenie strojového učenia spočíva v hľadaní rovnováhy medzi nimi — alebo, ako uvidíme pri random foreste a boostingu, v šikovnom zložení viacerých modelov tak, aby sa jedna zo zložiek chyby potlačila.
+
 ---
 
 ## 1. Rozhodovacie stromy
@@ -62,13 +82,15 @@ Toto rozlíšenie je najdôležitejšia intuícia pri výbere modelu, preto sa k
 
 ![Rozhodovací strom pre schválenie úveru: koreň sa pýta na príjem, vnútorné uzly na vek a ručiteľa, listy hovoria schváliť alebo zamietnuť](images/rozhodovaci-strom.svg)
 
-**Ako sa učí:** algoritmus v každom uzle vyskúša možné otázky (splity) a vyberie tú, ktorá dáta najlepšie „vyčistí" — teda po rozdelení sú skupiny čo najviac homogénne (jedna vetva prevažne „schváliť", druhá prevažne „zamietnuť"). Miera nečistoty sa meria napr. **Gini indexom** alebo **entropiou**. Vetvenie pokračuje, kým nie sú listy dostatočne čisté alebo kým sa nedosiahne maximálna hĺbka.
+**Ako sa učí:** algoritmus v každom uzle vyskúša možné otázky (splity) a vyberie tú, ktorá dáta najlepšie „vyčistí" — teda po rozdelení sú skupiny čo najviac homogénne (jedna vetva prevažne „schváliť", druhá prevažne „zamietnuť"). Miera nečistoty sa meria napr. **Gini indexom** alebo **entropiou**. Obe miery hovoria to isté iným jazykom: uzol, v ktorom sú všetky príklady jednej triedy, má nečistotu nulovú; uzol rozdelený presne pol na pol má nečistotu najvyššiu možnú. Algoritmus vždy siahne po splite, ktorý nečistotu zníži najviac, a vetvenie pokračuje, kým nie sú listy dostatočne čisté alebo kým sa nedosiahne maximálna hĺbka.
+
+**Prečo sa jeden strom ľahko preučí:** ak strom necháme rásť bez obmedzenia, vetví sa dovtedy, kým v každom liste nezostane hŕstka príkladov — pokojne aj jediný. Taký strom má na trénovacích dátach stopercentnú úspešnosť, lenže posledné vetvenia už nezachytávajú skutočné vzory, iba náhodný šum konkrétnej vzorky („klient č. 4217 nesplatil, hoci všetko nasvedčovalo opaku"). Na nových dátach potom tieto pseudopravidlá škodia. Rast stromu sa preto obmedzuje — maximálnou hĺbkou, minimálnym počtom príkladov v liste alebo dodatočným orezávaním (*pruning*) — vždy je to však kompromis: prísne obmedzený strom zas stráca presnosť. S tým súvisí aj **nestabilita**: keďže sa splity vyberajú pažravo zhora nadol, malá zmena dát môže zmeniť už prvú otázku v koreni a celý zvyšok stromu sa poskladá inak.
 
 **Typické použitie:** tabuľkové dáta — schvaľovanie úverov, medicínska triáž, jednoduché pravidlové rozhodovanie, kde chceme, aby sa výsledok dal ukázať a obhájiť.
 
 | ✅ Výhody | ❌ Nevýhody |
 |---|---|
-| Veľmi **vysvetliteľné** — cestu k rozhodnutiu vie prečítať aj laik | Jeden strom ľahko **preučí** (overfitting) — zapamätá si šum v dátach |
+| Veľmi **vysvetliteľné** — cestu k rozhodnutiu vie prečítať aj laik | Jeden strom sa ľahko **preučí** (overfitting) — zapamätá si šum v dátach |
 | Netreba škálovať ani normalizovať vstupy | **Nestabilný** — malá zmena dát môže dať úplne iný strom |
 | Zvláda číselné aj kategorické atribúty | Sám osebe má **nižšiu presnosť** ako ansámble |
 | Rýchle trénovanie aj predikcia | Nevie dobre modelovať plynulé, „šikmé" hranice |
@@ -85,13 +107,24 @@ Namiesto jedného stromu sa použije **veľa stromov naraz** a ich predpovede sa
 
 ### Random Forest (bagging)
 
-Natrénuje sa mnoho stromov **nezávisle a paralelne**, každý na inom náhodnom podvzorku dát a stĺpcov. Finálna predpoveď je **priemer** (regresia) alebo **hlasovanie** (klasifikácia). Keďže sa chyby jednotlivých stromov navzájom „vyrušia", výsledok je oveľa stabilnejší než jeden strom. Random forest hlavne **znižuje rozptyl** (variance).
+Natrénuje sa mnoho stromov (typicky stovky) **nezávisle a paralelne**. Aby neboli všetky rovnaké, vnesie sa do tréningu dvojitá náhoda:
+
+1. každý strom dostane iný **bootstrap výber** dát — náhodnú vzorku trénovacích riadkov s opakovaním,
+2. pri každom vetvení smie strom vyberať otázku len z **náhodnej podmnožiny stĺpcov**.
+
+Finálna predpoveď je **priemer** (regresia) alebo **hlasovanie** (klasifikácia). Trik je v tom, že jednotlivé stromy pokojne môžu byť hlboké a preučené — každý sa však preučí na *iný* šum, lebo videl iné dáta a iné stĺpce. Pri spriemerovaní sa tieto náhodné chyby navzájom vyrušia a zostane to, na čom sa stromy zhodujú: skutočný vzor. Je to rovnaký princíp, ako keď priemer mnohých nepresných meraní dá oveľa presnejší odhad než ktorékoľvek jedno meranie. Random forest teda **znižuje rozptyl (variance)**, pričom skreslenie nechá zhruba tam, kde ho mal jednotlivý strom.
 
 ### XGBoost (gradient boosting)
 
-**Boosting** ide na to opačne: stromy sa učia **postupne**, jeden po druhom. Prvý strom dá hrubý odhad, ďalší strom sa učí **opravovať chyby (rezíduá)** predchádzajúcich, a tak ďalej. Finálna predpoveď je **súčet** všetkých stromov. Boosting hlavne **znižuje skreslenie** (bias) a spravidla dosahuje vyššiu presnosť.
+**Boosting** ide na to opačne: stromy sa učia **postupne**, jeden po druhom, a každý sa sústredí na to, čo predchádzajúce pokazili. Malý príklad s odhadom ceny bytu, ktorého skutočná cena je 120 000 €: prvý strom odhadne 100 000 €, chyba (**rezíduum**) je teda +20 000 €. Druhý strom sa už neučí predpovedať cenu, ale toto rezíduum — odhadne povedzme +15 000 €. Priebežný súčet 115 000 € je bližšie k pravde a tretí strom opravuje zvyšných 5 000 €. Finálna predpoveď je **súčet** príspevkov všetkých stromov.
+
+Na rozdiel od random forestu sa používajú **plytké stromy** (bežne hĺbka 3 až 6) — každý je sám osebe slabý model, ale stovky drobných opráv za sebou poskladajú veľmi presný celok. Boosting tak **znižuje skreslenie (bias)** a spravidla dosahuje vyššiu presnosť než bagging. Aby sa pri toľkých krokoch nezačal učiť šum, pripočítava sa každá oprava len čiastočne, prenásobená malým koeficientom (**learning rate**, napr. 0,1), a trénovanie sa zastaví, keď chyba na odloženej validačnej množine prestane klesať.
+
+Kontrast sa oplatí zapamätať: **bagging skladá silné (hlboké) stromy paralelne a tlmí rozptyl; boosting skladá slabé (plytké) stromy sekvenčne a tlmí skreslenie.**
 
 **XGBoost** (*eXtreme Gradient Boosting*) je najznámejšia, vysoko optimalizovaná implementácia gradient boostingu. Pridáva regularizáciu, prácu s chýbajúcimi hodnotami a efektívne paralelné budovanie stromov. Spolu s príbuznými (LightGBM, CatBoost) je to **dlhodobo najúspešnejší model na tabuľkové dáta** a takmer štandardný víťaz Kaggle súťaží mimo obrazu a textu.
+
+Prečo na tabuľkách vyhrávajú stromy nad neurónovými sieťami? Tabuľkové stĺpce sú rôznorodé (eurá, roky, kategórie) a nemajú priestorovú ani sekvenčnú štruktúru, ktorú by sieť vedela využiť; riadkov bývajú tisíce až státisíce, nie milióny; a stromom neprekážajú rôzne škály ani chýbajúce hodnoty. Neurónová sieť tu nemá čo „objaviť" navyše — a zaplatíte za ňu dlhším trénovaním, náročnejším ladením a horšou vysvetliteľnosťou.
 
 **Typické použitie:** predikcia na tabuľkových dátach — riziko úveru, predikcia dopytu/predaja, detekcia podvodov, ranking, scoring zákazníkov. Tam, kde máte stĺpce a riadky, začnite XGBoostom.
 
@@ -114,13 +147,25 @@ Každý neurón spočíta vážený súčet svojich vstupov, pripočíta **bias*
 
 ![Detail jedného neurónu: vstupy vážené váhami w, pripočítaný bias b, výsledok z prejde aktivačnou funkciou σ na výstup a](images/neuron-detail.svg)
 
-Práve nelineárne aktivácie robia zo siete niečo mocnejšie než len lineárnu regresiu — vrstvením dokáže MLP aproximovať prakticky ľubovoľnú funkciu. Ako sa váhy a biasy ladia tréningom (forward pass → loss → backpropagation → update optimalizátorom Adam), podrobne rozoberá [adam-optimalizator.md](adam-optimalizator.md).
+### Prečo sú nelineárne aktivácie nevyhnutné
+
+Predstavme si na chvíľu sieť **bez** aktivačných funkcií — každá vrstva by počítala len vážený súčet, teda lineárne zobrazenie y = W·x + b. Čo spraví druhá vrstva s výstupom prvej?
+
+```text
+  y = W₂ · (W₁ · x + b₁) + b₂  =  (W₂ · W₁) · x + (W₂ · b₁ + b₂)
+```
+
+Výsledok je opäť len vážený súčet pôvodných vstupov — s inou maticou váh a iným biasom. Inak povedané: **zloženie ľubovoľného počtu lineárnych vrstiev je stále jedna lineárna vrstva.** Sieť so sto vrstvami by nedokázala nič viac než obyčajná lineárna regresia — nevedela by oddeliť ani body, ktoré sa nedajú rozdeliť priamkou (klasický príklad je funkcia XOR). Pridávanie ďalších vrstiev by nepomohlo vôbec, len by pribúdali parametre.
+
+Nelineárna aktivácia vložená medzi vrstvy toto „zrútenie" zlomí. Najpoužívanejšia **ReLU** je pritom prekvapivo jednoduchá: záporné hodnoty vynuluje, kladné nechá tak — max(0, z). **Sigmoid** stláča výstup do intervalu (0, 1), preto sa hodí na výstupnú vrstvu, keď má výstup vyjadrovať pravdepodobnosť. Vďaka nelinearite môže každá ďalšia vrstva rozhodovaciu hranicu „ohýbať" — a platí **veta o univerzálnej aproximácii**: už sieť s jednou dostatočne širokou nelineárnou skrytou vrstvou dokáže aproximovať ľubovoľnú spojitú funkciu. V praxi sa namiesto jednej obrovskej vrstvy používa viac menších — hlbšia sieť sa tú istú vec spravidla naučí s menším počtom neurónov.
+
+Ako sa váhy a biasy ladia tréningom (forward pass → loss → backpropagation → update optimalizátorom Adam), podrobne rozoberá [adam-optimalizator.md](adam-optimalizator.md).
 
 **Typické použitie:** univerzálny „lepiaci" model — klasifikácia a regresia na stredne veľkých dátach, koncové vrstvy v zložitejších sieťach (napr. klasifikačná hlava CNN alebo transformera), aproximácia funkcií v simuláciách.
 
 | ✅ Výhody | ❌ Nevýhody |
 |---|---|
-| **Univerzálny aproximátor** — teoreticky zvládne ľubovoľný vzťah | Ignoruje štruktúru dát (u obrazu nevie, že susedné pixely spolu súvisia) |
+| **Univerzálny aproximátor** — teoreticky zvládne ľubovoľný vzťah | Ignoruje štruktúru dát (pri obraze nevie, že susedné pixely spolu súvisia) |
 | Základný stavebný blok všetkých hlbokých sietí | Veľa parametrov → **potrebuje veľa dát**, ľahko sa preučí |
 | Zvláda nelineárne vzťahy, ktoré strom ťažko | Na tabuľkových dátach ho **XGBoost často predbehne** |
 | Beží dobre na GPU | Menej vysvetliteľný — „čierna skrinka" |
@@ -135,9 +180,13 @@ Práve nelineárne aktivácie robia zo siete niečo mocnejšie než len lineárn
 
 Ten istý filter má **rovnaké váhy pre celý obrázok** (*weight sharing*), takže detektor hrany funguje rovnako v ľavom hornom aj pravom dolnom rohu. To dramaticky znižuje počet parametrov a dáva sieti **invarianciu voči posunu** — mačka je mačka, nech je kdekoľvek v zábere.
 
+Rozdiel oproti MLP vidno na číslach. Obrázok 200 × 200 pixelov v odtieňoch sivej má 40 000 vstupov. Keby sme naň pustili plne prepojenú vrstvu s 1 000 neurónmi, potrebovala by 40 000 × 1 000 = **40 miliónov váh** — a čo je horšie, každý vzor by sa naučila len pre presnú polohu, v ktorej sa v tréningových dátach vyskytol. Konvolučná vrstva s 32 filtrami veľkosti 3 × 3 si vystačí s 32 × (9 + 1) = **320 parametrami**, pretože tých deväť váh každého filtra sa opakovane použije na každú pozíciu obrázka. Dve kľúčové slová, ktoré za tým stoja: **lokálnosť** (neurón sa pozerá len na malé okienko, nie na celý obraz) a **weight sharing** (to isté okienko váh sa použije všade).
+
 Celá sieť potom **strieda konvolúciu a pooling** (zmenšovanie), čím postupne extrahuje čoraz abstraktnejšie príznaky, a na konci pripojí feed-forward vrstvy na samotné rozhodnutie:
 
 ![Architektúra CNN: vstupný obrázok prechádza sériou konvolučných a pooling vrstiev, potom sa sploští a prejde plne prepojenými vrstvami do softmax výstupu](images/cnn-architektura.svg)
+
+**Pooling** (najčastejšie *max pooling* 2 × 2) rozdelí mapu príznakov na okienka 2 × 2 a z každého ponechá len najväčšiu hodnotu. Mapa sa tým zmenší na polovicu v oboch rozmeroch, klesne objem ďalších výpočtov a sieť získa ďalšiu dávku odolnosti: ak sa detegovaná hrana posunie o pixel, maximum v okienku sa väčšinou nezmení.
 
 Hĺbkou siete rastie abstrakcia: prvé vrstvy detegujú hrany a farby, stredné časti objektov (oko, koleso), posledné celé objekty.
 
@@ -167,6 +216,10 @@ Riešenie sa zakóduje ako **„chromozóm"** (napr. reťazec bitov alebo číse
 3. **Kríženie (crossover)** — skombinuje gény dvoch rodičov do potomka.
 4. **Mutácia** — náhodne zmení malú časť génov (udržuje rozmanitosť, bráni uviaznutiu).
 5. Vznikne **nová generácia** a cyklus sa opakuje, kým nie je riešenie dosť dobré alebo neuplynie daný počet generácií.
+
+**Konkrétny príklad — školský rozvrh.** Chromozóm je zoznam priradení (trieda, predmet, učiteľ, miestnosť, hodina). Fitness funkcia sčíta pokuty: povedzme −10 za každý konflikt (učiteľ na dvoch miestach naraz, dve triedy v jednej miestnosti) a −1 za každé „okno" v rozvrhu triedy. Gradient tu nemá zmysel — rozvrh sa nedá „derivovať podľa učiteľa" a drobná zmena (prehodenie dvoch hodín) môže skokovo zmeniť počet konfliktov. Ohodnotiť hotový rozvrh je však triviálne, a presne to genetickému algoritmu stačí: kríženie skombinuje dopoludnie jedného dobrého rozvrhu s popoludním iného, mutácia občas prehodí dve hodiny a po stovkách generácií vypadne rozvrh bez konfliktov.
+
+Odtiaľ vidno aj deliacu čiaru voči gradientným metódam. **Ak vieme spočítať gradient** — ako pri neurónových sieťach, kde je loss hladká funkcia váh — je gradientný zostup rádovo rýchlejší a genetický algoritmus by bol plytvaním. **Ak gradient neexistuje alebo nedáva zmysel** — diskrétne a kombinatorické problémy, nespojité funkcie, simulácie typu „čierna skrinka", kde vieme riešenie len ohodnotiť — býva evolučný prístup najjednoduchšou schodnou cestou.
 
 **Typické použitie:** kombinatorická optimalizácia (rozvrhy, logistika, packing), návrh a ladenie (architektúry sietí, hyperparametre), evolučné umenie, hry a agenti bez explicitného gradientu.
 
@@ -199,7 +252,7 @@ Riešenie sa zakóduje ako **„chromozóm"** (napr. reťazec bitov alebo číse
 Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 
 1. Vysvetlite vzťah vnorenia AI ⊃ ML ⊃ neurónové siete ⊃ deep learning. Kam patrí XGBoost a kam genetický algoritmus?
-2. Prečo jeden rozhodovací strom ľahko preučí (overfitting) a ako presne tento problém riešia Random Forest a boosting — každý inou cestou?
+2. Prečo sa jeden rozhodovací strom ľahko preučí (overfitting) a ako presne tento problém riešia Random Forest a boosting — každý inou cestou?
 3. Banka rieši predikciu nesplácania úverov z tabuľky s 50 stĺpcami. Kolega navrhuje hlbokú neurónovú sieť. Aký model navrhnete vy a ako to obhájite?
 4. Čo by sa stalo, keby mala MLP sieť len lineárne aktivácie (žiadne ReLU/sigmoid)? Prečo by potom nepomáhalo pridávať vrstvy?
 5. Prečo CNN potrebuje rádovo menej parametrov než MLP na ten istý obrázok? (Kľúčové slová: weight sharing, lokálnosť.)
