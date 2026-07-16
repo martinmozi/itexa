@@ -35,6 +35,29 @@ Neurón robí dva kroky:
    ktorá dá výstup neurónu `a = σ(z)`. Aktivácia vnáša do siete nelinearitu — bez nej by
    celá sieť bola len jedna lineárna funkcia.
 
+### Najčastejšie aktivačné funkcie a kedy ktorú použiť
+
+| Funkcia | Vzorec | Výstup | Kedy sa používa |
+|---|---|---|---|
+| **ReLU** | `max(0, z)` | `⟨0, ∞)` | **predvolená voľba pre skryté vrstvy** — lacná na výpočet, netrpí miznúcim gradientom pre kladné `z` |
+| **Sigmoid** | `1 / (1 + e⁻ᶻ)` | `(0, 1)` | **výstupná vrstva pri binárnej klasifikácii** — výstup sa dá čítať ako pravdepodobnosť (spam / nie spam) |
+| **Softmax** | `eᶻⁱ / Σ eᶻʲ` | pravdepodobnosti so súčtom 1 | **výstupná vrstva pri klasifikácii do viacerých tried** — z 10 výstupov spraví rozdelenie pravdepodobnosti (číslice 0–9) |
+| **Tanh** | `(eᶻ − e⁻ᶻ) / (eᶻ + e⁻ᶻ)` | `(−1, 1)` | skryté vrstvy, keď je výhodný výstup centrovaný okolo nuly; historicky v rekurentných sieťach |
+
+Praktické pravidlo: **skryté vrstvy = ReLU, výstupná vrstva podľa úlohy** — sigmoid pre
+áno/nie, softmax pre výber z viacerých tried, žiadna aktivácia (identita) pre regresiu,
+kde má výstup byť ľubovoľné číslo (napr. cena bytu).
+
+Dve poznámky k okrajom:
+
+- Sigmoid a tanh sa v **skrytých** vrstvách hlbokých sietí už takmer nepoužívajú: pre veľké
+  `|z|` sú takmer ploché, ich derivácia je blízka nule a gradient sa pri backprope cez viac
+  vrstiev postupne „stratí" (**vanishing gradient**) — sieť sa prestane učiť.
+- ReLU má zas problém „mŕtvych neurónov": neurón, ktorý sa dostane trvalo do záporného `z`,
+  má nulový gradient a už sa nikdy nepohne. Riešia to drobné varianty ako **Leaky ReLU**
+  (záporná časť má malý sklon namiesto nuly) alebo hladká **GELU**, ktorá je dnes štandardom
+  v transformeroch.
+
 Zhrnutie mapovania na algoritmus nižšie:
 
 | Prvok na obrázku | Symbol | Učený parameter? | Adam ho upravuje? |

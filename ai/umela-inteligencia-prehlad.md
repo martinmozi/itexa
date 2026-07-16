@@ -1,6 +1,6 @@
 # Umelá inteligencia — prehľad prístupov a modelov
 
-> **Cieľ dokumentu:** dať ucelený, ale prakticky ladený prehľad toho, čo je umelá inteligencia, ako sa delí, a aké hlavné rodiny modelov sa dnes používajú — od rozhodovacích stromov a XGBoostu cez feed-forward a konvolučné neurónové siete až po genetické algoritmy. Ku každému modelu je obrázok, typické použitie (tabuľkové dáta, spracovanie obrazu…) a stručné výhody/nevýhody.
+> **Cieľ dokumentu:** dať ucelený, ale prakticky ladený prehľad toho, čo je umelá inteligencia, ako sa delí, a aké hlavné rodiny modelov sa dnes používajú — od rozhodovacích stromov a XGBoostu po feed-forward a konvolučné neurónové siete. Ku každému modelu je obrázok, typické použitie (tabuľkové dáta, spracovanie obrazu…) a stručné výhody/nevýhody.
 
 Transformery a mechanizmus attention majú vlastný, detailnejší dokument: [transformer-siete.md](transformer-siete.md).
 
@@ -26,7 +26,6 @@ Kde v tejto mape ležia modely z tohto dokumentu:
 
 - **Rozhodovacie stromy, random forest a XGBoost** patria do strojového učenia, ale nie sú to neurónové siete. Hovorí sa im aj „klasické" metódy ML — a ako uvidíme, na tabuľkových dátach klasické neznamená horšie.
 - **Feed-forward siete (MLP) a konvolučné siete (CNN)** sú neurónové siete; ak majú veľa vrstiev, spadajú do hlbokého učenia.
-- **Genetické algoritmy** stoja trochu bokom: nie sú to klasifikátory ani siete, ale **optimalizačná metóda** inšpirovaná evolúciou. Patria do AI (do rodiny evolučných výpočtov), ale nie do strojového učenia v užšom zmysle — nemajú trénovacie dáta, z ktorých by sa učili vzory; hľadajú čo najlepšie riešenie zadaného problému. Dajú sa však použiť aj na ladenie iných modelov, preto ich v prehľade uvádzame samostatne na konci.
 
 ---
 
@@ -190,6 +189,60 @@ Celá sieť potom **strieda konvolúciu a pooling** (zmenšovanie), čím postup
 
 Hĺbkou siete rastie abstrakcia: prvé vrstvy detegujú hrany a farby, stredné časti objektov (oko, koleso), posledné celé objekty.
 
+### Ten istý obrázok v MLP a v CNN — krok za krokom
+
+Najlepšie rozdiel vidno na konkrétnom príklade. Úloha: rozpoznať ručne písanú číslicu (dataset MNIST). **Vstup** je v oboch prípadoch rovnaký — obrázok 28 × 28 pixelov v odtieňoch sivej, teda matica 784 čísel (jas pixelu, znormalizovaný na 0 až 1). **Výstup** je tiež rovnaký — vektor 10 pravdepodobností pre triedy 0 až 9, napr. `[0.01, 0.00, …, 0.94, …]` → „je to sedmička". Líši sa všetko medzi tým.
+
+**Feed-forward (MLP)** musí obrázok najprv **sploštiť** na jeden dlhý vektor — a tým zahodí 2D štruktúru. Sieť už nevie, že pixel 29 leží priamo pod pixelom 1; pre ňu je to len 784 nesúvisiacich čísel:
+
+```text
+vstup: 28 × 28 pixelov  (číslica „7")
+   │  flatten — riadky sa vyskladajú za seba
+   ▼
+vektor 784 čísel                        ← 2D štruktúra je preč
+   │  plne prepojená vrstva, 128 neurónov   (784 × 128 ≈ 100 000 váh)
+   ▼
+128 hodnôt (žiadny priestorový význam)
+   │  plne prepojená vrstva, 10 neurónov + softmax
+   ▼
+výstup: 10 pravdepodobností  →  „7" (0.94)
+```
+
+Každý neurón prvej vrstvy vidí **všetkých 784 pixelov naraz** a má pre každý vlastnú váhu. Ak sa v tréningových dátach sedmička vyskytovala vľavo hore, sieť sa ju naučí spoznávať len tam — posunutú sedmičku vpravo dole vníma ako úplne iný vektor.
+
+**CNN** ponechá obrázok ako 2D mriežku a namiesto splošťovania po ňom posúva malé filtre:
+
+```text
+vstup: 28 × 28 × 1  (číslica „7")
+   │  konvolúcia 3×3, 8 filtrov          (len 8 × 10 = 80 parametrov)
+   ▼
+26 × 26 × 8   — 8 máp príznakov: „kde sú hrany, ťahy, uhly"
+   │  max pooling 2×2
+   ▼
+13 × 13 × 8   — to isté, polovičné rozlíšenie
+   │  konvolúcia 3×3, 16 filtrov
+   ▼
+11 × 11 × 16  — kombinácie ťahov: „vodorovná čiara hore + šikmý ťah"
+   │  max pooling 2×2
+   ▼
+5 × 5 × 16
+   │  flatten (400 hodnôt) + plne prepojená vrstva + softmax
+   ▼
+výstup: 10 pravdepodobností  →  „7" (0.94)
+```
+
+Všimnite si dve veci. Po prvé, **flatten a plne prepojené vrstvy prídu aj v CNN — ale až na konci**, keď už mapy príznakov nesú výroky typu „vľavo hore je vodorovná čiara" namiesto surových pixelov; posledná časť CNN je teda vlastne malé MLP nasadené na predspracované príznaky. Po druhé, ten istý filter na hranu funguje na ľubovoľnom mieste obrázka, takže posunutá sedmička dá tie isté (len posunuté) mapy príznakov — presne tá invariancia voči posunu, ktorú MLP nemá.
+
+Zhrnutie rozdielu v jednej tabuľke:
+
+| | MLP | CNN |
+|---|---|---|
+| Vstup vníma ako | plochý vektor 784 čísel | 2D mriežku 28 × 28 |
+| Susednosť pixelov | ignoruje | využíva (filter vidí okienko 3 × 3) |
+| Váhy | vlastná váha pre každý pixel a neurón | zdieľané váhy filtra pre celý obrázok |
+| Posunutý objekt | musí sa ho učiť odznova pre každú polohu | rozpozná ho tie isté filtre |
+| Rola v praxi | koncová klasifikačná hlava | extrakcia príznakov z obrazu |
+
 **Typické použitie:** **spracovanie obrazu** — klasifikácia a detekcia objektov, segmentácia, rozpoznávanie tvárí, analýza medicínskych snímok, OCR; funguje aj na spektrogramy zvuku a iné mriežkové dáta. Praktická úloha v tomto repozitári: [rozpoznávanie obrázkov](zadania/rozpoznavanie-obrazkov.md).
 
 | ✅ Výhody | ❌ Nevýhody |
@@ -203,35 +256,6 @@ Hĺbkou siete rastie abstrakcia: prvé vrstvy detegujú hrany a farby, stredné 
 
 ---
 
-## 5. Genetické algoritmy
-
-**Genetický algoritmus (GA)** nie je klasifikátor — je to **optimalizačná metóda** inšpirovaná prirodzeným výberom. Používa sa tam, kde hľadáme dobré riešenie v obrovskom priestore možností a nemáme (alebo nechceme počítať) gradient — napr. návrh rozvrhu, trasy, tvaru súčiastky, alebo ladenie hyperparametrov iného modelu.
-
-![Cyklus genetického algoritmu: počiatočná populácia, hodnotenie fitness, selekcia rodičov, kríženie, mutácia, nová generácia, opakovanie až po ukončovaciu podmienku](images/geneticky-algoritmus.svg)
-
-Riešenie sa zakóduje ako **„chromozóm"** (napr. reťazec bitov alebo čísel). Algoritmus udržiava celú **populáciu** riešení a opakuje evolučný cyklus:
-
-1. **Fitness** — ohodnotí, aké dobré je každé riešenie.
-2. **Selekcia** — vyberie najlepšie jedince ako rodičov.
-3. **Kríženie (crossover)** — skombinuje gény dvoch rodičov do potomka.
-4. **Mutácia** — náhodne zmení malú časť génov (udržuje rozmanitosť, bráni uviaznutiu).
-5. Vznikne **nová generácia** a cyklus sa opakuje, kým nie je riešenie dosť dobré alebo neuplynie daný počet generácií.
-
-**Konkrétny príklad — školský rozvrh.** Chromozóm je zoznam priradení (trieda, predmet, učiteľ, miestnosť, hodina). Fitness funkcia sčíta pokuty: povedzme −10 za každý konflikt (učiteľ na dvoch miestach naraz, dve triedy v jednej miestnosti) a −1 za každé „okno" v rozvrhu triedy. Gradient tu nemá zmysel — rozvrh sa nedá „derivovať podľa učiteľa" a drobná zmena (prehodenie dvoch hodín) môže skokovo zmeniť počet konfliktov. Ohodnotiť hotový rozvrh je však triviálne, a presne to genetickému algoritmu stačí: kríženie skombinuje dopoludnie jedného dobrého rozvrhu s popoludním iného, mutácia občas prehodí dve hodiny a po stovkách generácií vypadne rozvrh bez konfliktov.
-
-Odtiaľ vidno aj deliacu čiaru voči gradientným metódam. **Ak vieme spočítať gradient** — ako pri neurónových sieťach, kde je loss hladká funkcia váh — je gradientný zostup rádovo rýchlejší a genetický algoritmus by bol plytvaním. **Ak gradient neexistuje alebo nedáva zmysel** — diskrétne a kombinatorické problémy, nespojité funkcie, simulácie typu „čierna skrinka", kde vieme riešenie len ohodnotiť — býva evolučný prístup najjednoduchšou schodnou cestou.
-
-**Typické použitie:** kombinatorická optimalizácia (rozvrhy, logistika, packing), návrh a ladenie (architektúry sietí, hyperparametre), evolučné umenie, hry a agenti bez explicitného gradientu.
-
-| ✅ Výhody | ❌ Nevýhody |
-|---|---|
-| Nepotrebuje gradient ani spojitú funkciu | **Výpočtovo drahé** — veľa vyhodnotení fitness |
-| Zvláda členité, nespojité priestory s mnohými lokálnymi optimami | Nezaručuje nájdenie globálneho optima |
-| Ľahko sa paralelizuje a prispôsobí problému | Citlivé na nastavenie (veľkosť populácie, miera mutácie) |
-| Univerzálne — stačí vedieť ohodnotiť riešenie | Pri problémoch, kde *je* gradient, býva pomalšie než gradientné metódy |
-
----
-
 ## Zhrnutie — ktorý model kedy
 
 | Dáta / úloha | Odporúčaný prvý model | Prečo |
@@ -241,7 +265,6 @@ Odtiaľ vidno aj deliacu čiaru voči gradientným metódam. **Ak vieme spočít
 | **Obraz** (klasifikácia, detekcia) | **CNN** | weight sharing, hierarchia príznakov |
 | **Text / postupnosti / jazyk** | **transformer** → [transformer-siete.md](transformer-siete.md) | attention, kontext, dnešné LLM |
 | Univerzálny nelineárny vzťah, koncová hlava | **feed-forward (MLP)** | jednoduchý, univerzálny aproximátor |
-| **Optimalizácia bez gradientu** | **genetický algoritmus** | členité priestory, kombinatorika |
 
 **Najdôležitejšie pravidlo:** typ dát určuje model viac než čokoľvek iné. Na tabuľky nasadzujte stromy/XGBoost, na obraz CNN, na text transformery — a neurónovú sieť neťahajte tam, kde jednoduchší model spraví rovnakú prácu lacnejšie a vysvetliteľnejšie.
 
@@ -251,12 +274,12 @@ Odtiaľ vidno aj deliacu čiaru voči gradientným metódam. **Ak vieme spočít
 
 Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 
-1. Vysvetlite vzťah vnorenia AI ⊃ ML ⊃ neurónové siete ⊃ deep learning. Kam patrí XGBoost a kam genetický algoritmus?
+1. Vysvetlite vzťah vnorenia AI ⊃ ML ⊃ neurónové siete ⊃ deep learning. Kam v tejto mape patrí XGBoost a kam CNN?
 2. Prečo sa jeden rozhodovací strom ľahko preučí (overfitting) a ako presne tento problém riešia Random Forest a boosting — každý inou cestou?
 3. Banka rieši predikciu nesplácania úverov z tabuľky s 50 stĺpcami. Kolega navrhuje hlbokú neurónovú sieť. Aký model navrhnete vy a ako to obhájite?
 4. Čo by sa stalo, keby mala MLP sieť len lineárne aktivácie (žiadne ReLU/sigmoid)? Prečo by potom nepomáhalo pridávať vrstvy?
 5. Prečo CNN potrebuje rádovo menej parametrov než MLP na ten istý obrázok? (Kľúčové slová: weight sharing, lokálnosť.)
-6. Kedy siahnete po genetickom algoritme namiesto gradientnej optimalizácie? Uveďte konkrétny príklad úlohy.
+6. Opíšte cestu obrázka 28 × 28 sieťou: čo je vstup, čo výstup a v čom sa líši spracovanie v MLP a v CNN? Prečo MLP splošťovaním obrázka stráca informáciu?
 
 ---
 

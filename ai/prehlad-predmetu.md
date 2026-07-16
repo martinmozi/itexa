@@ -39,7 +39,7 @@
 
 **Materiál:** [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) (sekcie 1, 2, 5 a záverečná tabuľka „ktorý model kedy")
 
-Rozhodovacie stromy a ako sa učia (Gini/entropia); prečo jeden strom preučí a ako to riešia ansámble — Random Forest (bagging, paralelne, znižuje rozptyl) vs. XGBoost (boosting, sekvenčne opravuje chyby, znižuje skreslenie). Genetické algoritmy ako optimalizácia bez gradientu. **Kľúčové posolstvo: na tabuľkové dáta je XGBoost dodnes prvá voľba — nie neurónová sieť.**
+Rozhodovacie stromy a ako sa učia (Gini/entropia); prečo jeden strom preučí a ako to riešia ansámble — Random Forest (bagging, paralelne, znižuje rozptyl) vs. XGBoost (boosting, sekvenčne opravuje chyby, znižuje skreslenie). **Kľúčové posolstvo: na tabuľkové dáta je XGBoost dodnes prvá voľba — nie neurónová sieť.**
 
 **Po lekcii viete:**
 - prečítať a obhájiť rozhodnutie stromu; vysvetliť overfitting na jednom strome,
