@@ -1,5 +1,7 @@
 # Transformery — ako fungujú (detailne, s obrázkami)
 
+> **Poradie čítania:** ← [adam-optimalizator.md](adam-optimalizator.md) · **lekcia 4** · [llm-trening.md](llm-trening.md) →
+
 > **Cieľ dokumentu:** vysvetliť krok po kroku, ako funguje **transformer** — architektúra, ktorá stojí za dnešnými veľkými jazykovými modelmi (GPT, Claude, BERT…), prekladačmi aj generovaním obrázkov. Ťažiskom sú **detailné obrázky** mechanizmu **attention**, pretože práve on je jadrom celej myšlienky.
 
 Tento text nadväzuje na všeobecný [prehľad AI a modelov](umela-inteligencia-prehlad.md) a na dokument o [embeddingoch](embeddings.md) (ako sa z textu stanú vektory — to je vstup do transformera).
@@ -72,6 +74,8 @@ Výpočet má tri kroky (na obrázku očíslované):
 
 V príklade na obrázku pri spracovaní zámena **„ju"** dostane najväčšiu váhu (0.78) slovo **„rybu"** — model sa naučil, že zámeno odkazuje práve naň. Toto rozhodnutie **nie je naprogramované**; vyplynulo z tréningu z obrovského množstva textu.
 
+> **Chcete si to prepočítať na papieri?** Presne tento postup — Q/K/V projekcie, skóre, škálovanie, softmax aj vážený súčet — je s konkrétnymi číslami na troch tokenoch rozpísaný v [embeddings.md, Krok 3](embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je to dobrovoľné rozšírenie; v **lekcii 6** ho budeme potrebovať povinne, takže sa k nemu ešte vrátime.
+
 > **Prečo je to lepšie než RNN:** tento výpočet sa deje pre **všetky tokeny naraz a paralelne** (je to v podstate násobenie matíc), a každý token má **priamy prístup** ku každému inému — aj tomu na opačnom konci vety. Odtiaľ paralelizovateľnosť aj dlhá pamäť.
 
 ### Maskovaná attention (v decoderi)
@@ -133,6 +137,27 @@ Poskladajme diely do jedného behu **decoder-only** modelu (GPT/Claude štýl), 
 
 Tento „autoregresívny" cyklus — *predpovedz ďalší token, priraď ho, opakuj* — je celé tajomstvo generovania textu. Všetka „inteligencia" je v naučených váhach (matice attention a feed-forward vrstiev), ktorých sú v dnešných modeloch miliardy.
 
+### Ako presne sa vyberá „ďalší token" (dekódovanie)
+
+Krok 4 vyššie sme odbavili slovami „vyberie sa ďalší token" — v skutočnosti je to nastavenie,
+ktoré zásadne mení správanie modelu, a v oboch zadaniach ho budete zadávať:
+
+- **Greedy** — vezme sa vždy token s najvyššou pravdepodobnosťou. Deterministické (rovnaký prompt
+  = rovnaká odpoveď), ale ploché a náchylné na zacyklenie („a preto a preto a preto…").
+- **Sampling s teplotou `T`** — pravdepodobnosti sa pred výberom vydelia teplotou a znova prejdú
+  softmaxom, potom sa z nich náhodne losuje. `T < 1` rozdiely zvýrazní (opatrnejší, faktickejší
+  text), `T > 1` ich zarovná (kreatívnejší, ale aj nezmyselnejší). `T → 0` je to isté ako greedy.
+- **Top-p (nucleus)** — losuje sa len z najpravdepodobnejších tokenov, ktoré spolu dajú `p`
+  (napr. 0.9) pravdepodobnostnej hmoty; zvyšný dlhý chvost sa odreže. Príbuzné **top-k** necháva
+  pevný počet `k` najlepších.
+
+Praktické pravidlo: na **faktické** úlohy (RAG, extrakcia, klasifikácia) choďte greedy alebo veľmi
+nízka teplota (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p ≈ 0.9`. V Hugging Face
+`transformers` sú to parametre `do_sample`, `temperature`, `top_p`, `top_k` a `max_new_tokens`.
+
+> Zapamätajte si to pred zadaním 2: ak RAG odpovedá zakaždým inak alebo si vymýšľa aj so správnym
+> kontextom, prvá vec na kontrolu nie je retrieval, ale **teplota**.
+
 > Praktické dôsledky (dĺžka kontextu je drahá, lebo attention rastie kvadraticky s počtom tokenov; kvalita závisí od tréningových dát; halucinácie…) a aktuálne trendy rozoberá [llm-trendy.md](llm-trendy.md).
 
 ---
@@ -170,14 +195,14 @@ Tento „autoregresívny" cyklus — *predpovedz ďalší token, priraď ho, opa
 4. Prečo decoder pri generovaní používa masku? Čo by sa pokazilo pri tréningu bez nej?
 5. Kontext 10 000 tokenov vs. 1 000 tokenov — koľkokrát viac výpočtu potrebuje attention a prečo?
 6. Prečo je decoder-only model (GPT/Claude štýl) pri generovaní „autoregresívny" a čo to znamená pre rýchlosť generovania dlhých odpovedí?
+7. Model pri tej istej otázke odpovedá zakaždým inak. Ktoré nastavenie dekódovania za to môže a ako ho zmeníte, ak chcete zopakovateľné faktické odpovede?
 
 ---
 
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — kam transformery zapadajú v celej AI (stromy, XGBoost, CNN…)
-- [embeddings.md](embeddings.md) — ako sa z textu stane vektor (vstup do transformera) a RAG
-- [adam-optimalizator.md](adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam)
-- [llm-trening.md](llm-trening.md) — ako sa táto architektúra trénuje na jazyk (pretraining → Instruct)
-- [llm-trendy.md](llm-trendy.md) — aktuálne trendy vo veľkých jazykových modeloch
+- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — kam transformery zapadajú v celej AI (lekcie 1–3)
+- [adam-optimalizator.md](adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam — lekcia 3)
+- [llm-trening.md](llm-trening.md) — **nasledujúca lekcia**: ako sa táto architektúra trénuje na jazyk
+- [embeddings.md](embeddings.md) — tá istá attention s číslami + cesta textu na vektor (lekcia 6)

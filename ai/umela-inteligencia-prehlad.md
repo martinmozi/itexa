@@ -1,5 +1,7 @@
 # Umelá inteligencia — prehľad prístupov a modelov
 
+> **Poradie čítania:** ← [vyvojove-prostredie.md](vyvojove-prostredie.md) · **lekcie 1–3** · [adam-optimalizator.md](adam-optimalizator.md) →
+
 > **Cieľ dokumentu:** dať ucelený, ale prakticky ladený prehľad toho, čo je umelá inteligencia, ako sa delí, a aké hlavné rodiny modelov sa dnes používajú — od rozhodovacích stromov a XGBoostu po feed-forward a konvolučné neurónové siete. Ku každému modelu je obrázok, typické použitie (tabuľkové dáta, spracovanie obrazu…) a stručné výhody/nevýhody.
 
 Transformery a mechanizmus attention majú vlastný, detailnejší dokument: [transformer-siete.md](transformer-siete.md).
@@ -61,6 +63,16 @@ Toto rozlíšenie je najdôležitejšia intuícia pri výbere modelu, preto sa k
 
 Cieľom učenia nie je, aby model bezchybne zvládol trénovacie príklady — ich správne odpovede predsa už poznáme. Cieľom je **zovšeobecnenie (generalizácia)**: správne predpovedať aj na dátach, ktoré model počas tréningu nikdy nevidel. Preto sa dostupné dáta pred trénovaním rozdelia: väčšina (typicky okolo 80 %) tvorí **trénovaciu množinu**, na ktorej sa model učí, a zvyšok sa odloží bokom ako **testovacia množina**, na ktorej sa až na záver zmeria, ako model obstojí na neznámych príkladoch. Chyba na testovacej množine je jediný poctivý odhad kvality modelu — chyba na trénovacej množine sa dá „vylepšiť" obyčajným memorovaním.
 
+Len čo však začneme **ladiť nastavenia** (koľko vrstiev, aká hĺbka stromu, aký learning rate), potrebujeme ešte tretiu množinu. Keby sme si najlepšie nastavenie vybrali podľa testovacej množiny, nepriamo by sme sa na ňu „preučili" — vybrali by sme to, čo náhodou vyhovuje práve jej, a odhad kvality by prestal byť poctivý. Dáta sa preto delia na tri časti:
+
+| Množina | Podiel | Na čo slúži |
+|---|---|---|
+| **trénovacia** | ~60–80 % | učia sa na nej parametre (váhy, splity) |
+| **validačná** | ~10–20 % | porovnávajú sa na nej nastavenia a rozhoduje sa, kedy tréning zastaviť |
+| **testovacia** | ~10–20 % | siahne sa na ňu **raz, na úplný záver** |
+
+Ak je dát málo na to, aby sa dala odkrojiť samostatná validačná časť, nahrádza ju **krížová validácia** (*k-fold*): dáta sa rozdelia na `k` dielov, model sa `k`-krát natrénuje vždy na `k−1` dieloch a overí na tom zvyšnom, a výsledky sa spriemerujú.
+
 Pri učení hrozia dva opačné neduhy:
 
 - **Preučenie (overfitting):** model je príliš pružný a naučí sa trénovacie dáta doslova naspamäť — vrátane náhodného šumu a výnimiek, ktoré sa už nikdy nezopakujú. Poznávacie znamenie: na trénovacej množine takmer nulová chyba, na testovacej výrazne horšia. Model si nezapamätal vzor, ale konkrétne príklady.
@@ -72,6 +84,26 @@ S tým súvisí užitočný rozklad chyby na dve zložky, ktorý budeme potrebov
 - **Rozptyl (variance)** je nestálosť príliš pružného modelu. Na každej trénovacej vzorke sa naučí niečo trochu iné; jeho predpovede „lietajú" podľa toho, aké dáta náhodou dostal.
 
 Jednoduché modely mávajú vysoké skreslenie a nízky rozptyl, zložité modely naopak. Umenie strojového učenia spočíva v hľadaní rovnováhy medzi nimi — alebo, ako uvidíme pri random foreste a boostingu, v šikovnom zložení viacerých modelov tak, aby sa jedna zo zložiek chyby potlačila.
+
+### Ako sa preučenie brzdí
+
+Okrem voľby jednoduchšieho modelu má proti preučeniu každá rodina svoje nástroje — spoločne sa im hovorí **regularizácia**:
+
+- **obmedzenie zložitosti** — maximálna hĺbka stromu, minimálny počet vzoriek v liste, menej neurónov a vrstiev,
+- **pokuta za veľké váhy** (*weight decay*, L2) — k chybovej funkcii sa pripočíta trest úmerný veľkosti váh, takže model uprednostní „hladšie" riešenie pred divoko kmitajúcim,
+- **dropout** (len neurónové siete) — počas tréningu sa v každom kroku náhodne „vypne" časť neurónov (typicky 10–50 %), takže sa sieť nemôže spoľahnúť na jeden konkrétny neurón a musí si vzor uložiť redundantne; pri predikcii sú zapnuté všetky,
+- **skoré zastavenie** (*early stopping*) — tréning sa ukončí vo chvíli, keď chyba na **validačnej** množine prestane klesať, hoci na trénovacej ešte klesá; presne to robí XGBoost, ako uvidíme nižšie,
+- **viac dát** — najúčinnejší liek; ak sa nedajú získať, pomôže **umelé rozšírenie** (*augmentácia*): pri obrázkoch posun, otočenie, orezanie či zmena jasu.
+
+### Čím sa meria kvalita
+
+**Presnosť** (*accuracy*, podiel správne zaradených príkladov) je najjednoduchšia metrika, ale pri **nevyvážených triedach** klame: ak je 99 % transakcií poctivých, model „nikdy to nie je podvod" má 99 % presnosť a nulovú užitočnosť. Preto sa pri klasifikácii pozeráme na **maticu zámen** (*confusion matrix*) — tabuľku skutočná × predpovedaná trieda — a z nej na tri čísla:
+
+- **Precision** — z tých, ktoré model označil za pozitívne, koľko naozaj pozitívnych je? (koľko poplachov bolo falošných)
+- **Recall** (senzitivita) — zo skutočne pozitívnych, koľko ich model našiel? (koľko prípadov prehliadol)
+- **F1** — harmonický priemer precision a recall; jedno číslo, keď záleží na oboch naraz.
+
+Ktoré z nich je dôležitejšie, určuje úloha: pri filtri spamu bolí falošný poplach (dôraz na precision), pri skríningu choroby bolí prehliadnutý prípad (dôraz na recall). Pri regresii sa namiesto toho používa **MAE** (priemerná absolútna chyba) alebo **RMSE** (odmocnina z priemernej štvorcovej chyby, tvrdšie trestá veľké omyly).
 
 ---
 
@@ -280,15 +312,17 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 4. Čo by sa stalo, keby mala MLP sieť len lineárne aktivácie (žiadne ReLU/sigmoid)? Prečo by potom nepomáhalo pridávať vrstvy?
 5. Prečo CNN potrebuje rádovo menej parametrov než MLP na ten istý obrázok? (Kľúčové slová: weight sharing, lokálnosť.)
 6. Opíšte cestu obrázka 28 × 28 sieťou: čo je vstup, čo výstup a v čom sa líši spracovanie v MLP a v CNN? Prečo MLP splošťovaním obrázka stráca informáciu?
+7. Načo je popri trénovacej a testovacej množine ešte tretia, validačná? Čo presne sa pokazí, ak si architektúru vyberiete podľa presnosti na testovacej množine?
+8. Detektor podvodov má 99 % presnosť, ale nezachytil ani jeden skutočný podvod. Ako je to možné a ktorými metrikami to odhalíte?
+9. Vymenujte tri spôsoby, ako brzdiť preučenie neurónovej siete, a povedzte, čo každý z nich robí.
 
 ---
 
 ### Súvisiace dokumenty v repozitári
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — **prehľad celého predmetu (8 lekcií)** — začnite tu
-
-- [transformer-siete.md](transformer-siete.md) — detailné vysvetlenie transformerov a attention (s obrázkami)
-- [adam-optimalizator.md](adam-optimalizator.md) — ako sa neurónové siete trénujú (backpropagation, Adam)
-- [embeddings.md](embeddings.md) — ako sa z textu stane vektor (embeddingy, RAG)
-- [llm-trendy.md](llm-trendy.md) — aktuálne trendy vo veľkých jazykových modeloch
+- [vyvojove-prostredie.md](vyvojove-prostredie.md) — príprava počítača (Python, PyTorch, GPU)
+- [adam-optimalizator.md](adam-optimalizator.md) — ako sa neurónové siete trénujú (backpropagation, Adam) — **pokračovanie lekcie 3**
+- [transformer-siete.md](transformer-siete.md) — detailné vysvetlenie transformerov a attention (lekcia 4)
+- [embeddings.md](embeddings.md) — ako sa z textu stane vektor (embeddingy, RAG — lekcia 6)
 - [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md), [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — praktické úlohy

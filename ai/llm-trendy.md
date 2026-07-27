@@ -1,120 +1,50 @@
-# Aktuálne trendy vo veľkých jazykových modeloch (2025–2026)
+# Kam sa to hýbe — trendy a čo sledovať ďalej
 
-> **Cieľ dokumentu:** rýchly prehľad toho, kam sa LLM svet hýbe a čo sa oplatí vedieť — moderný retrieval, agentic RAG a rozhodovanie, kedy má fine-tuning ešte zmysel. Základy, na ktoré tento text nadväzuje: [transformery](transformer-siete.md), [embeddingy a RAG](embeddings.md), [tréning LLM](llm-trening.md); prehľad konkrétnych modelov je v [llm-modely.md](llm-modely.md).
+> **Poradie čítania:** ← [agenti-a-nastroje.md](agenti-a-nastroje.md) · **záver lekcie 8** · [prehlad-predmetu.md](prehlad-predmetu.md) →
 
-## 1. Čo je nové/na hrane (2025–2026)
-
-- Reasoning modely ako predvolený "engine" a test-time compute scaling namiesto len scaling parametrov.
-- Bezpečnosť agentov – prompt injection, sandboxing – kritické, keď agent má prístup k terminálu/kódu/prehliadaču.
-- Multimodálni a voice-first agenti (real-time hlas/video).
-- Menšie destilované a lokálne modely popri veľkých (náklady/latencia).
+> **Cieľ dokumentu:** krátky záver predmetu — čo je v roku 2026 nové, čo z toho pravdepodobne zostane a ako sa v tejto oblasti orientovať, keď kurz skončí. Detailné mechaniky sú v predchádzajúcich dokumentoch; tu ide o výhľad, nie o učivo na skúšku.
 
 ---
 
-## 2. Priority na učenie v polovici 2026
+## 1. Čo je dnes na hrane
 
-1. **MCP** a agentová interoperabilita
-2. **Context engineering** namiesto len prompt engineering
-3. **Agentová evaluácia a observability**
-4. **Bezpečnosť agentov** – least-privilege prístup k nástrojom, obrana proti prompt injection
-5. Vedieť postaviť **jednoduchý** agentový vzor bez frameworku aj poznať kedy siahnuť po ťažšom (LangGraph a pod.)
-6. Efektívna práca s **reasoning modelmi** – jasné zadanie, menej "promptových trikov"
-7. Hybrid RAG + rozhodovanie RAG vs. long context vs. fine-tuning/distillation
-8. **Distillation** ako nástroj na lacné špecializované modely
+- **Reasoning modely ako predvolená voľba.** Model dostane priestor „premýšľať" pred odpoveďou a kvalita rastie s množstvom výpočtu pri **inferencii**, nie len s veľkosťou modelu. Škálovanie sa tým presunulo z tréningu čiastočne do behu — čo mení aj ekonomiku: viac platíte za odpoveď, menej za tréning.
+- **Agenti ako hlavný spôsob nasadenia.** Od „chatbot nad dokumentmi" k systémom, ktoré vykonávajú viackrokové úlohy s nástrojmi (viď [lekcia 8](agenti-a-nastroje.md)). S tým prichádza aj hlavné riziko obdobia — **bezpečnosť agentov**.
+- **Malé a destilované modely popri veľkých.** Nie všetko potrebuje špičkový model; úzke úlohy sa presúvajú na malé lokálne modely kvôli cene, latencii a súkromiu (viď [lekcia 7](fine-tuning-lora.md), distillation).
+- **Multimodalita ako samozrejmosť.** Obraz, zvuk a video na vstupe aj výstupe; hlasoví agenti pracujúci v reálnom čase.
+- **Dlhý kontext.** Okná v státisícoch až miliónoch tokenov posúvajú hranicu, kedy ešte treba RAG a kedy stačí vložiť celý dokument do promptu.
 
 ---
 
-## 3. Moderné vyhľadávanie (retrieval) – detail
+## 2. Čo sa oplatí sledovať po kurze
 
-- **Hybrid search** – kombinácia vektorového (dense/embedding) + lexikálneho (BM25/sparse, napr. SPLADE) vyhľadávania. Vektor chytí sémantiku, BM25 chytí presné zhody (kódy, skratky, mená, ID).
-- **Reranking** – najprv sa vytiahne širší set (top 20–50) hybridným searchom, potom cross-encoder reranker (Cohere Rerank, BGE-reranker, ColBERT) vyberie skutočný top-3–5 do promptu. Jedno z najlacnejších a najúčinnejších vylepšení kvality.
-- **Query transformation** – prepis/rozšírenie query, HyDE (najprv vygeneruj hypotetickú odpoveď, tú embedduj a hľadaj podľa nej), rozklad zloženej otázky na podotázky (multi-hop).
-- **Metadata filtering** – kombinácia vektorového searchu so štruktúrovanými filtrami (dátum, zdroj, oddelenie, ACL/permissions) – podporujú prakticky všetky vektorové DB natívne.
-- **Chunking** – posun od "fixný počet tokenov" k semantic/structure-aware chunkingu (rešpektuje nadpisy, tabuľky, code bloky) + overlap medzi chunkami.
-- **Embedding modely** – výber má veľký vplyv (multilingválnosť, Matryoshka embeddings na škálovanie dimenzie, multi-vector/late-interaction ako ColBERT pre vyššiu presnosť).
+Nie zoznam nástrojov — tie zastarajú. Skôr miesta, kde sa dá overiť, čo je aktuálne:
 
----
-
-## 4. Small-to-big retrieval
-
-**Princíp:** indexuješ/vyhľadávaš na malých kusoch (presnosť matchu), ale do LLM posielaš väčší, súvislý kontext – malé chunky sa dobre *vyhľadávajú*, ale samostatne často chýba kontext (halucinácie, neúplné odpovede).
-
-### Techniky
-- **Parent-child chunking** – malé "child" chunky majú v metadátach `parent_id` na väčší nadradený blok/sekciu/dokument. Search nájde child, aplikácia dotiahne parent z docstore.
-- **Sentence-window retrieval** – indexujú sa jednotlivé vety, pri nájdení sa vráti okno ±N viet okolo nej.
-- **Auto-merging retriever** – hierarchický strom chunkov; ak sa nájde dosť child uzlov pod jedným parentom, zlúčia sa a vráti sa rovno parent.
-- **RAPTOR-style** – strom sumárov na viacerých úrovniach abstrakcie (chunk → sumár sekcie → sumár dokumentu), retrieval siaha na úroveň podľa granularity otázky.
-
-### Implementácia / voľba databázy
-Toto je väčšinou vzor na úrovni aplikácie (vektor → id → fetch plného textu), nie špeciálna vlastnosť DB:
-
-| Nástroj/DB | Poznámka |
-|---|---|
-| **LlamaIndex** | `AutoMergingRetriever`, hierarchical node parser – hotový vzor |
-| **LangChain** | `ParentDocumentRetriever` – hotový vzor |
-| **Pinecone, Weaviate, Qdrant, Milvus, Chroma** | vektorová vrstva, parent-child cez metadata + samostatný lookup |
-| **Postgres + pgvector** | čoraz obľúbenejšie – parent/child ako relačné tabuľky s FK + vektor search v tej istej DB |
-| **Elasticsearch/OpenSearch** | natívny hybrid search (BM25 + vektor), časté v enterprise |
-| **Graf DB (Neo4j a pod.)** | keď ide viac o vzťahy medzi entitami než o hierarchiu (GraphRAG) |
-
-Malé chunky idú do vektorovej DB, plné dokumenty do jednoduchého docstore (Redis, Mongo, lokálny file store).
+- **Modelové karty na [Hugging Face](https://huggingface.co/models)** — primárny zdroj o konkrétnom modeli (veľkosť, licencia, jazyky, benchmarky). Vždy lepší než blogový článok „top 10 modelov".
+- **arXiv** pre pôvodné články; väčšina pojmov z tohto kurzu (Attention Is All You Need, LoRA, InfoNCE, RAG) má jeden zakladajúci článok, ktorý sa dá prečítať za hodinu.
+- **Dokumentácia poskytovateľov API** — parametre, ceny aj limity sa menia rýchlejšie než čokoľvek iné.
+- **Vlastná testovacia sada.** Najspoľahlivejší spôsob, ako zistiť, či je nový model lepší *pre vašu úlohu*, je pustiť naň svojich pätnásť otázok — presne ako v [zadaní 2](zadania/RAG_Fine_tunning.md). Verejné benchmarky o vašej doméne nehovoria nič.
 
 ---
 
-## 5. Čo je agentic RAG
+## 3. Čo z tohto kurzu nezastará
 
-Namiesto pevného "retrieve raz → stuff do promptu → generuj", LLM ako agent sám rozhoduje:
+Konkrétne verzie modelov, knižníc aj frameworkov sa vymenia. Mechanika nie:
 
-- **či** je retrieval vôbec potrebný,
-- **čo** presne hľadať (vie si query preformulovať),
-- **koľkokrát** hľadať – iteratívne, multi-hop (nájde niečo, zistí že to nestačí, hľadá znova s inou query),
-- **kde** hľadať – router rozhoduje medzi vektorovou DB, SQL databázou, webom, internými API,
-- **kedy má dosť info** na odpoveď, prípadne si vie odpoveď spätne overiť voči zdrojom (self-check/reflection).
+- **tréningová slučka** — forward → loss → backprop → update je rovnaká pre malú sieť z [lekcie 3](adam-optimalizator.md) aj pre model s biliónom parametrov,
+- **attention** — jadro každého dnešného jazykového modelu ([lekcia 4](transformer-siete.md)),
+- **dáta a loss určujú, čo sa model naučí** — vysvetľuje rozdiel medzi base a Instruct modelom, embedding a generatívnym modelom, aj to, prečo fine-tuning nefunguje na fakty,
+- **typ dát určuje model** — na tabuľky stále XGBoost, na obraz CNN. Táto vec sa za desať rokov nezmenila a pravdepodobne sa ani nezmení,
+- **vyhodnotenie proti baseline** — bez merania sa nedá povedať, že niečo pomohlo. Platí to pri sieti zo zadania 1 rovnako ako pri agentovi.
 
-### Typické vzory
-- **ReAct slučka** (Thought → Action/search → Observation → opakuj)
-- **Corrective RAG / Self-RAG** – over, či retrieved dokumenty naozaj podporujú návrh odpovede, inak re-query alebo fallback
-- **Multi-agentový RAG** – samostatný agent na retrieval, samostatný na verifikáciu
-
-### Kedy sa oplatí
-Pri komplexných/multi-hop otázkach a heterogénnych zdrojoch dát.
-
-**Cena:** vyššia latencia a náklady (viac LLM volaní), náročnejšie debugovanie – vyžaduje poriadny observability/eval setup.
+Kto rozumie týmto piatim veciam, vie si nový model, novú knižnicu aj nový buzzword zaradiť sám.
 
 ---
-
-## 6. Kedy má fine-tuning stále zmysel
-
-### Áno, oplatí sa:
-- **Distillation** – natrénovať malý/lacný model na výstupoch (alebo reasoning trace) veľkého modelu pre úzku úlohu → lacná a rýchla inferencia vo veľkom objeme.
-- **Konzistentný formát/štýl výstupu** – spoľahlivý JSON/function-calling formát, firemný tón, doménový žargón (právo, medicína) – lacnejšie než dlhé inštrukcie/few-shot príklady v každom volaní.
-- **Edge/on-device modely** – keď treba bežať lokálne (privacy, latencia, offline) s malým modelom dobrým na úzku úlohu.
-- **Chain-of-thought distillation** – trénovanie malých "reasoning" modelov na CoT stopách veľkého modelu.
-- **Preference optimization** (DPO a podobne) – ladenie preferovaného štýlu/kvality z porovnávacích párov, bez plného RLHF.
-- Keď sú **vyčerpané prompt/RAG optimalizácie** a presnosť/formát stále nestačí.
-
-### Nie, neoplatí sa:
-- Model "nepozná fakt X" → to je problém pre RAG/kontext, nie fine-tuning (fine-tuning je zlý na vkladanie nových faktov, dobrý na naučenie ŠTÝLU).
-- Dáta sa často menia → fine-tuning treba opakovať, drahšie než aktualizovať retrieval korpus.
-- Dobrý prompt + few-shot na silnom reasoning modeli už problém rieši → netreba pridávať zložitosť.
-
----
-
-## Kontrolné otázky
-
-1. Prečo hybrid search (vektor + BM25) prekonáva čisto vektorové vyhľadávanie? Uveďte príklad dotazu, kde zlyhá samotný vektor.
-2. Vysvetlite princíp small-to-big retrievalu: prečo sa vyhľadáva na malých chunkoch, ale do promptu ide väčší text?
-3. Čím sa agentic RAG líši od klasického „retrieve raz → generuj"? Aká je cena za tú flexibilitu?
-4. Model „nepozná fakt X" — prečo to fine-tuning nerieši dobre a čo je správne riešenie?
-5. Vymenujte dve situácie, kedy sa fine-tuning naopak oplatí.
-
----
-
-*Poznámka: ide o syntézu trendov bez prístupu k živému vyhľadávaniu – pri úplne najnovších zmenách (posledné týždne pred dátumom čítania) odporúčam doplniť aktuálne zdroje.*
 
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [llm-modely.md](llm-modely.md) — prehľad modelov (proprietárne / open-weight / open-source)
-- [llm-trening.md](llm-trening.md) — ako sa LLM trénujú (pretraining → Instruct)
-- [embeddings.md](embeddings.md) — embeddingy a RAG pipeline do detailu
+- [agenti-a-nastroje.md](agenti-a-nastroje.md) — agentová slučka, MCP, bezpečnosť (lekcia 8)
+- [llm-modely.md](llm-modely.md) — ako si vybrať model a na čo si dať pozor právne (lekcia 5)
+- [embeddings.md](embeddings.md) — RAG vrátane pokročilého retrievalu (lekcia 6)
+- [fine-tuning-lora.md](fine-tuning-lora.md) — LoRA, distillation, RAG vs. fine-tuning (lekcia 7)

@@ -1,5 +1,7 @@
 # Ako sa trénuje LLM — od surového textu po Instruct model
 
+> **Poradie čítania:** ← [transformer-siete.md](transformer-siete.md) · **lekcia 5 (1/2)** · [llm-modely.md](llm-modely.md) →
+
 > **Cieľ dokumentu:** vysvetliť celú tréningovú pipeline veľkého jazykového modelu — čo sa deje od stiahnutia surového internetu až po model s príponou `-Instruct`, ktorý si viete stiahnuť z Hugging Face a ktorý odpovedá na otázky. Po prečítaní budete rozumieť, prečo *base* model „nevie odpovedať", čo presne pridáva inštrukčné ladenie, a kam do tejto pipeline zapadá váš vlastný fine-tuning (LoRA).
 
 Predpokladá znalosť [transformerov](transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskom merítku). Tokenizáciu a BPE detailne rozoberá [embeddings.md](embeddings.md).
@@ -150,7 +152,7 @@ Po SFT model:
 
 ### Váš vlastný fine-tuning = tá istá Fáza 2 v malom
 
-Keď v [zadaní](zadania/RAG_Fine_tunning.md) robíte **LoRA/QLoRA** fine-tuning, robíte presne SFT — dvojice otázka → odpoveď, chat šablóna, loss na odpovedi. Rozdiel je len v úspornosti: namiesto všetkých miliárd váh trénujete malé **adaptérové matice** (LoRA) pripojené k zamrznutému modelu, takže to zvládne jedno GPU.
+Keď v [zadaní](zadania/RAG_Fine_tunning.md) robíte **LoRA/QLoRA** fine-tuning, robíte presne SFT — dvojice otázka → odpoveď, chat šablóna, loss na odpovedi. Rozdiel je len v úspornosti: namiesto všetkých miliárd váh trénujete malé **adaptérové matice** (LoRA) pripojené k zamrznutému modelu, takže to zvládne jedno GPU. Ako presne tie adaptéry vyzerajú a prečo stačia, rozoberá [fine-tuning-lora.md](fine-tuning-lora.md) (lekcia 7).
 
 ---
 
@@ -176,9 +178,9 @@ Zhrnutie celej cesty jednou vetou: **pretraining dá modelu schopnosti, SFT z ne
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [transformer-siete.md](transformer-siete.md) — architektúra, ktorá sa tu trénuje
+- [transformer-siete.md](transformer-siete.md) — architektúra, ktorá sa tu trénuje (lekcia 4)
 - [adam-optimalizator.md](adam-optimalizator.md) — tréningová slučka a optimalizátor (rovnaké aj pre LLM)
-- [embeddings.md](embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza
-- [llm-modely.md](llm-modely.md) — prehľad modelov (base vs Instruct nájdete v názvoch na HF)
-- [llm-trendy.md](llm-trendy.md) — distillation, kedy fine-tuning áno/nie
+- [llm-modely.md](llm-modely.md) — **druhá polovica lekcie 5**: prehľad dnešných modelov
+- [embeddings.md](embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza (lekcia 6)
+- [fine-tuning-lora.md](fine-tuning-lora.md) — SFT v malom: LoRA/QLoRA, kedy fine-tuning áno/nie (lekcia 7)
 - [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — vlastný SFT cez LoRA/QLoRA

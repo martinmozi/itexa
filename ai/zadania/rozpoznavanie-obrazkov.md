@@ -1,5 +1,7 @@
 # Zadanie: Rozpoznávanie obrázkov vlastnou neurónovou sieťou
 
+> **Zadanie 1 z 2** · rieši sa počas lekcií 3–4 · podklady: [adam-optimalizator.md](../adam-optimalizator.md), [umela-inteligencia-prehlad.md](../umela-inteligencia-prehlad.md), [vyvojove-prostredie.md](../vyvojove-prostredie.md)
+
 ## Cieľ
 
 Naprogramovať doprednú (feed-forward) neurónovú sieť na klasifikáciu obrázkov **dvoma spôsobmi**:
@@ -49,7 +51,7 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
 ## Povolené nástroje
 
 - **Python** + **NumPy** (maticové operácie sú OK a odporúčané).
-- **PyTorch** — **iba** v Časti B.
+- **PyTorch** — **iba** v Časti 2B.
 - `datasets` (Hugging Face) na stiahnutie dát, `Pillow` na obrázky, `matplotlib` na vizualizáciu.
 
 ---
@@ -69,10 +71,15 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
 3. Cieľové labely preveďte na **one-hot** vektory dĺžky = počet tried (pri PyTorch stačí index).
    > *Hint:* vždy si najprv **vizualizujte pár vzoriek aj s labelmi** (`matplotlib`), aby ste
    > overili orientáciu obrázka a správne priradenie tried.
+4. Z trénovacej časti si odkrojte **validačnú množinu** (napr. 10 %, `train` → `train` + `val`).
+   Testovacia sada z datasetu zostane **nedotknutá** až do záverečného merania.
+   > *Prečo:* v Časti 3 budete porovnávať niekoľko architektúr. Keby ste tú najlepšiu vybrali
+   > podľa presnosti na testovacej sade, prestala by byť nezávislá a výsledné číslo by bolo
+   > optimistickejšie než realita — viď [zovšeobecnenie](../umela-inteligencia-prehlad.md).
 
 ---
 
-## Časť A — Vlastná sieť BEZ PyTorch
+## Časť 2A — Vlastná sieť BEZ PyTorch
 
 Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje „pod kapotou".
 
@@ -105,17 +112,17 @@ Do správy porovnajte konvergenciu **SGD vs. Adam** (loss po epochách).
 
 ---
 
-## Časť B — Tá istá sieť S PyTorch
+## Časť 2B — Tá istá sieť S PyTorch
 
 Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework urobí.
 
-- Model ako `nn.Module` s `nn.Linear` vrstvami a rovnakou architektúrou ako v Časti A.
+- Model ako `nn.Module` s `nn.Linear` vrstvami a rovnakou architektúrou ako v Časti 2A.
 - Aktivácie cez `torch.relu` / `nn.ReLU`.
 - Loss: `nn.CrossEntropyLoss` (softmax má v sebe — na výstup nedávajte softmax navyše).
-- Optimalizátor: `torch.optim.Adam` (rovnaký ako ste si napísali v Časti A).
+- Optimalizátor: `torch.optim.Adam` (rovnaký ako ste si napísali v Časti 2A).
 - Tréningová slučka: `forward → loss → loss.backward() → optimizer.step()`.
 
-> *Hint:* všimnite si, že `loss.backward()` nahrádza celý ručný backprop z Časti A a
+> *Hint:* všimnite si, že `loss.backward()` nahrádza celý ručný backprop z Časti 2A a
 > `torch.optim.Adam` nahrádza váš vlastný Adam — presne to, čo ste si napísali sami.
 
 > *Hint:* dáta podávajte cez `DataLoader` s `batch_size` a `shuffle=True`.
@@ -124,11 +131,12 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 
 ## Časť 3 — Tréning a experimenty (pre obe verzie)
 
-1. Trénujte niekoľko epôch a sledujte **loss** a **presnosť** na testovacej sade.
+1. Trénujte niekoľko epôch a sledujte **loss** a **presnosť na validačnej množine** po každej
+   epoche.
 2. **Experimentujte s architektúrou** a zdokumentujte do tabuľky (rovnaké nastavenia pre
-   Časť A aj B, aby bolo porovnanie férové):
+   Časť 2A aj 2B, aby bolo porovnanie férové). Porovnávajte podľa **validačnej** presnosti:
 
-   | Skryté vrstvy | LR | Epochy | Presnosť A (NumPy) | Presnosť B (PyTorch) |
+   | Skryté vrstvy | LR | Epochy | Val. presnosť 2A (NumPy) | Val. presnosť 2B (PyTorch) |
    |---|---|---|---|---|
    | `[64]` | 0.001 | 10 | ? | ? |
    | `[128, 64]` | 0.001 | 10 | ? | ? |
@@ -136,8 +144,10 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 
    > *Hint:* cieľová presnosť závisí od variantu (MNIST/EMNIST > 95 %, Fashion-MNIST ~88 %,
    > HASYv2 podľa výberu podmnožiny tried). Viac vrstiev nie je vždy lepšie — sledujte aj čas.
-3. **Uložte natrénované siete** (váhy).
-   > *Hint:* A → `np.savez` / `pickle`; B → `torch.save(model.state_dict(), ...)`.
+3. **Najlepšiu architektúru** z tabuľky zmerajte **raz** na testovacej sade a toto číslo uveďte
+   ako výslednú presnosť. Ak je citeľne nižšie než validačná, napíšte do správy prečo.
+4. **Uložte natrénované siete** (váhy).
+   > *Hint:* 2A → `np.savez` / `pickle`; 2B → `torch.save(model.state_dict(), ...)`.
 
 ---
 
@@ -151,7 +161,7 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
    - **invertujte** farby, ak treba (over si, či má dataset svetlý objekt na tmavom pozadí),
    - **normalizujte** do `<0, 1>`.
    > *Hint:* `Image.open(...).convert('L').resize((W,W))`, potom `np.array(...)`.
-3. Podajte obrázok **obom natrénovaným sieťam** (A aj B) a vypíšte predikciu a
+3. Podajte obrázok **obom natrénovaným sieťam** (2A aj 2B) a vypíšte predikciu a
    pravdepodobnosti. Zhodujú sa?
 
 ### Nepovinné (bonus)
@@ -180,11 +190,12 @@ Zamyslite sa a stručne odpovedzte:
 
 ## Odovzdanie
 
-1. **Zdrojový kód** — obe verzie (A bez PyTorch vrátane vlastného Adam, B s PyTorch) + príprava vstupu.
+1. **Zdrojový kód** — obe verzie (2A bez PyTorch vrátane vlastného Adam, 2B s PyTorch) + príprava vstupu.
 2. **Uložené natrénované siete** (obe).
 3. **Krátku správu (1–2 strany)**:
    - zvolený variant a popis architektúry a hyperparametrov,
-   - tabuľku experimentov s rôznymi skrytými vrstvami (A vs. B),
+   - tabuľku experimentov s rôznymi skrytými vrstvami (2A vs. 2B) na **validačnej** množine
+     a záverečné meranie najlepšej architektúry na **testovacej** množine,
    - porovnanie konvergencie **SGD vs. Adam**,
    - **porovnanie oboch verzií** — presnosť, čas tréningu, náročnosť implementácie,
    - ukážku rozpoznania vlastného vstupu (screenshot),

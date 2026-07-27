@@ -1,13 +1,18 @@
 # Embeddingy a príprava dát pre RAG
 
+> **Poradie čítania:** ← [llm-modely.md](llm-modely.md) · **lekcia 6** → [zadanie 2A](zadania/RAG_Fine_tunning.md) · ďalej [fine-tuning-lora.md](fine-tuning-lora.md) →
+
 > **Tutoriál:** ako sa z obyčajného textu stane vektor, ktorý sa dá vyhľadávať, a kde v celom RAG pipeline hrá úlohu malý (embedding / rerank) LLM model, ktorý pri inferencii reálne potrebuje slušný kus CPU – a niekedy aj GPU.
 
-Tento dokument sleduje **cestu jedného kúsku textu** od surového dokumentu až po odpoveď, ktorú dostane používateľ. Rozdelené je to na dve časti:
+Tento dokument sleduje **cestu jedného kúsku textu** od surového dokumentu až po odpoveď, ktorú dostane používateľ. Rozdelené je to na tri časti:
 
 1. **Ako vzniká embedding** (čo sa deje vo vnútri embedding modelu – token po tokene).
 2. **Kam to zapadá v RAG pipeline** (príprava dát, indexovanie, vyhľadávanie, reranking) a **aké to má výpočtové nároky**.
+3. **Kam sa RAG posunul** (hybridné vyhľadávanie, prepis dotazu, agentický RAG) – čo použiť, keď základná pipeline nestačí.
 
-> **Ako čítať tento text:** kľúčové kroky sú rozpísané na malých, ručne prepočítateľných príkladoch (miniatúrny slovník, `hidden_dim = 4`, jedna krátka veta). Čísla naprieč Časťou 1 tvoria **jeden súvislý bežecký príklad** – tú istú vetu potiahneme cez tokenizáciu, embedding maticu, attention, pooling aj normalizáciu. Reálne modely majú tie isté operácie, len s rozmermi 1024+ a miliardami parametrov. Ak si prepočítaš príklady na papieri, vieš podľa nich celý proces aj naprogramovať.
+Predpokladá znalosť [transformerov](transformer-siete.md) z lekcie 4: attention, multi-head, positional encoding a reziduálne spojenia tu už len použijeme a doplníme im čísla.
+
+> **Ako čítať tento text:** kľúčové kroky sú rozpísané na malých, ručne prepočítateľných príkladoch (miniatúrny slovník, `hidden_dim = 4`, jedna krátka veta). Čísla naprieč Časťou 1 tvoria **jeden súvislý bežecký príklad** – tú istú vetu potiahneme cez tokenizáciu, embedding maticu, attention, pooling aj normalizáciu. Reálne modely majú tie isté operácie, len s rozmermi 1024+ a miliardami parametrov. Ak si príklady prepočítate na papieri, viete podľa nich celý proces aj naprogramovať.
 
 ---
 
@@ -34,7 +39,7 @@ Tento dokument sleduje **cestu jedného kúsku textu** od surového dokumentu a�
    └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-V hranatých zátvorkách sú **modely, ktoré reálne počítajú** (a teda spotrebujú CPU/GPU). Všimni si, že "malých" modelov je viac a bežia na rôznych miestach – nižšie rozoberieme každý z nich.
+V hranatých zátvorkách sú **modely, ktoré reálne počítajú** (a teda spotrebujú CPU/GPU). Všimnite si, že „malých" modelov je viac a bežia na rôznych miestach – nižšie rozoberieme každý z nich.
 
 ---
 
@@ -42,7 +47,7 @@ V hranatých zátvorkách sú **modely, ktoré reálne počítajú** (a teda spo
 
 ### Vstup: text → čísla
 
-Predstav si vetu z firemného dokumentu:
+Predstavme si vetu z firemného dokumentu:
 
 ```text
 "Zamestnanec má nárok na 25 dní dovolenky."
@@ -97,8 +102,8 @@ Pri reálnom použití sa merge pravidlá aplikujú **v tom istom poradí**, v a
 
 ```text
 "dovolenky"
-  → skús "dovolenky" (nie v slovníku) → skráť
-  → skús "dovolenk"  (nie) → ... → "dovolen" (ÁNO) → odrež
+  → skúsi "dovolenky" (nie v slovníku) → skráti
+  → skúsi "dovolenk"  (nie) → ... → "dovolen" (ÁNO) → odreže
   zvyšok "ky"
   → "ky" (ÁNO) → odrež
   výsledok: ["dovolen", "ky"]
@@ -166,7 +171,7 @@ x_dovolenku  = [ 0.30,  0.70,  0.40, -0.10 ]
 
 #### Pozičné kódovanie – aby model vedel poradie
 
-K tomuto vektoru sa ešte pripočíta **pozičná informácia** (*positional encoding*) – lebo transformer spracúva všetky tokeny naraz/paralelne a sám osebe nevie poradie slov. Bez nej by veta „pes hryzie človeka" a „človek hryzie psa" mali identický výstup.
+K tomuto vektoru sa ešte pripočíta **pozičná informácia** (*positional encoding*). Prečo je nutná, vieme z [lekcie 4](transformer-siete.md#positional-encoding--kde-je-informácia-o-poradí) – tu si ju len dopočítame.
 
 Klasická (sínusová) verzia definuje pre pozíciu `pos` a dimenziu `i` hodnotu:
 
@@ -191,13 +196,15 @@ h_na         = x_na         + PE(1) = [0.60+0.841,-0.30+0.540,  0.10+0.010, 0.20
 h_dovolenku  = x_dovolenku  + PE(2) = [0.30+0.909, 0.70-0.416,  0.40+0.020,-0.10+1.000] = [ 1.209, 0.284,  0.420, 0.900 ]
 ```
 
-Tieto tri vektory `h_*` sú **vstup do prvej transformer vrstvy**. Moderné modely namiesto sčítania často používajú **RoPE** (*rotary embeddings*), ktorá pozíciu nezakóduje pripočítaním, ale **otočením** Q/K vektorov o uhol úmerný pozícii – výhoda je, že attention potom závisí len od *relatívnej* vzdialenosti tokenov. Princíp „model potrebuje vedieť poradie" je však rovnaký.
+Tieto tri vektory `h_*` sú **vstup do prvej transformer vrstvy**.
 
 ---
 
 ### Krok 3: Transformer vrstvy – tu sa deje "pochopenie kontextu"
 
-Toto je **jadro celého modelu** a zároveň to najdrahšie na výpočet. Máme teraz `n` vektorov (u nás 3, v reálnej vete napr. 10), a tie prechádzajú cez `N` vrstiev (napr. `12–24`, podľa veľkosti modelu). V každej vrstve sa deje self-attention + feed-forward. Rozpíšeme jednu vrstvu úplne, s číslami z nášho bežeckého príkladu.
+Toto je **jadro celého modelu** a zároveň to najdrahšie na výpočet. Máme teraz `n` vektorov (u nás 3, v reálnej vete napr. 10), a tie prechádzajú cez `N` vrstiev (napr. `12–24`, podľa veľkosti modelu). V každej vrstve sa deje self-attention + feed-forward.
+
+Mechaniku poznáme z [lekcie 4](transformer-siete.md#attention-krok-po-kroku-query-key-value) – teraz ju **rozpíšeme s číslami**, aby bolo vidno, že za „pochopením kontextu" nie je nič iné než niekoľko násobení a jeden softmax. Toto je zároveň ten ručný prepočet, ktorý bol v lekcii 4 avizovaný.
 
 #### 3a) Projekcia na Query, Key, Value
 
@@ -294,7 +301,7 @@ out_nárok = [ 0.433, 1.563, -0.024, 1.249 ]
 
 #### 3f) Multi-head attention
 
-V realite sa attention nerobí raz, ale v **niekoľkých „hlavách" (heads)** paralelne. Hidden_dim (napr. 1024) sa rozdelí na `h` hláv (napr. 16 hláv po 64 dimenzií), každá má vlastné `W_Q/W_K/W_V` a robí presne vyššie uvedený výpočet **na svojom výseku**. Jedna hlava sa môže „naučiť" sledovať gramatickú zhodu, iná tematickú súvislosť. Výstupy všetkých hláv sa nakoniec **zreťazia späť** na plnú dimenziu a prejdú ešte jednou lineárnou projekciou `W_O`.
+Práve prepočítaný výpočet je **jedna hlava**. V realite ich beží viac paralelne, každá na svojom výseku dimenzií a s vlastnými `W_Q/W_K/W_V` – detaily v [lekcii 4](transformer-siete.md#multi-head-attention--viac-pohľadov-naraz). Pre náš prepočet je podstatné len to, že aritmetika je v každej hlave presne tá istá, len na kratších vektoroch.
 
 #### 3g) Reziduálne spojenie + LayerNorm
 
@@ -305,12 +312,14 @@ r_nárok = h_nárok + out_nárok = [0.200+0.433, 1.900+1.563, -0.100-0.024, 1.30
         = [ 0.633, 3.463, -0.124, 2.549 ]
 ```
 
-Reziduálne spojenie zabezpečí, že sa pôvodná informácia „nestratí" a že gradient má pri trénovaní kadiaľ tiecť aj cez desiatky vrstiev. LayerNorm potom prečíslo vektor tak, aby mal (naprieč svojimi 4 súradnicami) priemer 0 a rozptyl 1, a ešte ho preškáluje dvomi naučenými parametrami `γ, β`. Ukážka samotnej normalizácie na `r_nárok` (priemer = `(0.633+3.463-0.124+2.549)/4 = 1.630`; smerodajná odchýlka ≈ `1.489`):
+Reziduálne spojenie zabezpečí, že sa pôvodná informácia „nestratí" a že gradient má pri trénovaní kadiaľ tiecť aj cez desiatky vrstiev. LayerNorm potom prečísluje vektor tak, aby mal (naprieč svojimi 4 súradnicami) priemer 0 a rozptyl 1, a ešte ho preškáluje dvomi naučenými parametrami `γ, β`.
+
+Ukážka samotnej normalizácie na `r_nárok`. Priemer je `(0.633 + 3.463 − 0.124 + 2.549) / 4 = 1.630`, odchýlky od priemeru sú `[−0.997, 1.833, −1.754, 0.919]`, ich druhé mocniny `[0.994, 3.359, 3.077, 0.844]`, takže rozptyl je `8.275 / 4 = 2.069` a smerodajná odchýlka `√2.069 = 1.438`:
 
 ```text
 LN(r)_i = (r_i - priemer) / odchýlka
-        = [(0.633-1.630)/1.489, (3.463-1.630)/1.489, (-0.124-1.630)/1.489, (2.549-1.630)/1.489]
-        = [ -0.670, 1.231, -1.178, 0.617 ]        (priemer ≈ 0, rozptyl ≈ 1)
+        = [(0.633-1.630)/1.438, (3.463-1.630)/1.438, (-0.124-1.630)/1.438, (2.549-1.630)/1.438]
+        = [ -0.693, 1.275, -1.220, 0.639 ]        (priemer ≈ 0, rozptyl ≈ 1)
 ```
 
 #### 3h) Feed-forward sieť (FFN)
@@ -345,7 +354,7 @@ Toto je krok **špecifický práve pre embedding modely** (generatívne/chatovac
 
 #### Mean pooling s číslami
 
-Povedzme, že náš model po prechode transformerom vyprodukoval tieto tri výstupné tokenové vektory (kontextualizované – berieme ich ako dané pre tento krok):
+V kroku 3 sme prepočítali **jednu attention hlavu v jednej vrstve**; reálny model má takých vrstiev tucty, takže výsledné čísla by boli iné. Ďalej preto pokračujeme s týmito troma výstupnými (už kontextualizovanými) vektormi – sú to hodnoty toho istého príkladu po prejdení celého modelu, zaokrúhlené na pekné čísla:
 
 ```text
 o_nárok      = [ 0.40, 1.50, 0.00, 1.20 ]
@@ -365,6 +374,8 @@ pooled = [ 0.933, 0.700, 0.167, 1.067 ]
 ```
 
 > **Poznámka k padding maske:** ak sme v batchi doplnili `[PAD]` tokeny, ich vektory sa do priemeru **nezapočítavajú** (tzv. *masked mean pooling*) – inak by výplň skreslila výsledok. V praxi sa priemer počíta len cez reálne tokeny.
+
+> **Prečo je pooling to, čím sa embedding model líši od chatovacieho.** Obe rodiny majú rovnaké transformer vrstvy; generatívny model berie posledný vektor a predpovedá z neho ďalší token (viď [lekcia 4](transformer-siete.md)), embedding model všetky vektory zlúči do jedného a ten uloží. Rovnaká architektúra, iný výstupný krok a iná loss – presne ten princíp „dáta a loss určujú, čo sa model naučí" z [lekcie 5](llm-trening.md).
 
 ---
 
@@ -507,7 +518,7 @@ L = − ln ───────────────────────
           exp( sim(a, p)/τ ) + Σ_j exp( sim(a, n_j)/τ )
 ```
 
-kde `sim` je cosine similarity a `τ` (*teplota*, typicky `0.05–0.1`) riadi „ostrosť" – nižšia teplota tvrdšie trestá blízke negatívy. Všimni si, že vnútro logaritmu je presne **softmax** cez pozitív a negatívy: loss je nízka práve vtedy, keď pozitív dostane drvivú väčšinu „pravdepodobnostnej hmoty".
+kde `sim` je cosine similarity a `τ` (*teplota*, typicky `0.05–0.1`) riadi „ostrosť" – nižšia teplota tvrdšie trestá blízke negatívy. Všimnite si, že vnútro logaritmu je presne **softmax** cez pozitív a negatívy: loss je nízka práve vtedy, keď pozitív dostane drvivú väčšinu „pravdepodobnostnej hmoty".
 
 **Príklad.** Nech model po forward-passe dá tieto cosine podobnosti a `τ = 0.1`:
 
@@ -538,7 +549,7 @@ Gradient tejto veľkej straty sa spätne prešíri (*backpropagation*) cez pooli
 
 A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý model má inú trénovaciu inicializáciu váh, iné trénovacie dáta, možno inú architektúru/veľkosť. Výsledné "smery" v jeho vektorovom priestore sú teda úplne iné geometrické usporiadanie – aj keby dva modely riešili identickú úlohu s rovnakou dimenziou výstupu, ich súradnicové sústavy si vzájomne nič nehovoria.
 
-> **Praktický dôsledok:** ak preindexuješ databázu jedným modelom a otázku zaembedduješ iným, vyhľadávanie vráti nezmysly. **Embedding modelom sa nedá "za behu" vymeniť** bez preindexovania celej databázy.
+> **Praktický dôsledok:** ak preindexujete databázu jedným modelom a otázku zaembeddujete iným, vyhľadávanie vráti nezmysly. **Embedding model sa nedá „za behu" vymeniť** bez preindexovania celej databázy.
 
 ---
 
@@ -587,7 +598,7 @@ chunk B: tokeny 22–51    "… Nevyčerpanú dovolenku možno preniesť … so 
 chunk C: tokeny 44–70    "… Preplácanie dovolenky je možné iba pri skončení pracovného pomeru."
 ```
 
-Všimni si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 tokenov overlapu. Prečo? Predstav si otázku *„Kedy vzniká nárok na dovolenku?"* – odpoveď („po odpracovaní 60 dní") leží presne na hranici. Bez overlapu by sa mohla rozseknúť medzi dva chunky a ani jeden by ju neobsahoval celú. Overlap túto stratu na hraniciach zmierňuje. Cena je **redundancia**: prekrývajúci text sa embedduje a ukladá viackrát (pri overlape 8 z 30 tokenov je to ~27 % dát navyše).
+Všimnite si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 tokenov overlapu. Prečo? Predstavme si otázku *„Kedy vzniká nárok na dovolenku?"* – odpoveď („po odpracovaní 60 dní") leží presne na hranici. Bez overlapu by sa mohla rozseknúť medzi dva chunky a ani jeden by ju neobsahoval celú. Overlap túto stratu na hraniciach zmierňuje. Cena je **redundancia**: prekrývajúci text sa embedduje a ukladá viackrát (pri overlape 8 z 30 tokenov je to ~27 % dát navyše).
 
 #### Stratégie delenia (od najhoršej po najlepšiu)
 
@@ -598,7 +609,7 @@ Všimni si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 token
 | **Recursive** | skúša deliť po odsekoch → vetách → slovách, kým sa nezmestí | najbežnejší kompromis |
 | **Semantic** | reže tam, kde sa mení téma (podľa poklesu podobnosti susedných viet) | drahšie, ale najčistejšie hranice |
 
-> **Preto:** veľkosť chunku treba prispôsobiť **konkrétnemu** embedding modelu, ktorý sa použije. Je nutné **vopred vedieť presnú špecifikáciu modelu** od toho, kto vektorovú DB pripravuje. (A pamätaj na postreh z Kroku 1 – slovenský text zaberie viac tokenov, takže reálne sa doň zmestí menej textu, než by sa zdalo.)
+> **Preto:** veľkosť chunku treba prispôsobiť **konkrétnemu** embedding modelu, ktorý sa použije. Je nutné **vopred vedieť presnú špecifikáciu modelu** od toho, kto vektorovú DB pripravuje. (A nezabudnite na postreh z Kroku 1 – slovenský text zaberie viac tokenov, takže reálne sa doň zmestí menej textu, než by sa zdalo.)
 
 #### Metadáta – čo sa ukladá popri vektore
 
@@ -758,7 +769,53 @@ Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:
 
 - **Kvantizácia (INT8/FP16):** malé modely sa dajú kvantizovať, čím klesne pamäť aj výpočet a na CPU to beží citeľne rýchlejšie – za cenu malej straty presnosti. Bežný kompromis pri lokálnom nasadení.
 
-> **Zhrnutie pre nasadenie:** embedding model rád beží aj na CPU (najmä query pri dotaze), reranker si o GPU priam pýta, a veľký generatívny LLM je úplne iná váhová kategória (rieši sa samostatne – lokálne GPU alebo API). Keď plánuješ hardvér pre RAG, počítaj s tým, že **"malé modely" sú malé len v porovnaní s generatívnym LLM** – na CPU sú stále citeľnou záťažou, hlavne reranker pri každom dotaze.
+> **Zhrnutie pre nasadenie:** embedding model rád beží aj na CPU (najmä query pri dotaze), reranker si o GPU priam pýta, a veľký generatívny LLM je úplne iná váhová kategória (rieši sa samostatne – lokálne GPU alebo API). Pri plánovaní hardvéru pre RAG počítajte s tým, že **„malé modely" sú malé len v porovnaní s generatívnym LLM** – na CPU sú stále citeľnou záťažou, hlavne reranker pri každom dotaze.
+
+---
+
+## Časť 3 – Kam sa RAG posunul
+
+Časti 1 a 2 opisujú **základnú pipeline**, ktorá stačí na zadanie aj na väčšinu firemných nasadení: chunkovať → embeddovať → hľadať top-k → prípadne rerankovať → generovať. Nasledujúce techniky riešia jej konkrétne slabiny. Nasadzujte ich **až keď zmeriate, že základ nestačí** – každá pridáva latenciu aj kód.
+
+### 3.1 Hybridné vyhľadávanie (vektor + BM25)
+
+Vektorové vyhľadávanie chytá **význam**, ale zlyháva na presných reťazcoch: kódy dielov (`XR-4420`), skratky, priezviská, čísla zmlúv. Tie sú pre embedding model takmer nerozlíšiteľné – v natrénovanom priestore ležia všetky „nezmyselné" reťazce blízko seba. Klasické lexikálne vyhľadávanie **BM25** (počíta zhodu slov s váhou podľa ich zriedkavosti) ich naopak trafí presne, ale nepozná synonymá.
+
+**Hybrid search** pustí obe a výsledky zlúči – najčastejšie cez **RRF** (*Reciprocal Rank Fusion*): dokument dostane skóre `Σ 1/(k + poradie)` z každého zoznamu, takže sa nemusia porovnávať navzájom nekompatibilné skóre. Natívne to podporujú Elasticsearch/OpenSearch, Qdrant, Weaviate aj `pgvector` v kombinácii s full-textom Postgresu.
+
+> Praktické pravidlo: ak sa v dokumentoch vyskytujú **identifikátory, ktoré musí používateľ nájsť doslova**, hybrid je prvá vec, ktorú pridáte – prináša väčší zisk než ladenie chunkov.
+
+### 3.2 Prepis dotazu (query transformation)
+
+Používateľská otázka často nevyzerá ako text, ktorý hľadáme:
+
+- **Rozšírenie / prepis** – LLM otázku preformuluje do podoby bližšej dokumentom (doplní synonymá, odborný termín).
+- **HyDE** (*Hypothetical Document Embeddings*) – LLM najprv **vymyslí hypotetickú odpoveď**, tá sa zaembedduje a hľadá sa podľa nej. Hľadáme tak odpoveď podobnú odpovedi, nie odpoveď podobnú otázke – čo je geometricky bližšie.
+- **Rozklad na podotázky** – zložená otázka („Ako sa líši nárok na dovolenku u nás a v zmluve X?") sa rozbije na samostatné dotazy a výsledky sa spoja (*multi-hop*).
+
+Cena je vždy jedno LLM volanie navyše pred vyhľadávaním.
+
+### 3.3 Filtrovanie podľa metadát
+
+Vektorové hľadanie sa dá skombinovať so **štruktúrovaným filtrom** nad metadátami z Časti 2 (`source`, `page`, dátum, oddelenie, prístupové práva). Dva typické dôvody: zúženie na relevantnú podmnožinu („len smernice platné v roku 2026") a **oprávnenia** – používateľ nesmie dostať do odpovede chunk z dokumentu, na ktorý nemá prístup. Toto je bezpečnostná, nie kvalitatívna vlastnosť, a rieši sa vo vektorovej DB, nie v prompte.
+
+### 3.4 Small-to-big: varianty parent-child
+
+Princíp poznáme z Časti 2 (hľadaj malým, vkladaj veľký). V praxi sa objavuje v troch podobách:
+
+| Technika | Ako funguje |
+|---|---|
+| **Parent-child** | child chunk má v metadátach `parent_id`; po nájdení sa dotiahne rodič |
+| **Sentence-window** | indexujú sa jednotlivé vety, vracia sa okno ±N viet okolo nájdenej |
+| **Auto-merging** | hierarchia chunkov; ak sa trafí dosť súrodencov pod jedným rodičom, vráti sa rovno rodič |
+
+Hotové implementácie: `ParentDocumentRetriever` v LangChain, `AutoMergingRetriever` v LlamaIndex. Vo všetkých prípadoch ide o vzor na úrovni aplikácie (vektor → `id` → dotiahnutie plného textu), nie o vlastnosť databázy: malé chunky idú do vektorovej DB, plné texty do obyčajného úložiska.
+
+### 3.5 Agentický RAG
+
+Doteraz bol retrieval **pevný**: vyhľadaj raz, vlož do promptu, generuj. Agentický RAG necháva rozhodovanie na modeli – **či** vôbec hľadať, **čo** hľadať, **koľkokrát** (nájde niečo, zistí, že to nestačí, hľadá znova inak), **kde** (vektorová DB / SQL / web) a **kedy má dosť** informácií. Príbuzný vzor **self-check**: model si navrhnutú odpoveď spätne overí voči zdrojom a pri nezhode hľadá znova.
+
+Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, cenou a podstatne ťažším ladením. Oplatí sa pri komplexných otázkach cez viacero zdrojov. Samotná agentová slučka, ktorá to poháňa, je témou [lekcie 8](agenti-a-nastroje.md).
 
 ---
 
@@ -768,11 +825,12 @@ Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:
 - **Tokenizácia** (BPE) sa učí štatisticky mergovaním najčastejších párov; slovenčina = viac tokenov na tú istú vetu.
 - **Attention** je jadro aj úzke hrdlo: skóre `q_i·k_j` pre všetky páry (`O(n²)`), softmax na váhy, výstup = vážený priemer `V` → kontext sa „vmieša" do každého tokenu.
 - Súradnice vektora **nemajú** ľudský význam; podobnosť = **uhol** medzi vektormi (cosine). Na **normalizovaných** vektoroch platí `cosine = dot` a poradie podľa cosine = poradie podľa L2 vzdialenosti.
-- Model sa učí **kontrastívne** (InfoNCE): tlačí `sim(anchor, positive)` hore a `sim(anchor, negatives)` dole. Preto sú modely **vzájomne nekompatibilné** → čím indexuješ, tým musíš aj dotazovať; zmena modelu = preindexovanie.
+- Model sa učí **kontrastívne** (InfoNCE): tlačí `sim(anchor, positive)` hore a `sim(anchor, negatives)` dole. Preto sú modely **vzájomne nekompatibilné** → čím sa indexuje, tým sa musí aj dotazovať; zmena modelu = preindexovanie.
 - **Chunking**: cieľ ~200–500 tokenov, **overlap** proti roztrhnutiu myšlienky na hranici, **metadáta** (`text`, `source`, `parent_id`…) sa ukladajú popri vektore, **parent-child** = hľadaj malým, vkladaj veľký.
 - **Vyhľadávanie** = `N` dot productov + zoradenie (flat index), alebo **ANN** (IVF/HNSW/PQ) pre veľké `N` – rýchlejšie za cenu drobnej straty presnosti; preto sa dočisťuje rerankerom.
 - V RAG bežia **tri modely**: embedding (lacný, bi-encoder), reranker (drahý, cross-encoder, beží `k`× na dotaz), generatívny LLM (samostatná kategória).
 - Výpočet drží **transformer vrstvy** (`O(n²)` attention + maticové násobenia). Embedding zvládne **CPU**, reranker si pýta **GPU**.
+- Keď základ nestačí: **hybrid** (vektor + BM25) na presné kódy a mená, **prepis dotazu / HyDE** na zle formulované otázky, **filtre nad metadátami** na oprávnenia, **agentický RAG** na zložené otázky — všetko za cenu latencie.
 
 ---
 
@@ -784,13 +842,16 @@ Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:
 4. Kolega navrhuje chunky po 5 000 tokenov, „aby sa nič nestratilo". Vysvetlite mu dva problémy, ktoré tým vzniknú.
 5. Prečo sa cross-encoder (reranker) nikdy nepúšťa na celú databázu, ale bi-encoder áno? (Kľúč: čo sa dá predpočítať.)
 6. Otázka „Kedy vzniká nárok na dovolenku?" má odpoveď presne na hranici dvoch chunkov. Ktorý mechanizmus z tohto dokumentu tento problém rieši a ako?
+7. Používatelia sa sťažujú, že RAG nenájde dokument, keď zadajú presné číslo zmluvy `ZML-2024/118`. Prečo na tom vektorové vyhľadávanie zlyháva a čím to opravíte?
+8. Čo robí HyDE a prečo môže hľadanie podľa vymyslenej odpovede fungovať lepšie než hľadanie podľa otázky?
 
 ---
 
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [transformer-siete.md](transformer-siete.md) — attention mechanika, ktorá tu beží vo vnútri
-- [llm-trening.md](llm-trening.md) — ako sa trénuje generatívny LLM na konci RAG pipeline
-- [llm-trendy.md](llm-trendy.md) — moderný retrieval (hybrid, small-to-big, agentic RAG)
-- [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — praktické zadanie na RAG
+- [transformer-siete.md](transformer-siete.md) — attention mechanika, ktorá tu beží vo vnútri (lekcia 4)
+- [llm-trening.md](llm-trening.md) — ako sa trénuje generatívny LLM na konci RAG pipeline (lekcia 5)
+- [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — **zadanie 2A**: postaviť túto pipeline
+- [fine-tuning-lora.md](fine-tuning-lora.md) — **nasledujúca lekcia**: druhá cesta k tomu istému cieľu
+- [agenti-a-nastroje.md](agenti-a-nastroje.md) — agentová slučka za agentickým RAG (lekcia 8)

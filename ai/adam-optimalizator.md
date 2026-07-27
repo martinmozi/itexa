@@ -1,5 +1,7 @@
 # Adam — kompletná špecifikácia optimalizátora pre feed-forward sieť
 
+> **Poradie čítania:** ← [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) · **lekcia 3** → [zadanie 1](zadania/rozpoznavanie-obrazkov.md) · ďalej [transformer-siete.md](transformer-siete.md) →
+
 Tento dokument popisuje algoritmus **Adam** (Adaptive Moment Estimation) tak podrobne, aby
 podľa neho študent vedel naprogramovať proces učenia doprednej (feed-forward) neurónovej
 siete — bez použitia hotového frameworku.
@@ -238,7 +240,35 @@ Pre veľké `t` platí `βᵗ → 0`, takže `(1 − βᵗ) → 1` a korekcia sa
 ovplyvňuje len prvé kroky. To je aj dôvod, prečo `t` musí začínať od **1**: pre `t=0` by bol
 menovateľ `1 − β⁰ = 0`.
 
-### 3.8 Zhrnutie matematiky
+### 3.8 Krajina chybovej funkcie: lokálne minimá a sedlové body
+
+Chybová funkcia `L(θ)` má v sieti s miliónom parametrov milión rozmerov a intuícia z „kopcovitej
+krajiny" v 2D tu klame. Rozlišujme dva druhy **stacionárnych bodov** (miest, kde je gradient nulový):
+
+- **Lokálne minimum** — do všetkých smerov to ide nahor. Optimalizátor tu uviazne natrvalo.
+- **Sedlový bod** — do niektorých smerov to ide nahor, do iných nadol (ako sedlo na koni).
+  Gradient je nulový, ale nie je to minimum — existuje cesta von.
+
+Bežná obava je, že sieť uviazne v zlom lokálnom minime. Vo vysokej dimenzii je to však **málo
+pravdepodobné**: aby bol bod lokálnym minimom, musela by krivosť smerovať nahor vo *všetkých*
+miliónoch smerov naraz. Stačí jediný smer nadol a je to len sedlo — a čím viac rozmerov, tým
+nepravdepodobnejšia je zhoda „všetky nahor". Preto sú stacionárne body v hlbokých sieťach drvivou
+väčšinou **sedlá**, a tie zvyčajne nebývajú vysoko nad dosiahnuteľným optimom. Reálnou prekážkou
+tréningu tak nie sú lokálne minimá, ale **ploché plató a dlhé úzke rokliny**, kde je gradient
+maličký a tréning sa vlečie.
+
+Práve tu pomáha kombinácia troch vecí, ktoré Adam a mini-batch tréning prinášajú:
+
+- **šum mini-batchov** — gradient z malej vzorky nie je nikdy presne nulový, takže systém sám od
+  seba „vypadne" zo sedla, na ktorom by presný (full-batch) gradient uviazol,
+- **momentum** (`m`) — nazbieraná zotrvačnosť prenesie krok cez ploché plató,
+- **adaptívny krok** (`v`) — v smeroch s trvalo maličkými gradientmi krok automaticky zväčší.
+
+> Zaujímavý kontrast: metódy druhého rádu (napr. Levenberg–Marquardt), ktoré hľadajú miesta
+> s nulovým gradientom, sú priťahované ku **každému** stacionárnemu bodu vrátane sediel. Preto
+> je „nepresnosť" SGD/Adamu v hlbokom učení skôr výhodou než nedostatkom.
+
+### 3.9 Zhrnutie matematiky
 
 Adam v každom kroku odhaduje dva štatistické momenty gradientu — **priemer** (`m`, smer)
 a **druhý moment** (`v`, mierku) — pomocou exponenciálne kĺzavých priemerov, opraví ich
@@ -258,6 +288,20 @@ pravidla.
 | `ε` (epsilon) | malé číslo proti deleniu nulou | `1e-8` |
 
 Tieto hodnoty sú štandardné a fungujú takmer vždy — začnite s nimi.
+
+### Dva dodatky, ktoré uvidíte v praxi
+
+Vo vlastnej implementácii ich netreba, ale v cudzom kóde na ne narazíte hneď:
+
+- **AdamW** — variant, ktorý pridáva **weight decay** (pokutu za veľké váhy, viď regularizácia
+  v [prehľade](umela-inteligencia-prehlad.md)) tak, že ju odpočíta priamo od parametra
+  (`P ← P − lr·(m̂/(√v̂+ε) + λ·P)`), a nie cez gradient. V bežnom Adame sa totiž decay pretlačí
+  cez adaptívne delenie a účinkuje na každý parameter inak silno. Dnes je AdamW **predvoľba**
+  pri trénovaní transformerov a `torch.optim.AdamW` je v `transformers` štandard.
+- **Rozvrh learning rate** (*lr schedule*) — `lr` sa nedrží konštantný: typicky pár stoviek krokov
+  lineárne rastie z nuly (*warmup*, aby sa nerozbité `m`/`v` na štarte nepokazili tréning)
+  a potom pomaly klesá (kosínusovo alebo lineárne) k nule. Pri malých sieťach zo zadania 1 to
+  nepotrebujete, pri fine-tuningu LLM to nastavuje knižnica za vás.
 
 ---
 
@@ -307,17 +351,9 @@ P ← P − lr · m̂ / (sqrt(v̂) + ε)         # samotný update parametra (po
 ```
 
 Všetky operácie (`⊙`, `sqrt`, delenie) sú **po prvkoch** (element-wise) — `m`, `v`, `g` aj `P`
-majú rovnaký tvar.
-
-### Prečo bias correction (`m̂`, `v̂`)?
-
-Na začiatku sú `m` aj `v` inicializované na nuly, takže prvých pár krokov sú **podhodnotené**
-(ťahané k nule). Delenie výrazom `(1 − β^t)` túto podhodnotenosť koriguje. Keďže `β2 = 0.999`,
-`β2^t` klesá pomaly — bez korekcie by boli prvé kroky výrazne skreslené. Pre veľké `t` sa
-`1 − β^t` blíži k 1 a korekcia prestáva mať vplyv.
-
-> Časté hľadanie chyby: `t` musí začínať od **1** v prvom kroku (preto `t ← t + 1` na začiatku),
-> inak by `1 − β^0 = 0` a delili by ste nulou.
+majú rovnaký tvar. Zmysel dvoch riadkov s bias correction je odvodený v sekcii 3.7; pri
+implementácii z nich stačí zapamätať si dôsledok: `t` musí v prvom kroku byť **1**, preto sa
+`t ← t + 1` robí hneď na začiatku.
 
 ---
 
@@ -380,7 +416,8 @@ for epoch in range(num_epochs):
 
 Ako si overiť, že je Adam implementovaný dobre:
 
-1. **Klesajúci loss** — na MNIST má loss v prvých epochách zreteľne klesať a presnosť rásť.
+1. **Klesajúci loss** — na obrázkovom datasete zo zadania má loss v prvých epochách zreteľne
+   klesať a presnosť rásť.
 2. **Rýchlejšia konvergencia než SGD** — pri rovnakom `lr` (alebo aj menšom) by mal Adam
    dosiahnuť nižší loss za menej epôch. Vykreslite si obe krivky do jedného grafu.
 3. **Stabilita** — ak loss „vybuchne" (NaN), skontrolujte:
@@ -408,3 +445,15 @@ rozbehu** (`m̂`, `v̂`) — čím každý parameter dostane vlastnú adaptívnu
 4. Prečo `t` musí začínať od 1 a nie od 0? Čo presne by sa pokazilo?
 5. Ručne prepočítajte jeden Adam krok pre skalárny parameter: `P = 1.0`, `g = 0.5`, `m = v = 0`, `t = 1`, štandardné hyperparametre. (Očakávaný výsledok: krok ≈ `−lr`, teda `P ≈ 0.999`.)
 6. Loss pri tréningu „vybuchne" do NaN. Vymenujte tri miesta v implementácii Adama, kde budete hľadať chybu ako prvé.
+7. Čím sa líši lokálne minimum od sedlového bodu a prečo sú v sieti s miliónmi parametrov sedlá oveľa častejšie?
+8. Ako pomáhajú šum mini-batchov, momentum a adaptívny krok dostať tréning z plochého miesta?
+
+---
+
+### Súvisiace dokumenty
+
+- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — čo je to za sieť, ktorú tu trénujeme (lekcie 1–3)
+- [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md) — **zadanie 1**: naprogramovať sieť aj tento optimalizátor
+- [transformer-siete.md](transformer-siete.md) — ďalšia lekcia: architektúra dnešných LLM
+- [llm-trening.md](llm-trening.md) — tá istá slučka, len s miliardami parametrov (lekcia 5)

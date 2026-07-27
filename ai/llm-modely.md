@@ -1,5 +1,7 @@
 # Prehľad súčasných modelov — proprietárne, open-weight a open-source
 
+> **Poradie čítania:** ← [llm-trening.md](llm-trening.md) · **lekcia 5 (2/2)** · [embeddings.md](embeddings.md) →
+
 > **Cieľ dokumentu:** zorientovať sa v dnešnej ponuke veľkých modelov. Kľúčom je pochopiť **tri stupne otvorenosti** (proprietárne API → otvorené váhy → plne otvorené vrátane tréningových dát) a vedieť si vybrať model **podľa úlohy** — OCR, kódovanie, tabuľkové dáta, embeddingy, lokálne nasadenie…
 >
 > *Stav: júl 2026. Krajina modelov sa mení každých pár mesiacov — konkrétne verzie berte ako momentku, kategórie a princípy výberu platia dlhodobo.*
@@ -26,7 +28,7 @@ Toto je najdôležitejšie rozlíšenie — často sa všetko nesprávne hádže
 
 | Rodina | Poskytovateľ | Silné stránky | Typické použitie |
 |---|---|---|---|
-| **Claude** (Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5) | Anthropic | kódovanie, dlhodobé agentické úlohy, dlhý kontext (1M tokenov), práca s dokumentmi | programátorskí agenti (Claude Code), analýza dokumentov, enterprise asistenti |
+| **Claude** (Fable 5, Opus 5, Sonnet 5, Haiku 4.5) | Anthropic | kódovanie, dlhodobé agentické úlohy, dlhý kontext (1M tokenov), práca s dokumentmi | programátorskí agenti (Claude Code), analýza dokumentov, enterprise asistenti |
 | **GPT rodina** (GPT-5.x, o-séria) | OpenAI | všeobecná všestrannosť, reasoning modely, multimodalita, veľký ekosystém | chatboty, všeobecné aplikácie, hlasoví agenti |
 | **Gemini** (2.5/3) | Google | natívna multimodalita (video, audio), veľmi dlhý kontext, integrácia s Google | spracovanie videa/audia, vyhľadávanie, Workspace |
 | **Mistral Large** (API verzia) | Mistral AI | európsky poskytovateľ (GDPR argument), dobrý pomer cena/výkon | EU-hosted nasadenia |
@@ -98,6 +100,40 @@ Dáta musia ostať doma / veľký objem / fine-tuning? ──► open-weight (Qw
 Výskum, audit, výučba, reprodukovateľnosť? ──► plne open-source (OLMo, Pythia, SmolLM)
 ```
 
+> **Konkrétne verzie vs. rodiny.** Tabuľky vyššie zámerne uvádzajú **rodiny** (Qwen, Llama, Gemma),
+> nie presné Hugging Face ID — tie sa menia každých pár mesiacov. V [zadaní 2](zadania/RAG_Fine_tunning.md)
+> nájdete overené ID staršej, ale stabilnej generácie; ak si na HF nájdete novšiu, pokojne ju použite,
+> pipeline je rovnaká.
+
+---
+
+## Právne a etické mantinely
+
+Výber modelu nie je len technické rozhodnutie — spolu s ním si vyberáte aj právny režim. Štyri veci,
+ktoré treba vyriešiť **pred** nasadením, nie po ňom:
+
+- **Kam tečú dáta.** Poslať prompt do proprietárneho API znamená odoslať jeho obsah tretej strane.
+  Pri osobných údajoch to je podľa **GDPR** spracovanie, ktoré potrebuje právny základ, spracovateľskú
+  zmluvu a ošetrený prenos mimo EÚ. Toto je najčastejší dôvod, prečo firma siahne po open-weight modeli
+  bežiacom vo vlastnej infraštruktúre — nie cena, ale právo.
+- **Licencia modelu.** Ako spomíname vyššie: Apache 2.0/MIT sú voľné, Llama a Gemma majú vlastné
+  komunitné licencie s podmienkami, niektoré modely zakazujú komerčné použitie. Licencia sa **dedí**
+  aj na to, čo modelom vygenerujete a na čom ho dotrénujete.
+- **Autorské práva na tréningové dáta.** Pri open-weight modeloch nemôžete overiť, čo model videl —
+  presne preto sú plne open-source modely cenné pre audit. Ak fine-tunujete na cudzích dátach, musíte
+  mať právo ich na tento účel použiť.
+- **EU AI Act.** Nariadenie triedi systémy podľa rizika. Pre bežnú firemnú aplikáciu z toho plynú
+  hlavne dve povinnosti: **transparentnosť** (používateľ musí vedieť, že hovorí so strojom, a generovaný
+  obsah má byť označiteľný) a pri **vysokorizikových** použitiach (nábor, úvery, vzdelávanie, zdravotníctvo,
+  polícia) navyše dokumentácia, ľudský dohľad a riadenie rizík. Chatbot nad internou dokumentáciou je
+  nízke riziko; skórovanie žiadateľov o úver je vysoké — a to je presne ten prípad z lekcie 2, kde je
+  vysvetliteľný XGBoost lepšia voľba než čierna skrinka.
+
+A jedna vec, ktorá nie je právna, ale etická: model preberá **skreslenia (bias)** z tréningových dát.
+Ak historické dáta obsahujú diskriminačný vzor, model sa ho naučí ako čokoľvek iné — a nasadený vo
+veľkom ho zopakuje tisíckrát denne. Meranie kvality na priemernej presnosti to nezachytí; treba sa
+pozrieť na chybovosť **po skupinách** (viď metriky v [prehľade](umela-inteligencia-prehlad.md)).
+
 ---
 
 ## Kontrolné otázky
@@ -107,19 +143,23 @@ Výskum, audit, výučba, reprodukovateľnosť? ──► plne open-source (OLMo
 3. Prečo na predikciu rizika úveru z tabuľky nenasadíme LLM, hoci „vie všetko"?
 4. Prečo embedding model v RAG nemusí byť veľký, kým generatívny model áno?
 5. Čo všetko musí byť zverejnené, aby ste vedeli overiť, či model „nevidel" váš testovací dataset pri tréningu?
+6. Firma chce LLM nasadiť na predbežné triedenie životopisov. Aké povinnosti z toho plynú a čo by ste namietli ešte pred technickým riešením?
 
 ---
 
-### Zdroje (stav júl 2026)
+### Zdroje
 
-- [Best Open-Source LLMs — AceCloud](https://acecloud.ai/blog/best-open-source-llms/), [TECHSY leaderboard](https://techsy.io/en/blog/best-open-source-llms-2026), [D-Central self-host guide](https://d-central.tech/best-local-llm-2026-pleb-open-weight-model-guide/)
-- [Olmo 3 — plne otvorený model AI2](https://www.digitalocean.com/community/tutorials/olmo-3-allen-ai-open-source-llm), [LLM360 K2 paper](https://arxiv.org/pdf/2501.07124), [LLM360: Towards Fully Transparent Open-Source LLMs](https://arxiv.org/pdf/2312.06550)
-- [Open Source LLMs 2026 — Morph](https://www.morphllm.com/open-source-llm), [PocketLLM license ranking](https://pocketllm.app/blog/best-open-source-llm-2026/)
+- [LLM360: Towards Fully Transparent Open-Source LLMs](https://arxiv.org/pdf/2312.06550), [LLM360 K2](https://arxiv.org/pdf/2501.07124) — čo presne znamená „plne otvorený" model
+- [Hugging Face — Open LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) a [modelové karty](https://huggingface.co/models) — primárny zdroj na aktuálne verzie a licencie
+- [Nariadenie EÚ o umelej inteligencii (AI Act) — oficiálny text](https://eur-lex.europa.eu/legal-content/SK/TXT/?uri=OJ:L_202401689)
+
+> Sekundárne prehľady a „top 10" blogy zastarávajú do pár mesiacov — pri overovaní konkrétnej verzie
+> vždy uprednostnite modelovú kartu na Hugging Face pred článkom.
 
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [llm-trening.md](llm-trening.md) — ako sa LLM trénujú (pretraining → Instruct)
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — stromy, XGBoost, MLP, CNN
-- [llm-trendy.md](llm-trendy.md) — aktuálne trendy (RAG, agenti, fine-tuning)
-- [embeddings.md](embeddings.md) — embedding modely a RAG pipeline
+- [llm-trening.md](llm-trening.md) — **prvá polovica lekcie 5**: ako sa LLM trénujú
+- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — stromy, XGBoost, MLP, CNN (lekcie 1–3)
+- [embeddings.md](embeddings.md) — **nasledujúca lekcia**: embedding modely a RAG pipeline
+- [vyvojove-prostredie.md](vyvojove-prostredie.md) — na čom vybraný model reálne spustíte

@@ -1,5 +1,7 @@
 # Zadanie: Odpovedanie na otázky z dlhého textu (RAG alebo fine-tuning)
 
+> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [embeddings.md](../embeddings.md), [fine-tuning-lora.md](../fine-tuning-lora.md)
+
 ## Cieľ
 
 Vziať **malý otvorený jazykový model** z Hugging Face (napr. Llama, Mistral, Qwen, Phi…),
@@ -20,8 +22,8 @@ Podstatná je **rovnaká výstupná schopnosť** (odpovedať na otázky z textu)
 **dvoma principiálne odlišnými cestami** — a pochopenie, **kedy sa ktorá oplatí**.
 
 > Teoretické podklady k RAG (tokenizácia, embeddingy, chunking, vyhľadávanie, similarity)
-> sú v samostatnom dokumente `../embeddings.md`.
-> Kontext RAG vs. fine-tuning a moderné trendy sú v `../llm-trendy.md`.
+> sú v [embeddings.md](../embeddings.md).
+> LoRA/QLoRA a rozhodovanie RAG vs. fine-tuning sú v [fine-tuning-lora.md](../fine-tuning-lora.md).
 
 ---
 
@@ -83,6 +85,10 @@ Vyberte si **jeden** malý **instruct** model z Hugging Face, ktorý sa zmestí 
 > (`huggingface-cli login`). Pokojne si porovnajte **viacero modelov** medzi sebou — je to plus.
 > Dôležitejšie než veľkosť je, aby ste **celý proces prešli** a vedeli ho porovnať s baseline.
 
+> *Poznámka k verziám:* tabuľka uvádza **overené, stabilné** ID. Novšie generácie tých istých
+> rodín (Qwen 3, Llama 4, Gemma 3, Phi-4 — viď [llm-modely.md](../llm-modely.md)) fungujú s tou
+> istou pipeline; ID si overte na Hugging Face, keďže sa menia každých pár mesiacov.
+
 ### Povolené nástroje
 
 - **Python** + **Hugging Face** `transformers`, `datasets`, `accelerate`.
@@ -123,12 +129,15 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
    Otázka: {otázka}
    ```
 4. Prompt pošlite LLM a vypíšte odpoveď **spolu s tým, z ktorých chunkov čerpala** (zdroje).
+   > *Hint:* pri generovaní nastavte **nízku teplotu** (`temperature ≈ 0–0.3`, prípadne
+   > `do_sample=False`) a rovnaké nastavenie použite aj pre baseline — inak neporovnávate
+   > pipeline, ale náhodu. Viď [dekódovanie](../transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie).
 
 ## A3 — Experimenty (RAG)
 
 Zdokumentujte vplyv nastavení do tabuľky:
 
-| Veľkosť chunku | Prekryv | k (počet chunkov) | Embed model | Správne odpovede (z 15) |
+| Veľkosť chunku | Prekryv | k (počet chunkov) | Embed model | Správne odpovede (z N) |
 |---|---|---|---|---|
 | 500 | 50 | 3 | MiniLM | ? |
 | 250 | 50 | 5 | MiniLM | ? |
@@ -169,7 +178,7 @@ Model sa neučí zo surového textu dobre — potrebuje **inštrukčný formát*
 
 ## B3 — Experimenty (fine-tuning)
 
-| LoRA `r` | Epochy | LR | Počet Q&A | Správne odpovede (z 15) |
+| LoRA `r` | Epochy | LR | Počet Q&A | Správne odpovede (z N) |
 |---|---|---|---|---|
 | 8 | 3 | 2e-4 | ? | ? |
 | 16 | 3 | 2e-4 | ? | ? |
@@ -196,7 +205,7 @@ Model sa neučí zo surového textu dobre — potrebuje **inštrukčný formát*
 
 ## Diskusná otázka (do správy)
 
-Stručne odpovedzte (podklad: `../llm-trendy.md`, sekcia „Kedy má fine-tuning stále zmysel"):
+Stručne odpovedzte (podklad: [fine-tuning-lora.md](../fine-tuning-lora.md), sekcie 2 a 4):
 
 - Kedy sa oplatí **RAG** a kedy **fine-tuning**? Uveďte po 2 konkrétne situácie z praxe.
 - Ako každý z prístupov rieši **aktualizáciu obsahu** (dokument sa zmení / pribudne nový)?
@@ -227,8 +236,9 @@ Stručne odpovedzte (podklad: `../llm-trendy.md`, sekcia „Kedy má fine-tuning
 | Voľba vhodného (neznámeho) dokumentu + baseline dôkaz | 10 % |
 | Testovacia sada otázok vrátane chytákov | 10 % |
 | Funkčná pipeline (RAG **alebo** fine-tuning) | 35 % |
-| Experimenty s nastaveniami + tabuľka | 20 % |
+| Experimenty s nastaveniami + tabuľka | 15 % |
 | Vyhodnotenie a porovnanie so surovým modelom | 15 % |
 | Diskusná otázka v správe | 10 % |
-| Bonus: **obe** úlohy (RAG aj fine-tuning) a ich porovnanie | +15 % |
 | Prehľadnosť kódu a správy | 5 % |
+| **Spolu** | **100 %** |
+| Bonus: **obe** úlohy (RAG aj fine-tuning) a ich porovnanie | +15 % |

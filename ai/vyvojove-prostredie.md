@@ -1,5 +1,7 @@
 # Vývojové prostredie pre AI — čo nainštalovať a na čom to spustiť
 
+> **Poradie čítania:** **príprava — pred lekciou 3** · ďalej [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) →
+
 > **Cieľ dokumentu:** praktická príručka, ako si pripraviť počítač na prácu s AI — od Python prostredia a PyTorchu cez nastavenie GPU (CUDA na NVIDIA, Metal na Macu) až po lokálnu inferenciu LLM pomocou vLLM. Na záver odporúčania, aký hardvér má zmysel doma a kedy je čas prenajať si GPU v cloude (runpod.io a spol.). Predpokladáme, že Python ovládate.
 
 Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](zadania/rozpoznavanie-obrazkov.md) (vlastná sieť + PyTorch) aj [zadanie 2](zadania/RAG_Fine_tunning.md) (RAG a LoRA fine-tuning).
@@ -208,7 +210,7 @@ Pri výbere karty na AI je najdôležitejšie jediné číslo: **VRAM**. Výkon 
 | ~30B | ~60 GB | ~18 GB | 24 GB karta (4-bit) |
 | 70B | ~140 GB | ~40 GB | 2× 24 GB, Mac 64 GB+, alebo cloud |
 
-**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — pozri lekciu 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
+**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [fine-tuning-lora.md](fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
 
 Odporúčania podľa rozpočtu (stav v roku 2026, ceny sa hýbu):
 
@@ -268,8 +270,8 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 ### Súvisiace dokumenty v repozitári
 
 - [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — prehľad prístupov a modelov
-- [adam-optimalizator.md](adam-optimalizator.md) — tréningová slučka, backpropagation, Adam
-- [llm-modely.md](llm-modely.md) — výber modelu (proprietárne / open-weight / open-source)
-- [llm-trendy.md](llm-trendy.md) — LoRA/QLoRA, kedy fine-tuning a kedy RAG
+- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — **nasleduje**: prehľad prístupov a modelov (lekcie 1–3)
+- [adam-optimalizator.md](adam-optimalizator.md) — tréningová slučka, backpropagation, Adam (lekcia 3)
+- [llm-modely.md](llm-modely.md) — výber modelu (proprietárne / open-weight / open-source — lekcia 5)
+- [fine-tuning-lora.md](fine-tuning-lora.md) — LoRA/QLoRA a pamäťové nároky fine-tuningu (lekcia 7)
 - [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md), [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — praktické úlohy
