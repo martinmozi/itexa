@@ -1,10 +1,10 @@
 # Agenti, nástroje a Claude Code
 
-> **Poradie čítania:** ← [fine-tuning-lora.md](fine-tuning-lora.md) · **lekcia 8** · [llm-trendy.md](llm-trendy.md) →
+> **Poradie čítania:** ← [Fine-tuning: LoRA a QLoRA](../04-llm/06-fine-tuning-lora.md) · **lekcia 8** · [Trendy — čo sledovať ďalej](02-llm-trendy.md) →
 
 > **Cieľ dokumentu:** vysvetliť, čo presne robí z jazykového modelu **agenta** — slučku model → nástroj → výsledok → model — a ukázať ju na najkratšom možnom kóde. Potom: ako sa nástroje pripájajú (function calling, MCP), ako vyzerá hotový agent v praxi (Claude Code), kedy siahnuť po frameworku (LangChain/LangGraph) a kedy nie, a aké riziká agent prináša.
 
-Nadväzuje na [transformer-siete.md](transformer-siete.md) (model generuje token po tokene) a [embeddings.md](embeddings.md) (agentický RAG je jeden z prípadov použitia tejto slučky).
+Nadväzuje na [01-transformer-siete.md](../04-llm/01-transformer-siete.md) (model generuje token po tokene) a [04-embeddings.md](../04-llm/04-embeddings.md) (agentický RAG je jeden z prípadov použitia tejto slučky).
 
 ---
 
@@ -109,7 +109,7 @@ Všimnite si tri veci:
 
 - **`while` cyklus je celý agent.** Nič viac za tým nie je — žiadne skryté kúzlo.
 - **`stop_reason` riadi slučku.** `"tool_use"` znamená „model chce nástroj", čokoľvek iné znamená koniec.
-- **História rastie.** Každé kolo pribudne žiadosť aj výsledok, takže model vidí celý priebeh. Preto pri dlhých behoch narastá kontext (a cena) — viď [kvadratickú zložitosť attention](transformer-siete.md).
+- **História rastie.** Každé kolo pribudne žiadosť aj výsledok, takže model vidí celý priebeh. Preto pri dlhých behoch narastá kontext (a cena) — viď [kvadratickú zložitosť attention](../04-llm/01-transformer-siete.md).
 
 > **Poistka do cyklu:** vždy pridajte strop počtu kôl (napr. `for _ in range(10)`). Model sa vie zacykliť — volať ten istý nástroj dokola — a bez stropu z toho je nekonečná a draho platená slučka.
 
@@ -144,7 +144,7 @@ Kde reálne pomáha:
 - mechanická, ale rozsiahla práca — premenovanie naprieč projektom, doplnenie testov, migrácia knižnice,
 - prvý návrh riešenia, ktorý potom upravíte.
 
-**Kedy mu neveriť:** agent má tendenciu tvrdiť, že je hotový. Overujte tri veci — či testy naozaj prešli (pozrite výstup, nie zhrnutie), či nezmenil viac, než mal (`git diff`), a či navrhnuté API/knižnica existuje. Platí to isté, čo v [lekcii 7](fine-tuning-lora.md) pri halucináciách: model generuje najpravdepodobnejšie pokračovanie, nie overený fakt.
+**Kedy mu neveriť:** agent má tendenciu tvrdiť, že je hotový. Overujte tri veci — či testy naozaj prešli (pozrite výstup, nie zhrnutie), či nezmenil viac, než mal (`git diff`), a či navrhnuté API/knižnica existuje. Platí to isté, čo v [lekcii 7](../04-llm/06-fine-tuning-lora.md) pri halucináciách: model generuje najpravdepodobnejšie pokračovanie, nie overený fakt.
 
 A jedna vec z pohľadu tohto predmetu: pri zadaniach je cieľom pochopiť mechaniku vlastnými rukami. Agentom si dajte vysvetľovať, nie riešiť.
 
@@ -205,9 +205,9 @@ Súvisiaca (a menej dramatická) téma: čo presne má agent v kontexte. Pri dlh
 
 ### Vyhodnocovanie a sledovanie
 
-Agent je nedeterministický: ten istý vstup môže dať iný priebeh (viď [teplota](transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie)). Bez merania sa nedá povedať, či zmena promptu pomohla. Minimum, ktoré sa oplatí mať:
+Agent je nedeterministický: ten istý vstup môže dať iný priebeh (viď [teplota](../04-llm/01-transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie)). Bez merania sa nedá povedať, či zmena promptu pomohla. Minimum, ktoré sa oplatí mať:
 
-- **sada testovacích úloh** so známym správnym výsledkom — presne ako testovacie otázky v [zadaní 2](zadania/RAG_Fine_tunning.md),
+- **sada testovacích úloh** so známym správnym výsledkom — presne ako testovacie otázky v [zadaní 2](../../zadania/RAG_Fine_tunning.md),
 - **logovanie celého priebehu** — ktoré nástroje sa volali, s akými vstupmi, čo vrátili; bez toho sa chyba nedá nájsť,
 - **sledovanie ceny a počtu kôl** — regresia sa často prejaví skôr na počte volaní než na kvalite odpovede.
 
@@ -227,9 +227,9 @@ Agent je nedeterministický: ten istý vstup môže dať iný priebeh (viď [tep
 
 ### Súvisiace dokumenty
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [transformer-siete.md](transformer-siete.md) — model, ktorý v tejto slučke beží (lekcia 4)
-- [embeddings.md](embeddings.md) — agentický RAG ako typický prípad použitia (lekcia 6)
-- [fine-tuning-lora.md](fine-tuning-lora.md) — **predchádzajúca lekcia**: LoRA a rozhodovanie RAG vs. fine-tuning
-- [llm-trendy.md](llm-trendy.md) — kam sa to celé hýbe a čo sledovať ďalej
-- [llm-modely.md](llm-modely.md) — výber modelu pre agenta (a právne mantinely)
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — model, ktorý v tejto slučke beží (lekcia 4)
+- [04-embeddings.md](../04-llm/04-embeddings.md) — agentický RAG ako typický prípad použitia (lekcia 6)
+- [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md) — **predchádzajúca lekcia**: LoRA a rozhodovanie RAG vs. fine-tuning
+- [02-llm-trendy.md](02-llm-trendy.md) — kam sa to celé hýbe a čo sledovať ďalej
+- [03-llm-modely.md](../04-llm/03-llm-modely.md) — výber modelu pre agenta (a právne mantinely)

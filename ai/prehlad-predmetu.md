@@ -4,7 +4,7 @@
 
 **Ako predmet funguje:** teória (dokumenty nižšie) + dve väčšie praktické zadania, ktoré sa tiahnu cez viac lekcií. Každý dokument končí kontrolnými otázkami — ak na ne viete odpovedať vlastnými slovami, lekciu ste pochopili.
 
-**Prerekvizity:** znalosť Pythonu na úrovni „viem napísať a odladiť skript" a stredoškolská matematika (funkcie, derivácia, vektory a matice). Skúsenosti s ML sa nepredpokladajú. Pred lekciou 3 si treba pripraviť počítač podľa [vyvojove-prostredie.md](vyvojove-prostredie.md).
+**Prerekvizity:** znalosť Pythonu na úrovni „viem napísať a odladiť skript" a stredoškolská matematika (funkcie, derivácia, vektory a matice). Skúsenosti s ML sa nepredpokladajú. Pred lekciou 3 si treba pripraviť počítač podľa [01-vyvojove-prostredie.md](tutorials/00-prostredie/01-vyvojove-prostredie.md).
 
 ---
 
@@ -29,7 +29,7 @@ Každý dokument má na začiatku riadok **Poradie čítania** s odkazom na pred
 
 ## Lekcia 0 — Príprava prostredia
 
-**Materiál:** [vyvojove-prostredie.md](vyvojove-prostredie.md)
+**Materiál:** [01-vyvojove-prostredie.md](tutorials/00-prostredie/01-vyvojove-prostredie.md)
 
 Python a virtuálne prostredia, VS Code, PyTorch, GPU (CUDA na NVIDIA, MPS na Macu), knižnice kurzu, lokálna inferencia (vLLM, Ollama), odporúčaný hardvér a kedy si prenajať GPU v cloude.
 
@@ -39,7 +39,7 @@ Nie je to samostatná prednáška — je to príručka, ktorú treba prejsť **p
 
 ## Lekcia 1 — Princípy umelej inteligencie
 
-**Materiál:** [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) (úvod až po „čím sa meria kvalita")
+**Materiál:** [tutorials/01-prehlad](tutorials/01-prehlad/README.md) — [co-je-ai](tutorials/01-prehlad/01-co-je-ai.md) · [rezimy-strojoveho-ucenia](tutorials/01-prehlad/02-rezimy-strojoveho-ucenia.md) · [generalizacia-a-preucenie](tutorials/01-prehlad/03-generalizacia-a-preucenie.md) · [metriky](tutorials/01-prehlad/04-metriky.md)
 
 Čo je AI a čo nie je; symbolická AI vs. strojové učenie; taxonómia (AI ⊃ ML ⊃ neurónové siete ⊃ deep learning). Tri režimy učenia: s učiteľom, bez učiteľa, posilňované. Spoločná schéma učenia: predikcia → porovnanie s pravdou (loss) → úprava parametrov. Zovšeobecnenie a preučenie, delenie dát na trénovaciu/validačnú/testovaciu množinu, regularizácia a metriky kvality.
 
@@ -53,7 +53,7 @@ Nie je to samostatná prednáška — je to príručka, ktorú treba prejsť **p
 
 ## Lekcia 2 — Klasické modely: stromy, Random Forest, XGBoost
 
-**Materiál:** [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) (sekcie 1 a 2 + záverečná tabuľka „ktorý model kedy")
+**Materiál:** [tutorials/02-typy-modelov](tutorials/02-typy-modelov/README.md) — [rozhodovacie-stromy](tutorials/02-typy-modelov/01-rozhodovacie-stromy.md) · [random-forest-a-xgboost](tutorials/02-typy-modelov/02-random-forest-a-xgboost.md) · [xgboost-priklad-iso8583](tutorials/02-typy-modelov/03-xgboost-priklad-iso8583.md)
 
 Rozhodovacie stromy a ako sa učia (Gini/entropia); prečo jeden strom preučí a ako to riešia ansámble — Random Forest (bagging, paralelne, znižuje rozptyl) vs. XGBoost (boosting, sekvenčne opravuje chyby, znižuje skreslenie). **Kľúčové posolstvo: na tabuľkové dáta je XGBoost dodnes prvá voľba — nie neurónová sieť.**
 
@@ -66,15 +66,16 @@ Rozhodovacie stromy a ako sa učia (Gini/entropia); prečo jeden strom preučí 
 
 ## Lekcia 3 — Feed-forward siete a ich učenie
 
-**Materiál:** [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) (sekcie 3, 4) + [adam-optimalizator.md](adam-optimalizator.md) → **[Zadanie 1: rozpoznávanie obrázkov](zadania/rozpoznavanie-obrazkov.md)**
+**Materiál:** [feed-forward-siete](tutorials/02-typy-modelov/04-feed-forward-siete.md) · [konvolucne-siete](tutorials/02-typy-modelov/05-konvolucne-siete.md) · [ktory-model-kedy](tutorials/02-typy-modelov/06-ktory-model-kedy.md) + [tutorials/03-ucenie](tutorials/03-ucenie/README.md) ([adam-optimalizator](tutorials/03-ucenie/01-adam-optimalizator.md), [problemy-pri-uceni](tutorials/03-ucenie/02-problemy-pri-uceni.md)) → **[Zadanie 1: rozpoznávanie obrázkov](zadania/rozpoznavanie-obrazkov.md)**
 
-Neurón (vážený súčet + bias + aktivácia), viacvrstvový perceptrón, prečo nelinearita robí sieť univerzálnym aproximátorom. Tréningová slučka: forward → loss → backpropagation → update. Optimalizátor Adam do detailu (momentum, adaptívny krok, bias correction) — tak, aby ste ho vedeli naprogramovať; lokálne minimá vs. sedlové body. **Poznámky o iných typoch sietí:** CNN pre obraz (konvolúcia, weight sharing, hierarchia príznakov).
+Neurón (vážený súčet + bias + aktivácia), viacvrstvový perceptrón, prečo nelinearita robí sieť univerzálnym aproximátorom. Tréningová slučka: forward → loss → backpropagation → update. Optimalizátor Adam do detailu (momentum, adaptívny krok, bias correction) — tak, aby ste ho vedeli naprogramovať; lokálne minimá vs. sedlové body. **Čo sa pri učení pokazí a ako to riešiť** ([02-problemy-pri-uceni.md](tutorials/03-ucenie/02-problemy-pri-uceni.md)): miznúce a explodujúce gradienty, mŕtve ReLU neuróny, inicializácia, `NaN`, chyby v dátach, mixed precision a hardvérové poruchy. **Poznámky o iných typoch sietí:** CNN pre obraz (konvolúcia, weight sharing, hierarchia príznakov).
 
 **Po lekcii viete:**
 - ručne prepočítať výstup neurónu a jeden Adam update,
 - vysvetliť, čo počíta backpropagation a prečo sieť potrebuje nelineárne aktivácie,
 - povedať, prečo na obraz CNN a nie MLP (a prečo na tabuľky ani jedno),
-- vysvetliť, čo v hlbokej sieti reálne brzdí tréning — a prečo to nie sú lokálne minimá.
+- vysvetliť, čo v hlbokej sieti reálne brzdí tréning — a prečo to nie sú lokálne minimá,
+- podľa tvaru krivky lossu a noriem gradientov určiť, čo je s tréningom zle, a vedieť to opraviť.
 
 **Zadanie 1** (cez lekcie 3–4): vlastná feed-forward sieť v NumPy vrátane backpropu a Adama, potom to isté v PyTorch, porovnanie. Klasifikácia obrázkov + rozpoznanie vlastného nakresleného vstupu.
 
@@ -82,7 +83,7 @@ Neurón (vážený súčet + bias + aktivácia), viacvrstvový perceptrón, pre�
 
 ## Lekcia 4 — Transformery a attention
 
-**Materiál:** [transformer-siete.md](transformer-siete.md)
+**Materiál:** [01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md)
 
 Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attention Is All You Need". Self-attention krok po kroku: Query/Key/Value, skóre, softmax, vážený súčet — každý token sa „pozrie" na všetky ostatné naraz. Multi-head, positional encoding, maskovaná attention. Encoder / decoder / decoder-only, autoregresívne generovanie a **dekódovanie** (greedy, teplota, top-p).
 
@@ -92,13 +93,13 @@ Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attent
 - opísať, ako z „predpovedz ďalší token" vzniká generovanie celých odpovedí,
 - nastaviť dekódovanie podľa toho, či chcete faktickú alebo kreatívnu odpoveď.
 
-> Ručne prepočítaný príklad tej istej attention (s číslami) je v [embeddings.md, Krok 3](embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je nepovinný, v lekcii 6 sa k nemu vrátime.
+> Ručne prepočítaný príklad tej istej attention (s číslami) je v [embeddings.md, Krok 3](tutorials/04-llm/04-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je nepovinný, v lekcii 6 sa k nemu vrátime.
 
 ---
 
 ## Lekcia 5 — Ako sa trénuje LLM a krajina dnešných modelov
 
-**Materiál:** [llm-trening.md](llm-trening.md) → [llm-modely.md](llm-modely.md)
+**Materiál:** [02-llm-trening.md](tutorials/04-llm/02-llm-trening.md) → [03-llm-modely.md](tutorials/04-llm/03-llm-modely.md)
 
 Celá tréningová pipeline: dáta (filtrovanie, deduplikácia, mix) → **pretraining** (predikcia ďalšieho tokenu, self-supervised, scaling laws) → **base model** (dokončovač textu) → **SFT / instruction tuning** (chat šablóna, loss len na odpovedi) → **Instruct model**; výhľad na RLHF/DPO. Potom prehľad trhu: **proprietárne vs. open-weight vs. plne open-source** a výber modelu podľa úlohy. Na záver právne a etické mantinely (GDPR, licencie, AI Act, bias).
 
@@ -112,7 +113,7 @@ Celá tréningová pipeline: dáta (filtrovanie, deduplikácia, mix) → **pretr
 
 ## Lekcia 6 — Embeddingy a RAG
 
-**Materiál:** [embeddings.md](embeddings.md) → **[Zadanie 2, úloha A: RAG](zadania/RAG_Fine_tunning.md)**
+**Materiál:** [04-embeddings.md](tutorials/04-llm/04-embeddings.md) → [05-rag.md](tutorials/04-llm/05-rag.md) → **[Zadanie 2, úloha A: RAG](zadania/RAG_Fine_tunning.md)**
 
 Cesta textu na vektor: tokenizácia (BPE) → embedding matica → transformer vrstvy → pooling → normalizácia — celé prepočítané ručne na malom príklade. Podobnosť (cosine, dot product), prečo sú modely vzájomne nekompatibilné (kontrastívne učenie). RAG pipeline: chunking, indexovanie (FAISS, flat vs. ANN), retrieval, reranking (bi-encoder vs. cross-encoder), výpočtové nároky. Na záver pokročilý retrieval: hybrid search, prepis dotazu, agentický RAG.
 
@@ -126,7 +127,7 @@ Cesta textu na vektor: tokenizácia (BPE) → embedding matica → transformer v
 
 ## Lekcia 7 — Fine-tuning a rozhodovanie RAG vs. fine-tuning
 
-**Materiál:** [fine-tuning-lora.md](fine-tuning-lora.md) → **[Zadanie 2, úloha B: fine-tuning](zadania/RAG_Fine_tunning.md)**
+**Materiál:** [06-fine-tuning-lora.md](tutorials/04-llm/06-fine-tuning-lora.md) → **[Zadanie 2, úloha B: fine-tuning](zadania/RAG_Fine_tunning.md)**
 
 Prečo sa celý model dotrénovať nedá (pamäťová matematika). **LoRA** — rozklad `ΔW = A·B`, čo je rank `r`, prečo malé adaptéry stačia; **QLoRA** ako 4-bitová nadstavba. Kedy sa fine-tuning oplatí (štýl, formát, distillation, edge) a kedy nie (nové fakty → RAG; často sa meniace dáta; potreba citovať zdroj). Halucinácie a ako ich meria testovacia sada s „chytákmi".
 
@@ -141,7 +142,7 @@ Prečo sa celý model dotrénovať nedá (pamäťová matematika). **LoRA** — 
 
 ## Lekcia 8 — Agenti, nástroje a Claude Code
 
-**Materiál:** [agenti-a-nastroje.md](agenti-a-nastroje.md) + [llm-trendy.md](llm-trendy.md) (záver) + živé demá na hodine
+**Materiál:** [01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) + [02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) (záver) + živé demá na hodine
 
 Čo robí z LLM **agenta**: slučka model → nástroj → výsledok → model (ReAct), ukázaná na dvadsiatich riadkoch kódu. Tool use / function calling, MCP ako štandard pripájania nástrojov. **Claude Code** ako ukážka hotového agenta: práca s repozitárom, spúšťanie príkazov, kedy mu (ne)veriť. **LangChain / LangGraph** — a kedy framework *ne*použiť. Bezpečnosť agentov: prompt injection, least-privilege, sandboxing. Context engineering a evaluácia agentov. Na záver výhľad, čo sledovať po kurze.
 
@@ -178,7 +179,7 @@ Bodovanie vnútri každého zadania je v jeho dokumente. Na absolvovanie treba o
 
 Nič z toho nie je povinné; dokumenty predmetu sú sebestačné.
 
-- **Pôvodné články** (všetky voľne na arXiv, každý sa dá prečítať za hodinu): *Attention Is All You Need* (2017) — transformer; *LoRA: Low-Rank Adaptation of Large Language Models* (2021); *Retrieval-Augmented Generation…* (2020); *Adam: A Method for Stochastic Optimization* (2014).
+- **Pôvodné články** (všetky voľne na arXiv, každý sa dá prečítať za hodinu): *Attention Is All You Need* (2017) — transformer; *LoRA: Low-Rank Adaptation of Large Language Models* (2021); *Retrieval-Augmented Generation…* (2020); *Adam: A Method for Stochastic Optimization* (2014); *[The Llama 3 Herd of Models](https://arxiv.org/abs/2407.21783)* (2024) — okrem architektúry obsahuje aj vzácne čísla o tom, ako často zlyháva hardvér pri tréningu na 16 000 GPU (sekcia 3.3.4).
 - **Knihy:** Géron — *Hands-On Machine Learning with Scikit-Learn, Keras & TensorFlow* (praktický úvod do časti I); Goodfellow, Bengio, Courville — *Deep Learning* (teoretická referencia, voľne online).
 - **Dokumentácia:** [PyTorch](https://pytorch.org/docs), [Hugging Face](https://huggingface.co/docs) — pri zadaniach ju budete otvárať častejšie než čokoľvek iné.
 
@@ -186,17 +187,30 @@ Nič z toho nie je povinné; dokumenty predmetu sú sebestačné.
 
 ### Všetky dokumenty predmetu (v poradí, v akom sa preberajú)
 
+Materiály sú v adresári [`tutorials/`](tutorials/README.md), rozdelené do šiestich tematických oblastí.
+
 | # | Dokument | Obsah | Lekcia |
 |---|---|---|---|
-| 0 | [vyvojove-prostredie.md](vyvojove-prostredie.md) | inštalácia (PyTorch, CUDA/MPS), vLLM, hardvér, cloud | príprava |
-| 1 | [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) | taxonómia AI, metriky, stromy, XGBoost, MLP, CNN | 1–3 |
-| 2 | [adam-optimalizator.md](adam-optimalizator.md) | tréningová slučka, backprop, Adam do detailu | 3 |
+| 0 | [00-prostredie/01-vyvojove-prostredie.md](tutorials/00-prostredie/01-vyvojove-prostredie.md) | inštalácia (PyTorch, CUDA/MPS), vLLM, hardvér, cloud | príprava |
+| 1 | [01-prehlad/01-co-je-ai.md](tutorials/01-prehlad/01-co-je-ai.md) | symbolická AI vs. ML, taxonómia AI ⊃ ML ⊃ NN ⊃ DL | 1 |
+| 2 | [01-prehlad/02-rezimy-strojoveho-ucenia.md](tutorials/01-prehlad/02-rezimy-strojoveho-ucenia.md) | s učiteľom / bez učiteľa / posilňované, typy dát | 1 |
+| 3 | [01-prehlad/03-generalizacia-a-preucenie.md](tutorials/01-prehlad/03-generalizacia-a-preucenie.md) | train/val/test, overfitting, bias vs. variance, regularizácia | 1 |
+| 4 | [01-prehlad/04-metriky.md](tutorials/01-prehlad/04-metriky.md) | matica zámen, precision, recall, F1, MAE/RMSE | 1 |
+| 5 | [02-typy-modelov/01-rozhodovacie-stromy.md](tutorials/02-typy-modelov/01-rozhodovacie-stromy.md) | Gini/entropia, preučenie a nestabilita stromu | 2 |
+| 6 | [02-typy-modelov/02-random-forest-a-xgboost.md](tutorials/02-typy-modelov/02-random-forest-a-xgboost.md) | bagging vs. boosting, prečo stromy vyhrávajú na tabuľkách | 2 |
+| 7 | [02-typy-modelov/03-xgboost-priklad-iso8583.md](tutorials/02-typy-modelov/03-xgboost-priklad-iso8583.md) | rezíduá krok za krokom na kartových transakciách | 2 |
+| 8 | [02-typy-modelov/04-feed-forward-siete.md](tutorials/02-typy-modelov/04-feed-forward-siete.md) | neurón, MLP, nelineárne aktivácie | 3 |
+| 9 | [02-typy-modelov/05-konvolucne-siete.md](tutorials/02-typy-modelov/05-konvolucne-siete.md) | konvolúcia, weight sharing, pooling | 3 |
+| 10 | [02-typy-modelov/06-ktory-model-kedy.md](tutorials/02-typy-modelov/06-ktory-model-kedy.md) | rozhodovacia tabuľka dáta → model | 1–3 |
+| 11 | [03-ucenie/01-adam-optimalizator.md](tutorials/03-ucenie/01-adam-optimalizator.md) | tréningová slučka, backprop, Adam do detailu | 3 |
+| 12 | [03-ucenie/02-problemy-pri-uceni.md](tutorials/03-ucenie/02-problemy-pri-uceni.md) | miznúce/explodujúce gradienty, `NaN`, dáta, fp16, hardvér | 3 |
 | — | [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md) | **zadanie 1** — vlastná sieť + Adam + PyTorch | 3–4 |
-| 3 | [transformer-siete.md](transformer-siete.md) | attention, multi-head, positional encoding, dekódovanie | 4 |
-| 4 | [llm-trening.md](llm-trening.md) | pretraining → base → SFT → Instruct | 5 |
-| 5 | [llm-modely.md](llm-modely.md) | proprietárne / open-weight / open-source, právo a etika | 5 |
-| 6 | [embeddings.md](embeddings.md) | tokenizácia, embeddingy, similarity, RAG, pokročilý retrieval | 6 |
+| 13 | [04-llm/01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md) | attention, multi-head, positional encoding, dekódovanie | 4 |
+| 14 | [04-llm/02-llm-trening.md](tutorials/04-llm/02-llm-trening.md) | pretraining → base → SFT → Instruct | 5 |
+| 15 | [04-llm/03-llm-modely.md](tutorials/04-llm/03-llm-modely.md) | proprietárne / open-weight / open-source, právo a etika | 5 |
+| 16 | [04-llm/04-embeddings.md](tutorials/04-llm/04-embeddings.md) | tokenizácia, embeddingy, pooling, normalizácia | 6 |
+| 17 | [04-llm/05-rag.md](tutorials/04-llm/05-rag.md) | chunking, index, retrieval, reranking, pokročilý RAG | 6 |
 | — | [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) | **zadanie 2** — RAG alebo LoRA fine-tuning | 6–7 |
-| 7 | [fine-tuning-lora.md](fine-tuning-lora.md) | LoRA/QLoRA, RAG vs. fine-tuning, halucinácie | 7 |
-| 8 | [agenti-a-nastroje.md](agenti-a-nastroje.md) | agentová slučka, tool use, MCP, Claude Code, bezpečnosť | 8 |
-| 9 | [llm-trendy.md](llm-trendy.md) | trendy 2026 a čo sledovať po kurze | 8 (záver) |
+| 18 | [04-llm/06-fine-tuning-lora.md](tutorials/04-llm/06-fine-tuning-lora.md) | LoRA/QLoRA, RAG vs. fine-tuning, halucinácie | 7 |
+| 19 | [05-prakticke/01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) | agentová slučka, tool use, MCP, Claude Code, bezpečnosť | 8 |
+| 20 | [05-prakticke/02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) | trendy a čo sledovať po kurze | 8 (záver) |

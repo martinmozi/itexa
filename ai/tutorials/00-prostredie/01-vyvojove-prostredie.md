@@ -1,10 +1,10 @@
 # Vývojové prostredie pre AI — čo nainštalovať a na čom to spustiť
 
-> **Poradie čítania:** **príprava — pred lekciou 3** · ďalej [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) →
+> **Poradie čítania:** **lekcia 0 — príprava** · [Čo je umelá inteligencia](../01-prehlad/01-co-je-ai.md) →
 
 > **Cieľ dokumentu:** praktická príručka, ako si pripraviť počítač na prácu s AI — od Python prostredia a PyTorchu cez nastavenie GPU (CUDA na NVIDIA, Metal na Macu) až po lokálnu inferenciu LLM pomocou vLLM. Na záver odporúčania, aký hardvér má zmysel doma a kedy je čas prenajať si GPU v cloude (runpod.io a spol.). Predpokladáme, že Python ovládate.
 
-Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](zadania/rozpoznavanie-obrazkov.md) (vlastná sieť + PyTorch) aj [zadanie 2](zadania/RAG_Fine_tunning.md) (RAG a LoRA fine-tuning).
+Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](../../zadania/rozpoznavanie-obrazkov.md) (vlastná sieť + PyTorch) aj [zadanie 2](../../zadania/RAG_Fine_tunning.md) (RAG a LoRA fine-tuning).
 
 ---
 
@@ -12,25 +12,70 @@ Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](zadania/rozpo
 
 Na AI vývoj stačí **Python 3.10 až 3.12**. Úplne najnovšiu verziu Pythonu sa neoplatí ponáhľať — PyTorch a spol. ju podporia typicky až o pár mesiacov po vydaní.
 
-Prvé pravidlo: **nikdy neinštalujte knižnice do systémového Pythonu.** AI knižnice sú veľké, majú prísne vzájomné závislosti na verziách a jeden pokazený upgrade vie rozbiť celé prostredie. Každý projekt preto dostane vlastné virtuálne prostredie:
+Prvé pravidlo: **nikdy neinštalujte knižnice do systémového Pythonu.** AI knižnice sú veľké, majú prísne vzájomné závislosti na verziách a jeden pokazený upgrade vie rozbiť celé prostredie. Každý projekt preto dostane vlastné **virtuálne prostredie** — samostatný priečinok `.venv` s vlastnou kópiou Pythonu a knižníc.
+
+### uv — odporúčaná cesta
+
+**[uv](https://docs.astral.sh/uv/)** je moderný správca Python prostredí a balíkov (od autorov Ruff). Robí to isté čo `venv` + `pip`, ale **rádovo rýchlejšie** a navyše vie spravovať aj samotné verzie Pythonu. Pri AI knižniciach, ktoré majú stovky megabajtov a desiatky závislostí, je ten rozdiel citeľný — inštalácia, ktorá pipom trvá minúty, býva s `uv` otázkou sekúnd.
+
+Inštalácia (stačí raz, sám o sebe žiadny Python nepotrebuje):
 
 ```bash
-# klasika — venv (súčasť Pythonu)
+# Linux / macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Založenie projektu:
+
+```bash
+uv init --python 3.12 moj-projekt   # pyproject.toml + .python-version; Python si uv stiahne sám
+cd moj-projekt
+uv add torch numpy matplotlib       # pridá závislosti, vytvorí .venv a uv.lock
+uv run python train.py              # spustí v prostredí — netreba nič aktivovať
+```
+
+Dve veci, ktoré stoja za pozornosť:
+
+- **`uv run` nahrádza aktiváciu.** Nemusíte robiť `source .venv/bin/activate` — `uv run` prostredie nájde a použije sám, a pred spustením si overí, že zodpovedá `pyproject.toml`. Kto má radšej klasiku, aktivácia funguje tiež (`.venv` je obyčajné virtuálne prostredie).
+- **`uv.lock` je zoznam presných verzií** všetkého, čo je nainštalované. Zaveďte ho do gitu — kolega (alebo vy o pol roka) potom príkazom `uv sync` dostane **bit po bite rovnaké prostredie**. Presne to sa pri AI knižniciach oplatí: „u mňa to fungovalo" má tu obvykle na svedomí inú verziu `torch` alebo `transformers`.
+
+Ak nechcete projektový režim a stačí vám holé prostredie, `uv` vie aj to:
+
+```bash
+uv venv                      # vytvorí .venv (voliteľne: --python 3.12)
+uv pip install torch numpy   # tá istá syntax ako pip, len rýchlejšie
+```
+
+### venv + pip — klasika, ktorá funguje všade
+
+Ak `uv` inštalovať nechcete alebo nemôžete (firemný stroj bez práv, cudzí server), všetko v tomto kurze sa dá spraviť aj štandardnou dvojicou zabudovanou v Pythone. Príkazy nižšie sú rovnocennou alternatívou — nikde v kurze nie je nič, čo by vyžadovalo výhradne `uv`:
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install --upgrade pip
+pip install torch numpy matplotlib
 ```
 
-Rýchlejšia moderná alternatíva je **uv** — správca balíkov, ktorý robí to isté čo pip + venv, ale rádovo rýchlejšie:
+Prevodná tabuľka, aby sa v dokumente dali príkazy čítať v oboch svetoch:
 
-```bash
-uv venv                          # vytvorí .venv
-uv pip install torch numpy       # inštaluje do neho
-```
+| Úkon | uv | venv + pip |
+|---|---|---|
+| vytvoriť prostredie | `uv venv` | `python3 -m venv .venv` |
+| aktivovať | netreba (`uv run …`) | `source .venv/bin/activate` |
+| nainštalovať balík | `uv add X` / `uv pip install X` | `pip install X` |
+| zoznam závislostí | `pyproject.toml` + `uv.lock` | `requirements.txt` |
+| obnoviť prostredie inde | `uv sync` | `pip install -r requirements.txt` |
+| spustiť skript | `uv run python x.py` | `python x.py` (v aktivovanom prostredí) |
 
-Kedysi bola v AI svete štandardom **conda**; dnes už nie je potrebná — pip balíky PyTorchu si nesú všetko so sebou (vrátane CUDA knižníc, ako uvidíme nižšie). Ak ju máte radi, funguje tiež, ale v tomto kurze vystačíme s venv/uv.
+> V ďalších sekciách uvádzame pri inštaláciách oba varianty. Kde nájdete v cudzej dokumentácii len `pip install X`, prepis je mechanický: `uv add X` (projektový režim, zapíše sa do `pyproject.toml`) alebo `uv pip install X` (to isté čo pip, len rýchlejšie).
 
-Na experimentovanie sa hodí **Jupyter** (`pip install jupyterlab`) alebo notebooky priamo vo VS Code — kód sa spúšťa po bunkách a grafy vidno hneď vedľa kódu.
+Kedysi bola v AI svete štandardom **conda**; dnes už nie je potrebná — pip balíky PyTorchu si nesú všetko so sebou (vrátane CUDA knižníc, ako uvidíme nižšie). Ak ju máte radi, funguje tiež, ale v tomto kurze vystačíme s `uv` alebo `venv`.
+
+Na experimentovanie sa hodí **Jupyter** (`uv add jupyterlab`, resp. `pip install jupyterlab`) alebo notebooky priamo vo VS Code — kód sa spúšťa po bunkách a grafy vidno hneď vedľa kódu.
 
 ---
 
@@ -46,7 +91,7 @@ Editor je vec vkusu, ale ak nemáte vyhranený názor, zvoľte **Visual Studio C
 | **Remote – SSH** | vývoj na vzdialenom stroji: pripojíte sa na prenajatý runpod server a pracujete v ňom, akoby bol lokálny (zíde sa v sekcii 8) |
 | **WSL** | len pre Windows: otvorí projekt priamo v Ubuntu vo WSL2, kde beží celý AI ekosystém |
 
-Jedno nastavenie, ktoré si treba osvojiť hneď: **výber interpretera.** Po vytvorení virtuálneho prostredia stlačte `Ctrl+Shift+P` → *Python: Select Interpreter* → vyberte `.venv` v projekte. VS Code potom prostredie sám aktivuje v každom novom termináli a debugger aj notebooky používajú správne knižnice. Ak vám import „nefunguje", v deviatich prípadoch z desiatich beží kód proti inému interpreteru, než do ktorého ste inštalovali.
+Jedno nastavenie, ktoré si treba osvojiť hneď: **výber interpretera.** Po vytvorení virtuálneho prostredia (`uv venv`, `uv sync` alebo `python3 -m venv`) stlačte `Ctrl+Shift+P` → *Python: Select Interpreter* → vyberte `.venv` v projekte. VS Code potom prostredie sám aktivuje v každom novom termináli a debugger aj notebooky používajú správne knižnice. Ak vám import „nefunguje", v deviatich prípadoch z desiatich beží kód proti inému interpreteru, než do ktorého ste inštalovali.
 
 K AI asistentom v editore (Claude Code, Copilot a spol.): pomôžu, ale v tomto kurze je cieľom pochopiť mechaniku vlastnými rukami — pri zadaniach nimi šetrite. Ako sa s nimi pracuje efektívne a kedy im (ne)veriť, je téma lekcie 8.
 
@@ -60,10 +105,12 @@ Inštalačný príkaz sa líši podľa operačného systému a GPU, preto si ho 
 
 ```bash
 # Linux / Windows s NVIDIA GPU (verzia CUDA podľa selektora na pytorch.org)
-pip install torch --index-url https://download.pytorch.org/whl/cu126
+uv add torch --index https://download.pytorch.org/whl/cu126
+pip install torch --index-url https://download.pytorch.org/whl/cu126     # bez uv
 
 # Mac (Apple Silicon) — bez ďalších parametrov
-pip install torch
+uv add torch
+pip install torch                                                        # bez uv
 ```
 
 Hneď po inštalácii si overte, že PyTorch beží a vidí akcelerátor:
@@ -107,7 +154,7 @@ x = x.to(device)
 
 ### Mac a Apple Silicon (MPS)
 
-Na Macu CUDA neexistuje — NVIDIA karty sa doň nedajú osadiť. Apple čipy radu M (M1 a novšie) však majú vlastnú GPU a PyTorch ju podporuje cez backend **MPS** (*Metal Performance Shaders*). Netreba nič nastavovať: obyčajný `pip install torch` a namiesto `"cuda"` použijete `"mps"`:
+Na Macu CUDA neexistuje — NVIDIA karty sa doň nedajú osadiť. Apple čipy radu M (M1 a novšie) však majú vlastnú GPU a PyTorch ju podporuje cez backend **MPS** (*Metal Performance Shaders*). Netreba nič nastavovať: obyčajný `uv add torch` (resp. `pip install torch`) a namiesto `"cuda"` použijete `"mps"`:
 
 ```python
 device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -141,7 +188,16 @@ Okrem PyTorchu budete postupne potrebovať:
 | `peft`, `bitsandbytes`, `accelerate` | LoRA/QLoRA fine-tuning | zadanie 2B |
 | `vllm` | rýchla inferencia LLM (len NVIDIA) | nižšie |
 
+Naraz ich pridáte jedným príkazom:
+
+```bash
+uv add numpy matplotlib jupyterlab transformers datasets sentence-transformers faiss-cpu
+# bez uv:  pip install numpy matplotlib jupyterlab transformers datasets sentence-transformers faiss-cpu
+```
+
 Pozor na `bitsandbytes` a `vllm` — vyžadujú NVIDIA GPU; na Macu ich preskočte (náhrady spomíname pri každom zadaní a v sekcii o vLLM).
+
+> **Tip na odovzdávanie zadaní:** priložte k riešeniu `pyproject.toml` a `uv.lock` (alebo `requirements.txt`, ak idete cez pip). Bez nich sa vaše prostredie nedá zreprodukovať a „u mňa to fungovalo" nie je obhajoba.
 
 ---
 
@@ -154,7 +210,8 @@ vLLM je optimalizovaný inferenčný engine: vďaka technike **PagedAttention** 
 Požiadavky: **Linux (alebo WSL2) a NVIDIA GPU.** Spustenie:
 
 ```bash
-pip install vllm
+uv add vllm
+# bez uv:  pip install vllm
 vllm serve Qwen/Qwen2.5-1.5B-Instruct --max-model-len 4096
 ```
 
@@ -210,7 +267,7 @@ Pri výbere karty na AI je najdôležitejšie jediné číslo: **VRAM**. Výkon 
 | ~30B | ~60 GB | ~18 GB | 24 GB karta (4-bit) |
 | 70B | ~140 GB | ~40 GB | 2× 24 GB, Mac 64 GB+, alebo cloud |
 
-**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [fine-tuning-lora.md](fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
+**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
 
 Odporúčania podľa rozpočtu (stav v roku 2026, ceny sa hýbu):
 
@@ -237,7 +294,7 @@ Dve praktické rady:
 1. **Vyvíjajte lokálne, trénujte v cloude.** Skript odlaďte doma na malom modeli a vzorke dát; na prenajatej GPU už len spustite hotovú vec. Ladenie preklepov za 2 $/hodinu je zbytočný luxus.
 2. **Vypínajte pody.** Účtuje sa každá hodina behu — beh cez zabudnutý víkend stojí viac než celý mesiac experimentov.
 
-A ešte jedno rozhodnutie pred prenájmom: ak nepotrebujete **vlastné váhy** (fine-tuning, plná kontrola, citlivé dáta), býva lacnejšie nevolať žiadnu GPU a použiť hotové **API** (Anthropic, OpenAI, Together…) — platí sa za tokeny, nie za hodiny. Kritériá výberu modelu rozoberá [llm-modely.md](llm-modely.md).
+A ešte jedno rozhodnutie pred prenájmom: ak nepotrebujete **vlastné váhy** (fine-tuning, plná kontrola, citlivé dáta), býva lacnejšie nevolať žiadnu GPU a použiť hotové **API** (Anthropic, OpenAI, Together…) — platí sa za tokeny, nie za hodiny. Kritériá výberu modelu rozoberá [03-llm-modely.md](../04-llm/03-llm-modely.md).
 
 ---
 
@@ -269,9 +326,9 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 
 ### Súvisiace dokumenty v repozitári
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — **nasleduje**: prehľad prístupov a modelov (lekcie 1–3)
-- [adam-optimalizator.md](adam-optimalizator.md) — tréningová slučka, backpropagation, Adam (lekcia 3)
-- [llm-modely.md](llm-modely.md) — výber modelu (proprietárne / open-weight / open-source — lekcia 5)
-- [fine-tuning-lora.md](fine-tuning-lora.md) — LoRA/QLoRA a pamäťové nároky fine-tuningu (lekcia 7)
-- [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md), [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — praktické úlohy
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [tutorials/01-prehlad](../01-prehlad/README.md) — **nasleduje**: čo je AI, režimy učenia, metriky
+- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka, backpropagation, Adam (lekcia 3)
+- [03-llm-modely.md](../04-llm/03-llm-modely.md) — výber modelu (proprietárne / open-weight / open-source — lekcia 5)
+- [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md) — LoRA/QLoRA a pamäťové nároky fine-tuningu (lekcia 7)
+- [zadania/rozpoznavanie-obrazkov.md](../../zadania/rozpoznavanie-obrazkov.md), [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — praktické úlohy

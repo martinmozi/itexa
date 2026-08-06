@@ -1,10 +1,14 @@
 # Adam — kompletná špecifikácia optimalizátora pre feed-forward sieť
 
-> **Poradie čítania:** ← [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) · **lekcia 3** → [zadanie 1](zadania/rozpoznavanie-obrazkov.md) · ďalej [transformer-siete.md](transformer-siete.md) →
+> **Poradie čítania:** ← [Ktorý model kedy](../02-typy-modelov/06-ktory-model-kedy.md) · **lekcia 3** · [Čo sa pri učení pokazí](02-problemy-pri-uceni.md) →
 
 Tento dokument popisuje algoritmus **Adam** (Adaptive Moment Estimation) tak podrobne, aby
 podľa neho študent vedel naprogramovať proces učenia doprednej (feed-forward) neurónovej
 siete — bez použitia hotového frameworku.
+
+Ak vám tréning **nefunguje** (loss stojí, osciluje alebo skončí ako `NaN`), pokračujte
+samostatným dokumentom **[02-problemy-pri-uceni.md](02-problemy-pri-uceni.md)** — je to katalóg
+porúch tréningu s návodom, ako každú z nich rozoznať a odstrániť.
 
 ---
 
@@ -14,7 +18,7 @@ Než sa pustíme do optimalizátora, treba vedieť, **čo vlastne Adam upravuje*
 obrázok ukazuje jednoduchú doprednú sieť s troma vrstvami. Signál tečie zľava doprava
 (preto „feed-forward"): vstupy → skrytá vrstva → výstupy.
 
-![Prehľad feed-forward neurónovej siete: vstupná, skrytá a výstupná vrstva prepojené váhami](images/ff-siet-prehlad.svg)
+![Prehľad feed-forward neurónovej siete: vstupná, skrytá a výstupná vrstva prepojené váhami](../../images/ff-siet-prehlad.svg)
 
 Medzi každými dvoma susednými vrstvami je jedna **váhová matica `W`** a jeden **vektor
 biasov `b`** (na obrázku `W₁, b₁` medzi vstupom a skrytou vrstvou, `W₂, b₂` medzi skrytou
@@ -27,7 +31,7 @@ posúva. Aktivačná funkcia `σ` je pevne daná a nemení sa.
 Aby bolo jasné, kde presne váhy, bias a aktivácia vstupujú do výpočtu, priblížme si jeden
 neurón:
 
-![Detail jedného neurónu: vstupy vážené váhami w, pripočítaný bias b, výsledok z prejde aktivačnou funkciou σ na výstup a](images/neuron-detail.svg)
+![Detail jedného neurónu: vstupy vážené váhami w, pripočítaný bias b, výsledok z prejde aktivačnou funkciou σ na výstup a](../../images/neuron-detail.svg)
 
 Neurón robí dva kroky:
 
@@ -94,7 +98,7 @@ b ← b − lr · db
 s presne tými istými gradientmi `dW`, `db`, ktoré už z backpropu máte. Mení len *spôsob*,
 akým sa z gradientu vypočíta krok.
 
-![Tréningová slučka: forward → loss → backprop → update, pričom krok update je Adam](images/treningova-slucka.svg)
+![Tréningová slučka: forward → loss → backprop → update, pričom krok update je Adam](../../images/treningova-slucka.svg)
 
 Slučka beží dokola nad jednotlivými mini-batchmi. Adam sedí **iba v kroku 4 (update)** —
 dostane gradienty `dW`, `db` z backpropu (krok 3) a rozhodne, ako veľmi a ktorým smerom
@@ -294,7 +298,7 @@ Tieto hodnoty sú štandardné a fungujú takmer vždy — začnite s nimi.
 Vo vlastnej implementácii ich netreba, ale v cudzom kóde na ne narazíte hneď:
 
 - **AdamW** — variant, ktorý pridáva **weight decay** (pokutu za veľké váhy, viď regularizácia
-  v [prehľade](umela-inteligencia-prehlad.md)) tak, že ju odpočíta priamo od parametra
+  v [03-generalizacia-a-preucenie.md](../01-prehlad/03-generalizacia-a-preucenie.md)) tak, že ju odpočíta priamo od parametra
   (`P ← P − lr·(m̂/(√v̂+ε) + λ·P)`), a nie cez gradient. V bežnom Adame sa totiž decay pretlačí
   cez adaptívne delenie a účinkuje na každý parameter inak silno. Dnes je AdamW **predvoľba**
   pri trénovaní transformerov a `torch.optim.AdamW` je v `transformers` štandard.
@@ -429,6 +433,8 @@ Ako si overiť, že je Adam implementovaný dobre:
 
 ---
 
+---
+
 ## 9. Zhrnutie v jednej vete
 
 Adam = SGD, v ktorom namiesto surového gradientu použijete jeho **vyhladený priemer** (`m`),
@@ -452,8 +458,9 @@ rozbehu** (`m̂`, `v̂`) — čím každý parameter dostane vlastnú adaptívnu
 
 ### Súvisiace dokumenty
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — čo je to za sieť, ktorú tu trénujeme (lekcie 1–3)
-- [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md) — **zadanie 1**: naprogramovať sieť aj tento optimalizátor
-- [transformer-siete.md](transformer-siete.md) — ďalšia lekcia: architektúra dnešných LLM
-- [llm-trening.md](llm-trening.md) — tá istá slučka, len s miliardami parametrov (lekcia 5)
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [04-feed-forward-siete.md](../02-typy-modelov/04-feed-forward-siete.md) — čo je to za sieť, ktorú tu trénujeme
+- [zadania/rozpoznavanie-obrazkov.md](../../zadania/rozpoznavanie-obrazkov.md) — **zadanie 1**: naprogramovať sieť aj tento optimalizátor
+- [02-problemy-pri-uceni.md](02-problemy-pri-uceni.md) — **keď tréning nefunguje**: diagnostika a riešenia
+- [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — ďalšia lekcia: architektúra dnešných LLM
+- [02-llm-trening.md](../04-llm/02-llm-trening.md) — tá istá slučka, len s miliardami parametrov (lekcia 5)

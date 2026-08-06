@@ -1,12 +1,12 @@
 # Prehľad súčasných modelov — proprietárne, open-weight a open-source
 
-> **Poradie čítania:** ← [llm-trening.md](llm-trening.md) · **lekcia 5 (2/2)** · [embeddings.md](embeddings.md) →
+> **Poradie čítania:** ← [Ako sa trénuje LLM](02-llm-trening.md) · **lekcia 5** · [Embeddingy](04-embeddings.md) →
 
 > **Cieľ dokumentu:** zorientovať sa v dnešnej ponuke veľkých modelov. Kľúčom je pochopiť **tri stupne otvorenosti** (proprietárne API → otvorené váhy → plne otvorené vrátane tréningových dát) a vedieť si vybrať model **podľa úlohy** — OCR, kódovanie, tabuľkové dáta, embeddingy, lokálne nasadenie…
 >
 > *Stav: júl 2026. Krajina modelov sa mení každých pár mesiacov — konkrétne verzie berte ako momentku, kategórie a princípy výberu platia dlhodobo.*
 
-Nadväzuje na [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) (typy modelov) a [llm-trening.md](llm-trening.md) (ako sa LLM trénujú — vysvetľuje aj pojmy *base* a *Instruct*, ktoré sa v tabuľkách nižšie objavujú).
+Nadväzuje na [typy modelov](../02-typy-modelov/README.md) a [02-llm-trening.md](02-llm-trening.md) (ako sa LLM trénujú — vysvetľuje aj pojmy *base* a *Instruct*, ktoré sa v tabuľkách nižšie objavujú).
 
 ---
 
@@ -51,7 +51,7 @@ Toto je najdôležitejšie rozlíšenie — často sa všetko nesprávne hádže
 | **Phi-4** | Microsoft | MIT | veľmi malé modely, edge/on-device |
 | **Whisper** (ASR) | OpenAI | MIT | prepis reči na text — de facto štandard |
 
-**Kedy open-weight:** dáta nesmú opustiť firmu, potrebujete predvídateľné náklady pri veľkom objeme, fine-tuning na vlastnú doménu (LoRA/QLoRA — viď [zadanie](zadania/RAG_Fine_tunning.md)), alebo offline/edge nasadenie. Menšie varianty (1–8B) bežia aj na bežnom GPU či kvantované na CPU.
+**Kedy open-weight:** dáta nesmú opustiť firmu, potrebujete predvídateľné náklady pri veľkom objeme, fine-tuning na vlastnú doménu (LoRA/QLoRA — viď [zadanie](../../zadania/RAG_Fine_tunning.md)), alebo offline/edge nasadenie. Menšie varianty (1–8B) bežia aj na bežnom GPU či kvantované na CPU.
 
 ---
 
@@ -68,7 +68,7 @@ Modelov, kde je verejné **všetko** — váhy, dáta, kód, priebežné checkpo
 | **StarCoder 2** | BigCode | váhy, dáta (The Stack) | otvorený kódovací model s auditovateľným korpusom |
 | **BLOOM** | BigScience | váhy, dáta (ROOTS) | historicky prvý veľký plne otvorený model (2022), dnes prekonaný |
 
-**Prečo na tom záleží:** len pri týchto modeloch viete odpovedať na otázky „*čo presne model videl pri tréningu?*", „*je v dátach môj text?*", „*prečo model vie X a nevie Y?*" — pri open-weight modeloch sú to dohady. Ako presne tréningové dáta formujú model, rozoberá [llm-trening.md](llm-trening.md).
+**Prečo na tom záleží:** len pri týchto modeloch viete odpovedať na otázky „*čo presne model videl pri tréningu?*", „*je v dátach môj text?*", „*prečo model vie X a nevie Y?*" — pri open-weight modeloch sú to dohady. Ako presne tréningové dáta formujú model, rozoberá [02-llm-trening.md](02-llm-trening.md).
 
 ---
 
@@ -78,15 +78,15 @@ Modelov, kde je verejné **všetko** — váhy, dáta, kód, priebežné checkpo
 |---|---|---|
 | **OCR / extrakcia z dokumentov** | multimodálny LLM (Claude, Gemini, Qwen-VL) na komplexné dokumenty; klasické OCR (Tesseract, PaddleOCR) na jednoduchý čistý text | LLM zvláda tabuľky, formuláre, rukopis a rovno štruktúruje výstup (JSON) |
 | **Kódovanie / programátorský agent** | Claude (Opus/Sonnet) cez API; open-weight: Qwen 3.5, GLM-5, DeepSeek | agentické kódovanie = model + nástroje (viď lekcia 8) |
-| **Tabuľkové dáta** (predikcia, skóring) | ❌ **nie LLM** → **XGBoost / stromy** ([prehľad](umela-inteligencia-prehlad.md)) | LLM sa hodí nanajvýš na *rozhranie* nad tabuľkou (text → SQL), nie na samotnú predikciu |
-| **Embeddingy / RAG retrieval** | špecializované embedding modely: `bge-m3`, `multilingual-e5`, prípadne API embeddingy | malý model stačí; detaily v [embeddings.md](embeddings.md) |
-| **Reranking** | `bge-reranker-v2-m3`, Cohere Rerank | cross-encoder, viď [embeddings.md](embeddings.md) |
+| **Tabuľkové dáta** (predikcia, skóring) | ❌ **nie LLM** → **XGBoost / stromy** ([02-random-forest-a-xgboost.md](../02-typy-modelov/02-random-forest-a-xgboost.md)) | LLM sa hodí nanajvýš na *rozhranie* nad tabuľkou (text → SQL), nie na samotnú predikciu |
+| **Embeddingy / RAG retrieval** | špecializované embedding modely: `bge-m3`, `multilingual-e5`, prípadne API embeddingy | malý model stačí; detaily v [04-embeddings.md](04-embeddings.md) |
+| **Reranking** | `bge-reranker-v2-m3`, Cohere Rerank | cross-encoder, viď [04-embeddings.md](04-embeddings.md) |
 | **Reasoning / matematika** | o-séria, DeepSeek R1, Claude s extended thinking | „premýšľajúce" modely — viac výpočtu pri inferencii |
-| **Slovenčina / multilingválne** | veľké proprietárne modely; open-weight: Qwen, Gemma | malé open modely na slovenčine citeľne strácajú (aj kvôli tokenizácii — viď [embeddings.md](embeddings.md)) |
+| **Slovenčina / multilingválne** | veľké proprietárne modely; open-weight: Qwen, Gemma | malé open modely na slovenčine citeľne strácajú (aj kvôli tokenizácii — viď [04-embeddings.md](04-embeddings.md)) |
 | **Lokálny beh na notebooku** | Qwen/Llama/Gemma 1–8B kvantované (Ollama, llama.cpp); na experimenty SmolLM | 4-bit kvantizácia zníži pamäť ~4× za malú stratu kvality |
 | **Prepis reči (ASR)** | Whisper (open-weight) | beží aj lokálne |
-| **Klasifikácia obrázkov (úzka úloha)** | vlastná malá **CNN** ([prehľad](umela-inteligencia-prehlad.md)), prípadne fine-tunovaný ViT | nasadiť LLM na „je na páse chybný výrobok?" je zbytočne drahé |
-| **Firemný chatbot nad dokumentmi** | RAG: embedding model + LLM (API alebo open-weight podľa citlivosti dát) | viď [embeddings.md](embeddings.md) a [zadanie](zadania/RAG_Fine_tunning.md) |
+| **Klasifikácia obrázkov (úzka úloha)** | vlastná malá **CNN** ([05-konvolucne-siete.md](../02-typy-modelov/05-konvolucne-siete.md)), prípadne fine-tunovaný ViT | nasadiť LLM na „je na páse chybný výrobok?" je zbytočne drahé |
+| **Firemný chatbot nad dokumentmi** | RAG: embedding model + LLM (API alebo open-weight podľa citlivosti dát) | viď [04-embeddings.md](04-embeddings.md) a [zadanie](../../zadania/RAG_Fine_tunning.md) |
 
 ### Rozhodovací postup (zjednodušene)
 
@@ -101,7 +101,7 @@ Výskum, audit, výučba, reprodukovateľnosť? ──► plne open-source (OLMo
 ```
 
 > **Konkrétne verzie vs. rodiny.** Tabuľky vyššie zámerne uvádzajú **rodiny** (Qwen, Llama, Gemma),
-> nie presné Hugging Face ID — tie sa menia každých pár mesiacov. V [zadaní 2](zadania/RAG_Fine_tunning.md)
+> nie presné Hugging Face ID — tie sa menia každých pár mesiacov. V [zadaní 2](../../zadania/RAG_Fine_tunning.md)
 > nájdete overené ID staršej, ale stabilnej generácie; ak si na HF nájdete novšiu, pokojne ju použite,
 > pipeline je rovnaká.
 
@@ -132,7 +132,7 @@ ktoré treba vyriešiť **pred** nasadením, nie po ňom:
 A jedna vec, ktorá nie je právna, ale etická: model preberá **skreslenia (bias)** z tréningových dát.
 Ak historické dáta obsahujú diskriminačný vzor, model sa ho naučí ako čokoľvek iné — a nasadený vo
 veľkom ho zopakuje tisíckrát denne. Meranie kvality na priemernej presnosti to nezachytí; treba sa
-pozrieť na chybovosť **po skupinách** (viď metriky v [prehľade](umela-inteligencia-prehlad.md)).
+pozrieť na chybovosť **po skupinách** (viď [04-metriky.md](../01-prehlad/04-metriky.md)).
 
 ---
 
@@ -158,8 +158,8 @@ pozrieť na chybovosť **po skupinách** (viď metriky v [prehľade](umela-intel
 
 ### Súvisiace dokumenty
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [llm-trening.md](llm-trening.md) — **prvá polovica lekcie 5**: ako sa LLM trénujú
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — stromy, XGBoost, MLP, CNN (lekcie 1–3)
-- [embeddings.md](embeddings.md) — **nasledujúca lekcia**: embedding modely a RAG pipeline
-- [vyvojove-prostredie.md](vyvojove-prostredie.md) — na čom vybraný model reálne spustíte
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [02-llm-trening.md](02-llm-trening.md) — **prvá polovica lekcie 5**: ako sa LLM trénujú
+- [tutorials/02-typy-modelov](../02-typy-modelov/README.md) — stromy, XGBoost, MLP, CNN
+- [04-embeddings.md](04-embeddings.md) — **nasledujúca lekcia**: embedding modely a RAG pipeline
+- [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md) — na čom vybraný model reálne spustíte

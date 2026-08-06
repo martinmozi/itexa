@@ -1,10 +1,10 @@
 # Fine-tuning v malom: LoRA, QLoRA a rozhodnutie RAG vs. fine-tuning
 
-> **Poradie čítania:** ← [embeddings.md](embeddings.md) · **lekcia 7** → [zadanie 2B](zadania/RAG_Fine_tunning.md) · ďalej [agenti-a-nastroje.md](agenti-a-nastroje.md) →
+> **Poradie čítania:** ← [RAG](05-rag.md) · **lekcia 7** · [Agenti, nástroje a Claude Code](../05-prakticke/01-agenti-a-nastroje.md) →
 
 > **Cieľ dokumentu:** vysvetliť, ako sa dá veľký model prispôsobiť vlastnej úlohe na jednom GPU — čo presne je **LoRA adaptér**, prečo stačí, čo pridáva **QLoRA** — a hlavne vedieť sa **rozhodnúť**, kedy siahnuť po fine-tuningu a kedy po RAG alebo len po dlhšom prompte.
 
-Nadväzuje na [llm-trening.md](llm-trening.md): fine-tuning, ktorý tu robíme, je presne **Fáza 2 (SFT)** z tamojšej pipeline, len na malých dátach a s malým počtom trénovaných parametrov. Tréningová slučka je stále tá istá ako v [lekcii 3](adam-optimalizator.md).
+Nadväzuje na [02-llm-trening.md](02-llm-trening.md): fine-tuning, ktorý tu robíme, je presne **Fáza 2 (SFT)** z tamojšej pipeline, len na malých dátach a s malým počtom trénovaných parametrov. Tréningová slučka je stále tá istá ako v [lekcii 3](../03-ucenie/01-adam-optimalizator.md).
 
 ---
 
@@ -80,7 +80,7 @@ Vyššie `r` neznamená automaticky lepší výsledok: pri malom datasete len ur
 7B model, QLoRA (4-bit základ)    ~10 GB    → bežná herná karta, Colab T4
 ```
 
-Cena je mierna strata presnosti a pomalší tréning (kvôli rozbaľovaniu). Pre naše účely je to výborný obchod — a je to presne konfigurácia, v ktorej pobeží [zadanie 2B](zadania/RAG_Fine_tunning.md). Technicky to zabezpečia knižnice `peft` (adaptéry), `bitsandbytes` (4-bit) a `trl` (`SFTTrainer`); nastavenie prostredia je v [vyvojove-prostredie.md](vyvojove-prostredie.md).
+Cena je mierna strata presnosti a pomalší tréning (kvôli rozbaľovaniu). Pre naše účely je to výborný obchod — a je to presne konfigurácia, v ktorej pobeží [zadanie 2B](../../zadania/RAG_Fine_tunning.md). Technicky to zabezpečia knižnice `peft` (adaptéry), `bitsandbytes` (4-bit) a `trl` (`SFTTrainer`); nastavenie prostredia je v [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md).
 
 ---
 
@@ -99,7 +99,7 @@ Toto je najdôležitejšia časť lekcie — mechaniku vám spraví knižnica, r
 
 - **„Model nepozná fakt X."** Toto je najčastejší omyl. Fakty sedia vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše — model si skôr osvojí *štýl* vašich viet a fakty domieša. Na fakty patrí **RAG**.
 - **Dáta sa často menia.** Fine-tuning treba pri každej zmene zopakovať; aktualizovať retrieval korpus je otázka minút.
-- **Potrebujete citovať zdroj.** Fine-tunovaný model odpovedá „z hlavy" a nevie povedať, odkiaľ to má. RAG vracia `source` a `page` (viď metadáta v [embeddings.md](embeddings.md)).
+- **Potrebujete citovať zdroj.** Fine-tunovaný model odpovedá „z hlavy" a nevie povedať, odkiaľ to má. RAG vracia `source` a `page` (viď metadáta v [04-embeddings.md](04-embeddings.md)).
 - **Dobrý prompt už úlohu rieši.** Netreba pridávať zložitosť, ktorú niekto musí udržiavať.
 
 ### Rozhodovací postup
@@ -127,7 +127,7 @@ Fine-tuning aj RAG sa dajú „urobiť" a pritom nič nezlepšiť. Preto sa vyho
 
 1. **Testovacia sada otázok so správnymi odpoveďami**, pripravená **pred** tréningom. Časť otázok nesmie byť v tréningových dátach — inak meriate memorovanie, nie schopnosť.
 2. **Chytáky** — 2–3 otázky, ktorých odpoveď v dokumente **nie je**. Správna odpoveď znie „v texte to nie je uvedené". Bez nich sa nedá odlíšiť model, ktorý sa naučil obsah, od modelu, ktorý sa naučil sebavedomo tárať.
-3. **Rovnaké nastavenie generovania** pre baseline aj upravený model (hlavne teplota — viď [dekódovanie](transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie)), inak porovnávate dve rôzne veci.
+3. **Rovnaké nastavenie generovania** pre baseline aj upravený model (hlavne teplota — viď [dekódovanie](01-transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie)), inak porovnávate dve rôzne veci.
 4. **Úspešnosť zvlášť pre faktické otázky a zvlášť pre chytáky.**
 
 **Halucinácia** je odpoveď, ktorá znie presvedčivo a nie je pravdivá. Nie je to porucha — je to priamy dôsledok toho, že model generuje **najpravdepodobnejšie pokračovanie**, nie overený fakt. Čo ju obmedzuje: RAG s inštrukciou odpovedať iba z kontextu, nízka teplota, vyžadovanie citácií a explicitné povolenie povedať „neviem". Fine-tuning ju typicky **zhoršuje**, ak sa ním snažíme vložiť fakty: model dostane sebavedomie v doméne bez toho, aby dostal spoľahlivé znalosti.
@@ -148,9 +148,9 @@ Fine-tuning aj RAG sa dajú „urobiť" a pritom nič nezlepšiť. Preto sa vyho
 
 ### Súvisiace dokumenty
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [llm-trening.md](llm-trening.md) — SFT vo veľkom; toto je tá istá fáza v malom (lekcia 5)
-- [embeddings.md](embeddings.md) — **predchádzajúca lekcia**: RAG ako druhá cesta
-- [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — **zadanie 2**: RAG alebo LoRA na vlastnom dokumente
-- [vyvojove-prostredie.md](vyvojove-prostredie.md) — koľko VRAM na to treba a kde to spustiť
-- [agenti-a-nastroje.md](agenti-a-nastroje.md) — **nasledujúca lekcia**: agenti a nástroje
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [02-llm-trening.md](02-llm-trening.md) — SFT vo veľkom; toto je tá istá fáza v malom (lekcia 5)
+- [04-embeddings.md](04-embeddings.md) — **predchádzajúca lekcia**: RAG ako druhá cesta
+- [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — **zadanie 2**: RAG alebo LoRA na vlastnom dokumente
+- [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md) — koľko VRAM na to treba a kde to spustiť
+- [01-agenti-a-nastroje.md](../05-prakticke/01-agenti-a-nastroje.md) — **nasledujúca lekcia**: agenti a nástroje

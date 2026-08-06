@@ -1,10 +1,10 @@
 # Ako sa trénuje LLM — od surového textu po Instruct model
 
-> **Poradie čítania:** ← [transformer-siete.md](transformer-siete.md) · **lekcia 5 (1/2)** · [llm-modely.md](llm-modely.md) →
+> **Poradie čítania:** ← [Transformery a attention](01-transformer-siete.md) · **lekcia 5** · [Prehľad súčasných modelov](03-llm-modely.md) →
 
 > **Cieľ dokumentu:** vysvetliť celú tréningovú pipeline veľkého jazykového modelu — čo sa deje od stiahnutia surového internetu až po model s príponou `-Instruct`, ktorý si viete stiahnuť z Hugging Face a ktorý odpovedá na otázky. Po prečítaní budete rozumieť, prečo *base* model „nevie odpovedať", čo presne pridáva inštrukčné ladenie, a kam do tejto pipeline zapadá váš vlastný fine-tuning (LoRA).
 
-Predpokladá znalosť [transformerov](transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskom merítku). Tokenizáciu a BPE detailne rozoberá [embeddings.md](embeddings.md).
+Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-ucenie/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskom merítku). Tokenizáciu a BPE detailne rozoberá [04-embeddings.md](04-embeddings.md).
 
 ---
 
@@ -47,9 +47,9 @@ Surový web je ale plný spamu, duplikátov a smetí, preto sa robí:
 2. **Deduplikácia** — ten istý text miliónkrát by model naučila memorovať, nie generalizovať.
 3. **Mixovanie** — pomery zdrojov sú starostlivo ladené; „dáta sú nový hyperparameter".
 
-> **Prečo je to dôležité pochopiť:** kvalita a zloženie dát vysvetľuje väčšinu rozdielov medzi modelmi. Preto je taký veľký rozdiel medzi *open-weight* (dáta tajné) a *plne open-source* modelmi (dáta verejné) — viď [llm-modely.md](llm-modely.md). A preto malé modely horšie zvládajú slovenčinu: v mixe jej je málo.
+> **Prečo je to dôležité pochopiť:** kvalita a zloženie dát vysvetľuje väčšinu rozdielov medzi modelmi. Preto je taký veľký rozdiel medzi *open-weight* (dáta tajné) a *plne open-source* modelmi (dáta verejné) — viď [03-llm-modely.md](03-llm-modely.md). A preto malé modely horšie zvládajú slovenčinu: v mixe jej je málo.
 
-Text sa nakoniec **tokenizuje** (BPE — detailne v [embeddings.md](embeddings.md)) a nareže na bloky dĺžky kontextového okna.
+Text sa nakoniec **tokenizuje** (BPE — detailne v [04-embeddings.md](04-embeddings.md)) a nareže na bloky dĺžky kontextového okna.
 
 ---
 
@@ -69,7 +69,7 @@ model:  P(" Bratislava") = 0.62   ← správny token, chceme čo najvyššie
         ...
 ```
 
-Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0.01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [adam-optimalizator.md](adam-optimalizator.md), len parametrov sú miliardy.
+Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0.01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md), len parametrov sú miliardy.
 
 Dve vlastnosti robia z tejto jednoduchej úlohy zázrak:
 
@@ -111,7 +111,7 @@ Base model má v sebe všetky znalosti a schopnosti — len ich „nepodáva" fo
 Desaťtisíce až milióny ukážkových dialógov. Kde sa berú:
 
 - **ručne písané** ľuďmi (drahé, kvalitné) — otázky, úlohy, ideálne odpovede,
-- **syntetické** — generované silnejším modelom a filtrované (dnes prevažujúce; tzv. distillation, viď [llm-trendy.md](llm-trendy.md)),
+- **syntetické** — generované silnejším modelom a filtrované (dnes prevažujúce; tzv. distillation, viď [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md)),
 - reálne konverzácie s asistentom (so súhlasom, filtrované).
 
 Oproti biliónom tokenov pretrainingu je to **maličký dataset** — SFT nemá modelu dodať nové znalosti, len **zmeniť správanie**: „keď vidíš otázku, odpovedz na ňu; odpovedaj v tomto tóne; odmietni škodlivé požiadavky".
@@ -148,11 +148,11 @@ Po SFT model:
 - má natrénovaný štýl a základné odmietanie škodlivých požiadaviek,
 - **znalosti má stále z pretrainingu** — SFT ich len sprístupnil formou dialógu.
 
-> **Dôležitý dôsledok pre prax:** fine-tuning je dobrý na **štýl a správanie**, zlý na **vkladanie nových faktov** — fakty „sedia" vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše. Na nové/aktuálne fakty použite RAG. (Detailne v [llm-trendy.md](llm-trendy.md) a v [zadaní](zadania/RAG_Fine_tunning.md).)
+> **Dôležitý dôsledok pre prax:** fine-tuning je dobrý na **štýl a správanie**, zlý na **vkladanie nových faktov** — fakty „sedia" vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše. Na nové/aktuálne fakty použite RAG. (Detailne v [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md) a v [zadaní](../../zadania/RAG_Fine_tunning.md).)
 
 ### Váš vlastný fine-tuning = tá istá Fáza 2 v malom
 
-Keď v [zadaní](zadania/RAG_Fine_tunning.md) robíte **LoRA/QLoRA** fine-tuning, robíte presne SFT — dvojice otázka → odpoveď, chat šablóna, loss na odpovedi. Rozdiel je len v úspornosti: namiesto všetkých miliárd váh trénujete malé **adaptérové matice** (LoRA) pripojené k zamrznutému modelu, takže to zvládne jedno GPU. Ako presne tie adaptéry vyzerajú a prečo stačia, rozoberá [fine-tuning-lora.md](fine-tuning-lora.md) (lekcia 7).
+Keď v [zadaní](../../zadania/RAG_Fine_tunning.md) robíte **LoRA/QLoRA** fine-tuning, robíte presne SFT — dvojice otázka → odpoveď, chat šablóna, loss na odpovedi. Rozdiel je len v úspornosti: namiesto všetkých miliárd váh trénujete malé **adaptérové matice** (LoRA) pripojené k zamrznutému modelu, takže to zvládne jedno GPU. Ako presne tie adaptéry vyzerajú a prečo stačia, rozoberá [06-fine-tuning-lora.md](06-fine-tuning-lora.md) (lekcia 7).
 
 ---
 
@@ -177,10 +177,10 @@ Zhrnutie celej cesty jednou vetou: **pretraining dá modelu schopnosti, SFT z ne
 
 ### Súvisiace dokumenty
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [transformer-siete.md](transformer-siete.md) — architektúra, ktorá sa tu trénuje (lekcia 4)
-- [adam-optimalizator.md](adam-optimalizator.md) — tréningová slučka a optimalizátor (rovnaké aj pre LLM)
-- [llm-modely.md](llm-modely.md) — **druhá polovica lekcie 5**: prehľad dnešných modelov
-- [embeddings.md](embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza (lekcia 6)
-- [fine-tuning-lora.md](fine-tuning-lora.md) — SFT v malom: LoRA/QLoRA, kedy fine-tuning áno/nie (lekcia 7)
-- [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) — vlastný SFT cez LoRA/QLoRA
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [01-transformer-siete.md](01-transformer-siete.md) — architektúra, ktorá sa tu trénuje (lekcia 4)
+- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka a optimalizátor (rovnaké aj pre LLM)
+- [03-llm-modely.md](03-llm-modely.md) — **druhá polovica lekcie 5**: prehľad dnešných modelov
+- [04-embeddings.md](04-embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza (lekcia 6)
+- [06-fine-tuning-lora.md](06-fine-tuning-lora.md) — SFT v malom: LoRA/QLoRA, kedy fine-tuning áno/nie (lekcia 7)
+- [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — vlastný SFT cez LoRA/QLoRA

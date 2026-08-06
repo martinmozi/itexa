@@ -1,6 +1,6 @@
 # Zadanie: Odpovedanie na otázky z dlhého textu (RAG alebo fine-tuning)
 
-> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [embeddings.md](../embeddings.md), [fine-tuning-lora.md](../fine-tuning-lora.md)
+> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [04-embeddings.md](../tutorials/04-llm/04-embeddings.md), [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md)
 
 ## Cieľ
 
@@ -22,8 +22,8 @@ Podstatná je **rovnaká výstupná schopnosť** (odpovedať na otázky z textu)
 **dvoma principiálne odlišnými cestami** — a pochopenie, **kedy sa ktorá oplatí**.
 
 > Teoretické podklady k RAG (tokenizácia, embeddingy, chunking, vyhľadávanie, similarity)
-> sú v [embeddings.md](../embeddings.md).
-> LoRA/QLoRA a rozhodovanie RAG vs. fine-tuning sú v [fine-tuning-lora.md](../fine-tuning-lora.md).
+> sú v [04-embeddings.md](../tutorials/04-llm/04-embeddings.md).
+> LoRA/QLoRA a rozhodovanie RAG vs. fine-tuning sú v [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md).
 
 ---
 
@@ -86,7 +86,7 @@ Vyberte si **jeden** malý **instruct** model z Hugging Face, ktorý sa zmestí 
 > Dôležitejšie než veľkosť je, aby ste **celý proces prešli** a vedeli ho porovnať s baseline.
 
 > *Poznámka k verziám:* tabuľka uvádza **overené, stabilné** ID. Novšie generácie tých istých
-> rodín (Qwen 3, Llama 4, Gemma 3, Phi-4 — viď [llm-modely.md](../llm-modely.md)) fungujú s tou
+> rodín (Qwen 3, Llama 4, Gemma 3, Phi-4 — viď [03-llm-modely.md](../tutorials/04-llm/03-llm-modely.md)) fungujú s tou
 > istou pipeline; ID si overte na Hugging Face, keďže sa menia každých pár mesiacov.
 
 ### Povolené nástroje
@@ -106,13 +106,13 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
 
 1. **Chunking** — dokument rozdeľte na kúsky (napr. 200–500 tokenov s prekryvom ~50).
    Zvážte delenie po odsekoch/vetách, nie naslepo v strede vety.
-   > *Podklad:* stratégie chunkingu a metadáta sú rozpísané v `../embeddings.md` (Časť 2).
+   > *Podklad:* stratégie chunkingu a metadáta sú rozpísané v [05-rag.md](../tutorials/04-llm/05-rag.md).
 2. **Embeddingy** — každý chunk preveďte na vektor embeddovacím modelom
    (napr. `sentence-transformers/all-MiniLM-L6-v2` alebo viacjazyčný `intfloat/multilingual-e5-small`).
 3. **Index** — vektory (a k nim pôvodný text + metadáta) uložte do vektorovej databázy /
    FAISS indexu.
    > *Hint:* embeddingy **normalizujte** a používajte kosínusovú podobnosť — prečo, viď
-   > `../embeddings.md` (sekcia o normalizácii).
+   > [04-embeddings.md](../tutorials/04-llm/04-embeddings.md) (sekcia o normalizácii).
 
 ## A2 — Dotaz (online)
 
@@ -131,7 +131,7 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
 4. Prompt pošlite LLM a vypíšte odpoveď **spolu s tým, z ktorých chunkov čerpala** (zdroje).
    > *Hint:* pri generovaní nastavte **nízku teplotu** (`temperature ≈ 0–0.3`, prípadne
    > `do_sample=False`) a rovnaké nastavenie použite aj pre baseline — inak neporovnávate
-   > pipeline, ale náhodu. Viď [dekódovanie](../transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie).
+   > pipeline, ale náhodu. Viď [dekódovanie](../tutorials/04-llm/01-transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie).
 
 ## A3 — Experimenty (RAG)
 
@@ -205,7 +205,7 @@ Model sa neučí zo surového textu dobre — potrebuje **inštrukčný formát*
 
 ## Diskusná otázka (do správy)
 
-Stručne odpovedzte (podklad: [fine-tuning-lora.md](../fine-tuning-lora.md), sekcie 2 a 4):
+Stručne odpovedzte (podklad: [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md), sekcie 2 a 4):
 
 - Kedy sa oplatí **RAG** a kedy **fine-tuning**? Uveďte po 2 konkrétne situácie z praxe.
 - Ako každý z prístupov rieši **aktualizáciu obsahu** (dokument sa zmení / pribudne nový)?

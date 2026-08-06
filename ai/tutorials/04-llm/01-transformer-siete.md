@@ -1,10 +1,10 @@
 # Transformery — ako fungujú (detailne, s obrázkami)
 
-> **Poradie čítania:** ← [adam-optimalizator.md](adam-optimalizator.md) · **lekcia 4** · [llm-trening.md](llm-trening.md) →
+> **Poradie čítania:** ← [Čo sa pri učení pokazí](../03-ucenie/02-problemy-pri-uceni.md) · **lekcia 4** · [Ako sa trénuje LLM](02-llm-trening.md) →
 
 > **Cieľ dokumentu:** vysvetliť krok po kroku, ako funguje **transformer** — architektúra, ktorá stojí za dnešnými veľkými jazykovými modelmi (GPT, Claude, BERT…), prekladačmi aj generovaním obrázkov. Ťažiskom sú **detailné obrázky** mechanizmu **attention**, pretože práve on je jadrom celej myšlienky.
 
-Tento text nadväzuje na všeobecný [prehľad AI a modelov](umela-inteligencia-prehlad.md) a na dokument o [embeddingoch](embeddings.md) (ako sa z textu stanú vektory — to je vstup do transformera).
+Tento text nadväzuje na všeobecný [prehľad AI a modelov](../01-prehlad/README.md) a na dokument o [embeddingoch](04-embeddings.md) (ako sa z textu stanú vektory — to je vstup do transformera).
 
 ---
 
@@ -25,11 +25,11 @@ Pred rokom 2017 sa text a postupnosti spracovávali hlavne **rekurentnými sieť
 
 Pôvodný transformer má dve časti — **encoder** (prečíta a pochopí vstup) a **decoder** (generuje výstup). Nižšie je celková schéma; jednotlivé bloky rozoberieme v ďalších sekciách.
 
-![Celková architektúra transformera: vľavo encoder so self-attention a feed-forward vrstvami, vpravo decoder s maskovanou self-attention, cross-attention a feed-forward, na vstupe embedding a positional encoding, na výstupe linear a softmax](images/transformer-architektura.svg)
+![Celková architektúra transformera: vľavo encoder so self-attention a feed-forward vrstvami, vpravo decoder s maskovanou self-attention, cross-attention a feed-forward, na vstupe embedding a positional encoding, na výstupe linear a softmax](../../images/transformer-architektura.svg)
 
 Čítajme to **zdola nahor**:
 
-1. **Vstup → tokeny → embeddingy.** Text sa rozseká na tokeny a každý sa premení na vektor (viď [embeddings.md](embeddings.md)).
+1. **Vstup → tokeny → embeddingy.** Text sa rozseká na tokeny a každý sa premení na vektor (viď [04-embeddings.md](04-embeddings.md)).
 2. **+ Positional encoding.** Ku každému embeddingu sa pripočíta informácia o **pozícii** tokenu vo vete (o tom nižšie).
 3. **Encoder blok (N-krát za sebou):** *Multi-Head Self-Attention* → *Add & Norm* → *Feed Forward* → *Add & Norm*. Každý token si po ceste „nazbiera" kontext z ostatných.
 4. **Decoder blok (N-krát):** navyše obsahuje **maskovanú** self-attention (pozerá len dozadu, nie do budúcnosti) a **cross-attention** (pozerá na výstup encodera).
@@ -39,14 +39,14 @@ Dnešné modely často používajú len **jednu z častí**:
 
 | Variant | Používa | Príklady | Na čo |
 |---|---|---|---|
-| **Encoder-only** | len ľavý stĺpec | BERT, embedding modely | pochopenie textu, klasifikácia, [embeddingy](embeddings.md) |
+| **Encoder-only** | len ľavý stĺpec | BERT, embedding modely | pochopenie textu, klasifikácia, [embeddingy](04-embeddings.md) |
 | **Decoder-only** | len pravý stĺpec (s maskou) | GPT, Claude, Llama | **generovanie textu** — dnešné LLM |
 | **Encoder-decoder** | obe časti | T5, prekladače | preklad, sumarizácia (vstup → iný výstup) |
 
 Dva stavebné prvky, ktoré sa opakujú v každom bloku:
 
 - **Add & Norm** — *reziduálne spojenie* (k výstupu vrstvy sa pripočíta jej vstup) + normalizácia. Umožňuje trénovať veľmi hlboké siete bez toho, aby sa gradient „stratil".
-- **Feed Forward** — obyčajný [MLP](umela-inteligencia-prehlad.md#3-feed-forward-neurónové-siete-mlp) aplikovaný na každý token zvlášť; tu si model „premyslí" informáciu nazbieranú attention.
+- **Feed Forward** — obyčajný [MLP](../02-typy-modelov/04-feed-forward-siete.md) aplikovaný na každý token zvlášť; tu si model „premyslí" informáciu nazbieranú attention.
 
 Zvyšok dokumentu sa venuje srdcu celej veci — **attention**.
 
@@ -64,7 +64,7 @@ Mechanizmus pracuje s tromi rolami, ktoré si každý token vyrobí zo svojho ve
 
 Analógia s vyhľadávaním: **Query** je to, čo napíšeš do vyhľadávača, **Key** sú kľúčové slová stránok a **Value** je samotný obsah stránky, ktorý dostaneš, keď sa Query s Key zhodujú.
 
-![Detail self-attention: tokeny sa premietnu na Query, Key a Value; spočíta sa skóre podobnosti Q·K, škáluje sa a prejde softmaxom na váhy, ktorými sa spraví vážený súčet hodnôt V; príklad ukazuje, že zámeno „ju" dá najväčšiu váhu slovu „rybu"](images/self-attention.svg)
+![Detail self-attention: tokeny sa premietnu na Query, Key a Value; spočíta sa skóre podobnosti Q·K, škáluje sa a prejde softmaxom na váhy, ktorými sa spraví vážený súčet hodnôt V; príklad ukazuje, že zámeno „ju" dá najväčšiu váhu slovu „rybu"](../../images/self-attention.svg)
 
 Výpočet má tri kroky (na obrázku očíslované):
 
@@ -74,7 +74,7 @@ Výpočet má tri kroky (na obrázku očíslované):
 
 V príklade na obrázku pri spracovaní zámena **„ju"** dostane najväčšiu váhu (0.78) slovo **„rybu"** — model sa naučil, že zámeno odkazuje práve naň. Toto rozhodnutie **nie je naprogramované**; vyplynulo z tréningu z obrovského množstva textu.
 
-> **Chcete si to prepočítať na papieri?** Presne tento postup — Q/K/V projekcie, skóre, škálovanie, softmax aj vážený súčet — je s konkrétnymi číslami na troch tokenoch rozpísaný v [embeddings.md, Krok 3](embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je to dobrovoľné rozšírenie; v **lekcii 6** ho budeme potrebovať povinne, takže sa k nemu ešte vrátime.
+> **Chcete si to prepočítať na papieri?** Presne tento postup — Q/K/V projekcie, skóre, škálovanie, softmax aj vážený súčet — je s konkrétnymi číslami na troch tokenoch rozpísaný v [embeddings.md, Krok 3](04-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je to dobrovoľné rozšírenie; v **lekcii 6** ho budeme potrebovať povinne, takže sa k nemu ešte vrátime.
 
 > **Prečo je to lepšie než RNN:** tento výpočet sa deje pre **všetky tokeny naraz a paralelne** (je to v podstate násobenie matíc), a každý token má **priamy prístup** ku každému inému — aj tomu na opačnom konci vety. Odtiaľ paralelizovateľnosť aj dlhá pamäť.
 
@@ -92,7 +92,7 @@ V encoder-decoder modeloch (napr. preklad) berie **cross-attention** vrstva **Qu
 
 Jedna attention „hlava" zachytí **jeden typ vzťahu** (napr. gramatickú zhodu). To by bolo málo — vo vete existuje naraz viacero druhov vzťahov (syntax, odkazy zámen, téma…). Riešením je púšťať **viac attention hláv paralelne**, každú s vlastnými maticami W_Q, W_K, W_V.
 
-![Multi-head attention: vstupné vektory idú paralelne do viacerých hláv, každá s vlastnými maticami sleduje iný typ vzťahu, ich výstupy sa spoja (concat) a prejdú výstupnou lineárnou vrstvou](images/multi-head-attention.svg)
+![Multi-head attention: vstupné vektory idú paralelne do viacerých hláv, každá s vlastnými maticami sleduje iný typ vzťahu, ich výstupy sa spoja (concat) a prejdú výstupnou lineárnou vrstvou](../../images/multi-head-attention.svg)
 
 Postup:
 
@@ -110,7 +110,7 @@ Attention má jednu „slepú škvrnu": sama o sebe **nevníma poradie** slov. P
 
 Riešením je **positional encoding**: ku každému embeddingu tokenu sa **pripočíta vektor jeho pozície** vo vete.
 
-![Positional encoding: k embeddingu každého slova (význam) sa pripočíta vektor pozície, čím vznikne vstup nesúci význam aj polohu; vektory pozícií vznikajú ako sínusy a kosínusy s rôznymi frekvenciami](images/positional-encoding.svg)
+![Positional encoding: k embeddingu každého slova (význam) sa pripočíta vektor pozície, čím vznikne vstup nesúci význam aj polohu; vektory pozícií vznikajú ako sínusy a kosínusy s rôznymi frekvenciami](../../images/positional-encoding.svg)
 
 V pôvodnom transformeri sa vektor pozície tvorí zo **sínusov a kosínusov s rôznymi frekvenciami** — každá dimenzia vektora osciluje inou rýchlosťou:
 
@@ -158,7 +158,7 @@ nízka teplota (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p 
 > Zapamätajte si to pred zadaním 2: ak RAG odpovedá zakaždým inak alebo si vymýšľa aj so správnym
 > kontextom, prvá vec na kontrolu nie je retrieval, ale **teplota**.
 
-> Praktické dôsledky (dĺžka kontextu je drahá, lebo attention rastie kvadraticky s počtom tokenov; kvalita závisí od tréningových dát; halucinácie…) a aktuálne trendy rozoberá [llm-trendy.md](llm-trendy.md).
+> Praktické dôsledky (dĺžka kontextu je drahá, lebo attention rastie kvadraticky s počtom tokenov; kvalita závisí od tréningových dát; halucinácie…) a aktuálne trendy rozoberá [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md).
 
 ---
 
@@ -201,8 +201,8 @@ nízka teplota (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p 
 
 ### Súvisiace dokumenty
 
-- [prehlad-predmetu.md](prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [umela-inteligencia-prehlad.md](umela-inteligencia-prehlad.md) — kam transformery zapadajú v celej AI (lekcie 1–3)
-- [adam-optimalizator.md](adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam — lekcia 3)
-- [llm-trening.md](llm-trening.md) — **nasledujúca lekcia**: ako sa táto architektúra trénuje na jazyk
-- [embeddings.md](embeddings.md) — tá istá attention s číslami + cesta textu na vektor (lekcia 6)
+- [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [tutorials/01-prehlad](../01-prehlad/README.md) — kam transformery zapadajú v celej AI (lekcia 1)
+- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam — lekcia 3)
+- [02-llm-trening.md](02-llm-trening.md) — **nasledujúca lekcia**: ako sa táto architektúra trénuje na jazyk
+- [04-embeddings.md](04-embeddings.md) — tá istá attention s číslami + cesta textu na vektor (lekcia 6)
