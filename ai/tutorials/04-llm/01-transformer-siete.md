@@ -1,10 +1,10 @@
-# Transformery — ako fungujú (detailne, s obrázkami)
+# Transformery a attention — ako fungujú
 
 > **Poradie čítania:** ← [Čo sa pri učení pokazí](../03-ucenie/02-problemy-pri-uceni.md) · **lekcia 4** · [Ako sa trénuje LLM](02-llm-trening.md) →
 
 > **Cieľ dokumentu:** vysvetliť krok po kroku, ako funguje **transformer** — architektúra, ktorá stojí za dnešnými veľkými jazykovými modelmi (GPT, Claude, BERT…), prekladačmi aj generovaním obrázkov. Ťažiskom sú **detailné obrázky** mechanizmu **attention**, pretože práve on je jadrom celej myšlienky.
 
-Tento text nadväzuje na všeobecný [prehľad AI a modelov](../01-prehlad/README.md) a na dokument o [embeddingoch](04-embeddings.md) (ako sa z textu stanú vektory — to je vstup do transformera).
+Nadväzuje na všeobecný [prehľad AI a modelov](../01-prehlad/README.md). Ako sa z textu stanú vektory, ktoré do transformera vstupujú, je rozpísané až v [04-embeddings.md](04-embeddings.md) (lekcia 6) — tu nám zatiaľ postačí vedieť, že každý token má svoj vektor.
 
 ---
 

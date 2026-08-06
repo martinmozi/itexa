@@ -25,7 +25,7 @@ Zoberme 10 transakcií jednej karty. Prvé stĺpce sú priamo z ISO 8583 správy
 
 Riadok 6 je tu naschvál: **poctivý** nákup v rakúskom e-shope. Bez neho by stačilo pravidlo „e-commerce = podvod" a nemali by sme čo trénovať.
 
-> V reálnej prevádzke je podvodov rádovo 0,05 – 0,3 % transakcií. Tu ich máme 30 %, aby sa dali čísla ukázať na papieri. Ako sa s reálnou nevyváženosťou pracuje, je na konci sekcie.
+> V reálnej prevádzke je podvodov rádovo 0,05 – 0,3 % transakcií. Tu ich máme 30 %, aby sa dali čísla ukázať na papieri. Ako sa s reálnou nevyváženosťou pracuje, je v bode 3 na konci dokumentu.
 
 ## Krok 0 — nultý odhad a prvé rezíduá
 
@@ -35,7 +35,7 @@ Model ešte nič nevie, tak začne tým najhlúpejším možným odhadom: **prie
 p₀ = 0,30      → každá transakcia dostane 30 % pravdepodobnosť podvodu
 ```
 
-A teraz to hlavné slovo celej sekcie:
+A teraz to hlavné slovo celého dokumentu:
 
 > **Rezíduum = skutočnosť − to, čo model práve teraz predpovedá.**
 > Je to **nedoplatok modelu** — koľko mu ešte chýba do pravdy. Nie „ako veľmi sa mýli" v absolútnej hodnote, ale **so znamienkom a v jednotkách cieľa**: kladné rezíduum znamená „prihoď", záporné „uber".
@@ -80,7 +80,7 @@ Dosadíme (p = 0,30 pre všetky riadky, teda p·(1−p) = 0,21):
 | e-commerce (4 riadky) | 0,70+0,70−0,30+0,70 = **+1,80** | 4 × 0,21 = 0,84 | 1,80 / (0,84+1) = **+0,978** |
 | ostatné (6 riadkov) | 6 × (−0,30) = **−1,80** | 6 × 0,21 = 1,26 | −1,80 / (1,26+1) = **−0,797** |
 
-Tento výstup sa **nepripočíta celý**. Vynásobí sa **learning rate** (`eta`, tu 0,3) — model spraví len tretinu navrhovaného kroku, aby sa jedným stromom neprestrelilo. Po prevode späť na pravdepodobnosť dostaneme:
+Tento výstup sa **nepripočíta celý**. Vynásobí sa **learning rate** (`eta`, tu 0,3) — model spraví len tretinu navrhovaného kroku, aby sa jedným stromom neprestrelilo. (V reálnom nasadení býva `eta` ešte menšia, typicky 0,05; tu sme ju zvolili väčšiu, aby bol posun po dvoch stromoch vidno.) Po prevode späť na pravdepodobnosť dostaneme:
 
 | riadok | p pred | p po 1. strome | nové rezíduum |
 |---|---|---|---|
@@ -88,7 +88,7 @@ Tento výstup sa **nepripočíta celý**. Vynásobí sa **learning rate** (`eta`
 | 6 (poctivý, e-com) | 0,300 | **0,365** | **−0,365** |
 | 1, 2, 4, 7, 9, 10 | 0,300 | **0,252** | −0,252 |
 
-**Toto je tá najdôležitejšia tabuľka celej sekcie.** Pozrite sa, čo sa stalo:
+**Toto je tá najdôležitejšia tabuľka celého dokumentu.** Pozrite sa, čo sa stalo:
 
 - Podvodom rezíduum **kleslo** z +0,70 na +0,635 — model sa priblížil, ale ešte zďaleka nedošiel.
 - Poctivým offline transakciám kleslo z −0,30 na −0,252 — tiež zlepšenie.

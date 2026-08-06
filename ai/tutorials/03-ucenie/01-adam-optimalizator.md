@@ -303,8 +303,8 @@ Vo vlastnej implementácii ich netreba, ale v cudzom kóde na ne narazíte hneď
   cez adaptívne delenie a účinkuje na každý parameter inak silno. Dnes je AdamW **predvoľba**
   pri trénovaní transformerov a `torch.optim.AdamW` je v `transformers` štandard.
 - **Rozvrh learning rate** (*lr schedule*) — `lr` sa nedrží konštantný: typicky pár stoviek krokov
-  lineárne rastie z nuly (*warmup*, aby sa nerozbité `m`/`v` na štarte nepokazili tréning)
-  a potom pomaly klesá (kosínusovo alebo lineárne) k nule. Pri malých sieťach zo zadania 1 to
+  lineárne rastie z nuly (*warmup* — na štarte sú `m` a `v` odhadnuté z pár vzoriek a plný krok
+  podľa nich by model rozhodil) a potom pomaly klesá (kosínusovo alebo lineárne) k nule. Pri malých sieťach zo zadania 1 to
   nepotrebujete, pri fine-tuningu LLM to nastavuje knižnica za vás.
 
 ---
@@ -430,8 +430,6 @@ Ako si overiť, že je Adam implementovaný dobre:
    - či je `lr` primeraný (skúste `0.001`).
 4. **Sanity check na malom probléme** — najprv otestujte na jednoduchej úlohe (napr. XOR alebo
    aproximácia funkcie), kde rýchlo vidno, či sieť konverguje.
-
----
 
 ---
 

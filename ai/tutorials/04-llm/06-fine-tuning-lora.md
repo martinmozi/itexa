@@ -99,7 +99,7 @@ Toto je najdôležitejšia časť lekcie — mechaniku vám spraví knižnica, r
 
 - **„Model nepozná fakt X."** Toto je najčastejší omyl. Fakty sedia vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše — model si skôr osvojí *štýl* vašich viet a fakty domieša. Na fakty patrí **RAG**.
 - **Dáta sa často menia.** Fine-tuning treba pri každej zmene zopakovať; aktualizovať retrieval korpus je otázka minút.
-- **Potrebujete citovať zdroj.** Fine-tunovaný model odpovedá „z hlavy" a nevie povedať, odkiaľ to má. RAG vracia `source` a `page` (viď metadáta v [04-embeddings.md](04-embeddings.md)).
+- **Potrebujete citovať zdroj.** Fine-tunovaný model odpovedá „z hlavy" a nevie povedať, odkiaľ to má. RAG vracia `source` a `page` (viď metadáta v [05-rag.md](05-rag.md)).
 - **Dobrý prompt už úlohu rieši.** Netreba pridávať zložitosť, ktorú niekto musí udržiavať.
 
 ### Rozhodovací postup
@@ -150,7 +150,7 @@ Fine-tuning aj RAG sa dajú „urobiť" a pritom nič nezlepšiť. Preto sa vyho
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [02-llm-trening.md](02-llm-trening.md) — SFT vo veľkom; toto je tá istá fáza v malom (lekcia 5)
-- [04-embeddings.md](04-embeddings.md) — **predchádzajúca lekcia**: RAG ako druhá cesta
+- [05-rag.md](05-rag.md) — **predchádzajúci dokument**: RAG ako druhá cesta k tomu istému cieľu
 - [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — **zadanie 2**: RAG alebo LoRA na vlastnom dokumente
 - [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md) — koľko VRAM na to treba a kde to spustiť
 - [01-agenti-a-nastroje.md](../05-prakticke/01-agenti-a-nastroje.md) — **nasledujúca lekcia**: agenti a nástroje

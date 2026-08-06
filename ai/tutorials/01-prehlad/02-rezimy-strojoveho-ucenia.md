@@ -10,7 +10,7 @@ Podľa toho, aké dáta máme k dispozícii a čo od modelu chceme, rozlišujeme
 | **Učenie bez učiteľa** (*unsupervised*) | len vstupy, **bez labelov** | štruktúra, zhluky, podobnosti | segmentácia zákazníkov, [embeddingy](../04-llm/04-embeddings.md) |
 | **Posilňované učenie** (*reinforcement*) | prostredie + **odmena** za akcie | stratégia (politika) maximalizujúca odmenu | hra Go, riadenie robota, [demo s tankom](../../../demo/Readme.md) |
 
-Väčšina modelov v tomto dokumente (stromy, XGBoost, klasifikačné siete) sú príklady **učenia s učiteľom**. Spoločná schéma je vždy rovnaká:
+Väčšina modelov v tomto kurze (stromy, XGBoost, klasifikačné siete) sú príklady **učenia s učiteľom**. Spoločná schéma je vždy rovnaká:
 
 ```text
   trénovacie dáta ──►  MODEL  ──► predpoveď

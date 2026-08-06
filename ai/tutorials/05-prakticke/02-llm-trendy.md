@@ -46,5 +46,5 @@ Kto rozumie týmto piatim veciam, vie si nový model, novú knižnicu aj nový b
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [01-agenti-a-nastroje.md](01-agenti-a-nastroje.md) — agentová slučka, MCP, bezpečnosť (lekcia 8)
 - [03-llm-modely.md](../04-llm/03-llm-modely.md) — ako si vybrať model a na čo si dať pozor právne (lekcia 5)
-- [04-embeddings.md](../04-llm/04-embeddings.md) — RAG vrátane pokročilého retrievalu (lekcia 6)
+- [05-rag.md](../04-llm/05-rag.md) — RAG vrátane pokročilého retrievalu (lekcia 6)
 - [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md) — LoRA, distillation, RAG vs. fine-tuning (lekcia 7)

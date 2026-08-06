@@ -80,13 +80,13 @@ Modelov, kde je verejné **všetko** — váhy, dáta, kód, priebežné checkpo
 | **Kódovanie / programátorský agent** | Claude (Opus/Sonnet) cez API; open-weight: Qwen 3.5, GLM-5, DeepSeek | agentické kódovanie = model + nástroje (viď lekcia 8) |
 | **Tabuľkové dáta** (predikcia, skóring) | ❌ **nie LLM** → **XGBoost / stromy** ([02-random-forest-a-xgboost.md](../02-typy-modelov/02-random-forest-a-xgboost.md)) | LLM sa hodí nanajvýš na *rozhranie* nad tabuľkou (text → SQL), nie na samotnú predikciu |
 | **Embeddingy / RAG retrieval** | špecializované embedding modely: `bge-m3`, `multilingual-e5`, prípadne API embeddingy | malý model stačí; detaily v [04-embeddings.md](04-embeddings.md) |
-| **Reranking** | `bge-reranker-v2-m3`, Cohere Rerank | cross-encoder, viď [04-embeddings.md](04-embeddings.md) |
+| **Reranking** | `bge-reranker-v2-m3`, Cohere Rerank | cross-encoder, viď [05-rag.md](05-rag.md) |
 | **Reasoning / matematika** | o-séria, DeepSeek R1, Claude s extended thinking | „premýšľajúce" modely — viac výpočtu pri inferencii |
 | **Slovenčina / multilingválne** | veľké proprietárne modely; open-weight: Qwen, Gemma | malé open modely na slovenčine citeľne strácajú (aj kvôli tokenizácii — viď [04-embeddings.md](04-embeddings.md)) |
 | **Lokálny beh na notebooku** | Qwen/Llama/Gemma 1–8B kvantované (Ollama, llama.cpp); na experimenty SmolLM | 4-bit kvantizácia zníži pamäť ~4× za malú stratu kvality |
 | **Prepis reči (ASR)** | Whisper (open-weight) | beží aj lokálne |
 | **Klasifikácia obrázkov (úzka úloha)** | vlastná malá **CNN** ([05-konvolucne-siete.md](../02-typy-modelov/05-konvolucne-siete.md)), prípadne fine-tunovaný ViT | nasadiť LLM na „je na páse chybný výrobok?" je zbytočne drahé |
-| **Firemný chatbot nad dokumentmi** | RAG: embedding model + LLM (API alebo open-weight podľa citlivosti dát) | viď [04-embeddings.md](04-embeddings.md) a [zadanie](../../zadania/RAG_Fine_tunning.md) |
+| **Firemný chatbot nad dokumentmi** | RAG: embedding model + LLM (API alebo open-weight podľa citlivosti dát) | viď [05-rag.md](05-rag.md) a [zadanie](../../zadania/RAG_Fine_tunning.md) |
 
 ### Rozhodovací postup (zjednodušene)
 

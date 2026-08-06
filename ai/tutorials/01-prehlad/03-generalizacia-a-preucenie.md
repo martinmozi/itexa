@@ -26,14 +26,14 @@ S tým súvisí užitočný rozklad chyby na dve zložky, ktorý budeme potrebov
 
 Jednoduché modely mávajú vysoké skreslenie a nízky rozptyl, zložité modely naopak. Umenie strojového učenia spočíva v hľadaní rovnováhy medzi nimi — alebo, ako uvidíme pri random foreste a boostingu, v šikovnom zložení viacerých modelov tak, aby sa jedna zo zložiek chyby potlačila.
 
-# Ako sa preučenie brzdí
+## Ako sa preučenie brzdí
 
 Okrem voľby jednoduchšieho modelu má proti preučeniu každá rodina svoje nástroje — spoločne sa im hovorí **regularizácia**:
 
 - **obmedzenie zložitosti** — maximálna hĺbka stromu, minimálny počet vzoriek v liste, menej neurónov a vrstiev,
 - **pokuta za veľké váhy** (*weight decay*, L2) — k chybovej funkcii sa pripočíta trest úmerný veľkosti váh, takže model uprednostní „hladšie" riešenie pred divoko kmitajúcim,
 - **dropout** (len neurónové siete) — počas tréningu sa v každom kroku náhodne „vypne" časť neurónov (typicky 10–50 %), takže sa sieť nemôže spoľahnúť na jeden konkrétny neurón a musí si vzor uložiť redundantne; pri predikcii sú zapnuté všetky,
-- **skoré zastavenie** (*early stopping*) — tréning sa ukončí vo chvíli, keď chyba na **validačnej** množine prestane klesať, hoci na trénovacej ešte klesá; presne to robí XGBoost, ako uvidíme nižšie,
+- **skoré zastavenie** (*early stopping*) — tréning sa ukončí vo chvíli, keď chyba na **validačnej** množine prestane klesať, hoci na trénovacej ešte klesá; presne to robí [XGBoost](../02-typy-modelov/02-random-forest-a-xgboost.md),
 - **viac dát** — najúčinnejší liek; ak sa nedajú získať, pomôže **umelé rozšírenie** (*augmentácia*): pri obrázkoch posun, otočenie, orezanie či zmena jasu.
 
 ---

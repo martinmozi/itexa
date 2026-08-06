@@ -16,7 +16,7 @@ Celá sieť potom **strieda konvolúciu a pooling** (zmenšovanie), čím postup
 
 **Pooling** (najčastejšie *max pooling* 2 × 2) rozdelí mapu príznakov na okienka 2 × 2 a z každého ponechá len najväčšiu hodnotu. Mapa sa tým zmenší na polovicu v oboch rozmeroch, klesne objem ďalších výpočtov a sieť získa ďalšiu dávku odolnosti: ak sa detegovaná hrana posunie o pixel, maximum v okienku sa väčšinou nezmení.
 
-Hĺbkou siete rastie abstrakcia: prvé vrstvy detegujú hrany a farby, stredné časti objektov (oko, koleso), posledné celé objekty.
+Hĺbkou siete rastie abstrakcia: prvé vrstvy detegujú hrany a farby, stredné časti objektov (oko, koleso), posledné celé objekty. Stojí za tým jednoduchá geometria — **receptívne pole** (časť pôvodného obrázka, ktorú neurón „vidí") sa s každou vrstvou zväčšuje. Neurón v prvej konvolučnej vrstve vidí okienko 3 × 3 pixely. Neurón v druhej vrstve vidí okienko 3 × 3 *výstupov prvej vrstvy*, čo je v pôvodnom obrázku už 5 × 5 pixelov — a každý pooling toto rozpätie navyše zdvojnásobí. Po pár vrstvách tak jeden neurón zhŕňa informáciu z podstatnej časti obrázka, hoci sám počíta stále len s deviatimi váhami. Preto sa dá o hlbšej vrstve zmysluplne pýtať „je tu koleso?", kým prvá vrstva vie odpovedať len na „je tu hrana?".
 
 ## Ten istý obrázok v MLP a v CNN — krok za krokom
 

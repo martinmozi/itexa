@@ -91,10 +91,14 @@ Správne je **one-hot** — jeden stĺpec na kategóriu, v ktorom je práve jedn
 
 MCC má stovky hodnôt, krajín sú desiatky. One-hot by z toho spravil stovky prevažne nulových stĺpcov — sieť by mala tisíce parametrov na príznak, ktorý sa v dátach objaví trikrát. Dve praktické cesty:
 
-- **Zoskupenie podľa domény** — MCC zlúčime do troch tried: `denná spotreba` (potraviny, doprava, lekáreň, čerpacie stanice), `tovar / e-shop` (elektronika, klenoty, odevy), `rizikové` (stávkovanie, kryptozmenárne). Z krajiny spravíme jediný príznak **`zahraničie`** = krajina obchodníka ≠ krajina vydania karty. Tri plus jeden stĺpec namiesto stoviek.
+- **Zoskupenie podľa domény** — MCC zlúčime do troch tried: `denná spotreba` (potraviny, reštaurácie, doprava, lekáreň, čerpacie stanice), `tovar / e-shop` (elektronika, klenoty, odevy), `rizikové` (stávkovanie, kryptozmenárne). Z krajiny spravíme jediný príznak **`zahraničie`** = krajina obchodníka ≠ krajina vydania karty. Tri plus jeden stĺpec namiesto stoviek.
 - **Embedding vrstva** — každej kategórii sa priradí učený vektor (napr. 8 čísel), ktorý sa trénuje spolu so sieťou. Je to presne ten mechanizmus, ktorý poháňa [embeddingy slov](../04-llm/04-embeddings.md), len nad MCC kódmi. Oplatí sa pri desaťtisícoch riadkov a viac; na náš príklad je to prestrelené.
 
-#### 1e) Chýbajúce hodnoty
+#### 1e) Rýchlosť míňania (`tx/60 min`): stačí štandardizácia
+
+Odvodený príznak „koľko transakcií spravila karta za poslednú hodinu" je obyčajný počet — nie je šikmý ani cyklický, takže mu stačí **štandardizácia** rovnako ako sume, len bez logaritmu. Pre naše dáta je priemer 2,4 a smerodajná odchýlka 1,8, takže riadok s piatimi transakciami dostane `z_vel = (5 − 2,4) / 1,8 = 1,444`. V matici nižšie je to stĺpec `z_vel`.
+
+#### 1f) Chýbajúce hodnoty
 
 `NaN` vo vstupe znamená `NaN` vo výstupe aj v gradiente — sieť sa nerozbehne vôbec. Chýbajúce číselné hodnoty sa preto **doplnia** (medián býva bezpečnejší než priemer) a **pridá sa binárny stĺpec `chýbalo`**, aby si sieť mohla samotný fakt chýbania zapamätať ako informáciu. Pri kategóriách sa jednoducho zavedie kategória `neznáme`.
 
@@ -111,7 +115,7 @@ Z pôvodných šiestich stĺpcov ISO 8583 je **11 čísel na riadok**:
 | 5 | 1,503 | 0,701 | 0,713 | 2,000 | 0 | 0 | 1 | 0 | 1 | 0 | 1 | 1 |
 | 6 | 0,482 | −0,924 | 0,383 | −0,778 | 0 | 0 | 1 | 0 | 1 | 0 | 1 | 0 |
 | 7 | −0,392 | 0,692 | −0,722 | −0,778 | 1 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
-| 8 | 1,119 | 0,822 | 0,570 | 0,889 | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 1 |
+| 8 | 1,119 | 0,822 | 0,570 | 0,889 | 0 | 0 | 1 | 0 | 0 | 1 | 1 | 1 |
 | 9 | −0,010 | −0,574 | −0,819 | −0,778 | 1 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | 10 | −0,997 | −0,676 | 0,737 | −0,222 | 0 | 1 | 0 | 1 | 0 | 0 | 0 | 0 |
 
@@ -197,7 +201,7 @@ Sieť teda hovorí **27 % pravdepodobnosť podvodu** — a pritom to podvod bol.
   L = −ln(p) = −ln(0,270) = 1,310
 ```
 
-Pre porovnanie: keby sieť hádala 50 : 50, loss by bol `−ln(0,5) = 0,693`. Náš model je teda na tomto riadku **horší než mincové hádzanie** — presne to teraz backpropagation opraví.
+Pre porovnanie: keby sieť hádala 50 : 50, loss by bol `−ln(0,5) = 0,693`. Náš model je teda na tomto riadku **horší, než keby si hodil mincou** — presne to teraz backpropagation opraví.
 
 ### Krok 5: Backpropagation — jeden krok
 
@@ -237,8 +241,8 @@ Obyčajným gradientným krokom s `lr = 0,1` (`W ← W − lr · ∂L/∂W`):
 
 | váha | pred | po kroku |
 |---|---|---|
-| W₂ | 0,32 · −0,10 · −0,26 · −0,55 | **0,348 · −0,10 · −0,172 · −0,443** |
-| W₁[z_suma] | −0,24 · 0,75 · 0,42 · 0,22 | **−0,209 · 0,75 · 0,395 · 0,168** |
+| W₂ | `[0,32; −0,10; −0,26; −0,55]` | **`[0,348; −0,10; −0,172; −0,443]`** |
+| W₁[z_suma] | `[−0,24; 0,75; 0,42; 0,22]` | **`[−0,209; 0,75; 0,395; 0,168]`** |
 
 A ten istý riadok znovu cez sieť:
 

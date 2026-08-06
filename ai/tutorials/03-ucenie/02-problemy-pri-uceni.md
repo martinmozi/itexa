@@ -87,7 +87,7 @@ Presný opak: ak je typický člen súčinu väčší než 1, gradient rastie ex
 - **Nájsť prvý `NaN`** — nehľadajte ho ručne, nechajte si ho ukázať:
 
   ```python
-  torch.autograd.set_detect_anomaly(True)   # spomalí tréning, ale ukáže vinníkovú operáciu
+  torch.autograd.set_detect_anomaly(True)   # spomalí tréning, ale ukáže operáciu, ktorá NaN vyrobila
   ```
 
 ---
@@ -236,7 +236,7 @@ Ak sa beh **nedá zreprodukovať ani so zafixovaným seedom a determinizmom**, j
 
 ## 11. Hardvér: ECC, tichá korupcia pamäte a dlhé behy
 
-Ako správne predpokladáte, drvivá väčšina problémov je softvérová. Hardvérové sa však stávajú, a majú veľmi charakteristický rukopis: **nereprodukovateľnosť**. Softvérová chyba padne pri rovnakom seede vždy na tom istom kroku; hardvérová zakaždým inde.
+Drvivá väčšina problémov z predchádzajúcich sekcií je softvérová. Hardvérové sa však stávajú tiež, a majú veľmi charakteristický rukopis: **nereprodukovateľnosť**. Softvérová chyba padne pri rovnakom seede vždy na tom istom kroku; hardvérová zakaždým inde.
 
 **Prečo je jeden preklopený bit katastrofa.** Pamäť DRAM aj GPU HBM sú fyzikálne zariadenia — nabitý kondenzátor môže stratiť náboj vplyvom kozmického žiarenia, vadnej bunky alebo prehriatia. V pohyblivej rádovej čiarke pritom nie sú všetky bity rovnako dôležité: preklopenie bitu v mantise zmení hodnotu o zanedbateľný zlomok, ale **preklopenie horného bitu exponentu** zmení `1,0` na `1,7·10³⁸`. Takáto hodnota sa v ďalšom kroku znásobí, vyletí do `Inf`, z toho vznikne `NaN` a niekoľkodňový tréning je na odpis.
 
@@ -291,8 +291,6 @@ Zhrnutie správy: **~78 % neočakávaných prerušení malo potvrdenú alebo pre
 6. **Loguj normy gradientov po vrstvách.** Miznú? → §1. Explodujú? → §2.
 7. **Až keď to konverguje, rieš preučenie** — dropout, weight decay, augmentácia, early stopping.
 8. **Meň jednu vec naraz** a zapisuj si výsledky. Bez záznamu nemáte experiment, len dojem.
-
----
 
 ---
 

@@ -10,7 +10,7 @@ Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](../../zadania
 
 ## 1. Python prostredie
 
-Na AI vývoj stačí **Python 3.10 až 3.12**. Úplne najnovšiu verziu Pythonu sa neoplatí ponáhľať — PyTorch a spol. ju podporia typicky až o pár mesiacov po vydaní.
+Na AI vývoj stačí **Python 3.10 až 3.12**. S úplne najnovšou verziou Pythonu sa neoplatí ponáhľať — PyTorch a spol. ju podporia typicky až o pár mesiacov po vydaní.
 
 Prvé pravidlo: **nikdy neinštalujte knižnice do systémového Pythonu.** AI knižnice sú veľké, majú prísne vzájomné závislosti na verziách a jeden pokazený upgrade vie rozbiť celé prostredie. Každý projekt preto dostane vlastné **virtuálne prostredie** — samostatný priečinok `.venv` s vlastnou kópiou Pythonu a knižníc.
 

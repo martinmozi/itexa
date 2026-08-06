@@ -2,7 +2,7 @@
 
 > **Poradie čítania:** ← [Prehľad súčasných modelov](03-llm-modely.md) · **lekcia 6** · [RAG](05-rag.md) →
 
-> **Tutoriál:** ako sa z obyčajného textu stane vektor, ktorý sa dá vyhľadávať, a kde v celom RAG pipeline hrá úlohu malý (embedding / rerank) LLM model, ktorý pri inferencii reálne potrebuje slušný kus CPU – a niekedy aj GPU.
+> **Cieľ dokumentu:** ukázať, ako sa z obyčajného textu stane vektor, ktorý sa dá vyhľadávať — a to na číslach, nie v metaforách. Práve tento vektor je stavebný kameň [RAG](05-rag.md), ktorému sa venuje nadväzujúci dokument.
 
 Tento dokument sleduje **cestu jedného kúsku textu** od surových znakov až po hotový vektor: tokenizácia → token embeddingy → transformer vrstvy → pooling → normalizácia. Všetko na konkrétnych číslach, ktoré sa dajú prepočítať ceruzkou.
 
@@ -10,7 +10,7 @@ Tento dokument sleduje **cestu jedného kúsku textu** od surových znakov až p
 
 Predpokladá znalosť [transformerov](01-transformer-siete.md) z lekcie 4: attention, multi-head, positional encoding a reziduálne spojenia tu už len použijeme a doplníme im čísla.
 
-> **Ako čítať tento text:** kľúčové kroky sú rozpísané na malých, ručne prepočítateľných príkladoch (miniatúrny slovník, `hidden_dim = 4`, jedna krátka veta). Čísla naprieč Časťou 1 tvoria **jeden súvislý bežecký príklad** – tú istú vetu potiahneme cez tokenizáciu, embedding maticu, attention, pooling aj normalizáciu. Reálne modely majú tie isté operácie, len s rozmermi 1024+ a miliardami parametrov. Ak si príklady prepočítate na papieri, viete podľa nich celý proces aj naprogramovať.
+> **Ako čítať tento text:** kľúčové kroky sú rozpísané na malých, ručne prepočítateľných príkladoch (miniatúrny slovník, `hidden_dim = 4`, jedna krátka veta). Čísla naprieč celým dokumentom tvoria **jeden súvislý príklad** – tú istú vetu potiahneme cez tokenizáciu, embedding maticu, attention, pooling aj normalizáciu. Reálne modely majú tie isté operácie, len s rozmermi 1024+ a miliardami parametrov. Ak si príklady prepočítate na papieri, viete podľa nich celý proces aj naprogramovať.
 
 ---
 
@@ -305,7 +305,7 @@ Typicky prvá vrstva dimenziu **zväčší** (napr. 1024 → 4096), aplikuje sa 
 
 Jedna transformer vrstva teda je: `attention → +residual → LayerNorm → FFN → +residual → LayerNorm`. Toto sa opakuje cez všetky vrstvy (`N`-krát) – vektory sa vrstvu po vrstve stávajú čoraz „abstraktnejšími" a kontextovo bohatšími. Po prejdení celého modelu máme stále `n` vektorov (jeden na token), len teraz každý z nich odzrkadľuje aj zvyšok vety.
 
-> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z "malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Viac v [Časti 2](#výpočtové-nároky-kde-to-tlačí-na-cpugpu).
+> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Čo z toho plynie pre plánovanie hardvéru, je v [05-rag.md, sekcia 5](05-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
 
 ---
 
@@ -371,7 +371,7 @@ e = pooled / 1.589
 
 Overenie, že norma je teraz 1: `0.587² + 0.440² + 0.105² + 0.671² = 0.345 + 0.194 + 0.011 + 0.450 = 1.000 ✓`
 
-**Prečo je to dôležité:** po normalizácii je **cosine similarity = dot product**, čo sa počíta rýchlejšie (odpadne delenie normami – viď [sekcia o podobnosti](#čo-tie-čísla-vlastne-znamenajú)). Presne preto platí, že `IndexFlatIP` vo FAISS funguje ako cosine podobnosť **len ak sú vektory normalizované** – teraz vidíš aj mechanicky prečo.
+**Prečo je to dôležité:** po normalizácii je **cosine similarity = dot product**, čo sa počíta rýchlejšie (odpadne delenie normami – viď [sekcia o podobnosti](#čo-tie-čísla-vlastne-znamenajú)). Presne preto platí, že `IndexFlatIP` vo FAISS funguje ako cosine podobnosť **len ak sú vektory normalizované**.
 
 Finálny výsledok pre našu vetu je teda vektor s normou 1 (v realite 1024 čísel, u nás 4):
 
@@ -383,7 +383,7 @@ Presne tento vektor (spolu s ID chunku a odkazom na pôvodný text) sa uloží d
 
 ---
 
-## Čo tie čísla vlastne "znamenajú"
+## Čo tie čísla vlastne „znamenajú"
 
 Jednotlivé súradnice vektora **nemajú ľudsky čitateľný význam**. Neexistuje "dimenzia č. 5 = formálnosť textu" alebo "dimenzia č. 12 = téma financie". Sú to **naučené abstraktné smery** vo vysokorozmernom priestore, ktoré vznikli ako vedľajší produkt trénovania na obrovskom množstve textu.
 
@@ -522,8 +522,6 @@ A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý mo
 
 ---
 
----
-
 ## TL;DR
 
 - **Embedding** = text → tokeny → lookup vektorov (embedding matica) → + pozičné kódovanie → transformer vrstvy (Q/K/V → dot product → /√d → softmax → vážený súčet V; +residual, LayerNorm, FFN) → pooling na 1 vektor → L2 normalizácia. Uloží sa do FAISS.
@@ -537,7 +535,7 @@ A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý mo
 ## Kontrolné otázky
 
 1. Prečo sa text delí na **tokeny** a nie na slová alebo znaky? Čo sa stane s neznámym slovom?
-2. Aký je rozdiel medzi **token embeddingom** z lookup tabuľky a výstupom po transformer vrstvách? Prečo je slovo „koruna" v oboch prípadoch iné?
+2. Aký je rozdiel medzi **token embeddingom** z lookup tabuľky a výstupom po transformer vrstvách? Slovo „koruna" môže znamenať mincu, panovnícku ozdobu aj vrchol stromu — v ktorom z tých dvoch krokov má pre všetky tri významy rovnaký vektor a v ktorom už rôzne?
 3. Čo robí **pooling** a prečo je mean pooling niečo iné než zobrať vektor prvého tokenu?
 4. Načo sa vektor na konci **normalizuje** na jednotkovú dĺžku? Ako to súvisí s kosínusovou podobnosťou?
 5. Model má rozmer vektora 768. Čo tých 768 čísel „znamená" a prečo sa jednotlivé zložky nedajú pomenovať?

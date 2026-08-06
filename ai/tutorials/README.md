@@ -1,6 +1,6 @@
 # Tutoriály — obsah
 
-Materiály predmetu rozdelené na päť tematických oblastí. Každý dokument má na začiatku
+Materiály predmetu rozdelené do šiestich tematických oblastí. Každý dokument má na začiatku
 riadok **Poradie čítania** s odkazom na predchádzajúci a nasledujúci — dá sa nimi prejsť
 celý kurz bez vracania sa sem.
 

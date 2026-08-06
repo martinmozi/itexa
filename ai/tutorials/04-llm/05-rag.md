@@ -2,6 +2,10 @@
 
 > **Poradie čítania:** ← [Embeddingy](04-embeddings.md) · **lekcia 6** · [Fine-tuning: LoRA a QLoRA](06-fine-tuning-lora.md) →
 
+**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **podsunieme do promptu** — ale len tie kúsky, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](04-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
+
+Celá pipeline má dve polovice — jednu, ktorá beží raz dopredu, a druhú, ktorá beží pri každej otázke:
+
 ```text
    ┌──────────────────── PRÍPRAVA DÁT (offline, raz / pri zmene) ────────────────────┐
    │                                                                                  │
@@ -25,10 +29,9 @@
 
 V hranatých zátvorkách sú **modely, ktoré reálne počítajú** (a teda spotrebujú CPU/GPU). Všimnite si, že „malých" modelov je viac a bežia na rôznych miestach – nižšie rozoberieme každý z nich.
 
+Kľúčové je uvedomiť si, že **v RAG bežia typicky až tri modely**, a dva z nich sú „malé" LLM-ká, ktoré napriek tomu **nie sú zadarmo** na výpočet.
+
 ---
-
-
-Teraz zasadíme embedding do celého RAG procesu. Kľúčové je uvedomiť si, že **v RAG bežia typicky až tri modely**, a dva z nich sú "malé" LLM-ká, ktoré napriek tomu **nie sú zadarmo** na výpočet.
 
 ## 1. Príprava dát (offline fáza)
 
@@ -82,7 +85,7 @@ Všimnite si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 tok
 | **Recursive** | skúša deliť po odsekoch → vetách → slovách, kým sa nezmestí | najbežnejší kompromis |
 | **Semantic** | reže tam, kde sa mení téma (podľa poklesu podobnosti susedných viet) | drahšie, ale najčistejšie hranice |
 
-> **Preto:** veľkosť chunku treba prispôsobiť **konkrétnemu** embedding modelu, ktorý sa použije. Je nutné **vopred vedieť presnú špecifikáciu modelu** od toho, kto vektorovú DB pripravuje. (A nezabudnite na postreh z Kroku 1 – slovenský text zaberie viac tokenov, takže reálne sa doň zmestí menej textu, než by sa zdalo.)
+> **Preto:** veľkosť chunku treba prispôsobiť **konkrétnemu** embedding modelu, ktorý sa použije. Je nutné **vopred vedieť presnú špecifikáciu modelu** od toho, kto vektorovú DB pripravuje. (A nezabudnite na postreh z [tokenizácie](04-embeddings.md#krok-1-tokenizácia) – slovenský text zaberie viac tokenov, takže reálne sa doň zmestí menej textu, než by sa zdalo.)
 
 ### Metadáta – čo sa ukladá popri vektore
 
@@ -113,7 +116,7 @@ Príklad: child-chunk „nárok vzniká po odpracovaní 60 dní" sa vo vyhľadá
 
 Toto sa deje **pri každej otázke používateľa** a tu už **latencia záleží** – používateľ čaká na odpoveď:
 
-1. **Embedding otázky** – tá istá cesta z Časti 1, ale len pre jednu krátku vetu → *query vektor*. Keďže je to bi-encoder, chunky boli zaembeddované vopred, teraz sa počíta iba embedding query.
+1. **Embedding otázky** – tá istá cesta ako pri chunkoch ([04-embeddings.md](04-embeddings.md)), ale len pre jednu krátku vetu → *query vektor*. Keďže je to bi-encoder, chunky boli zaembeddované vopred, teraz sa počíta iba embedding query.
 2. **Vyhľadanie top-k** – vo FAISS sa nájde napr. `top-20–50` najbližších vektorov (rýchle, čistá lineárna algebra / ANN index).
 3. **Reranking (voliteľné, ale veľmi účinné)** – užší set kandidátov prejde cross-encoderom, ktorý vyberie skutočný `top-3–5`.
 4. **Generovanie odpovede** – vybrané chunky sa vložia do promptu a **veľký generatívny LLM** vygeneruje odpoveď.
@@ -164,7 +167,7 @@ Príklad IVF: pri `nlist = 100` zhlukoch a `nprobe = 5` sa namiesto všetkých N
 
 ---
 
-## 3. Bi-encoder vs. cross-encoder (reranker) – dva rôzne "malé" modely
+## 3. Bi-encoder vs. cross-encoder (reranker) – dva rôzne „malé" modely
 
 Toto je kľúčové rozlíšenie, lebo vysvetľuje, prečo je jeden malý model lacný a druhý drahý.
 
@@ -177,13 +180,13 @@ Toto je kľúčové rozlíšenie, lebo vysvetľuje, prečo je jeden malý model 
 | Cena pri dotaze | lacná (1× embedding query) | **drahá** (`k`× priebeh modelu) |
 | Kde sa použije | na celú databázu (retrieval) | len na užší `top-k` z retrievalu |
 
-**Praktický dôsledok:** reranker sa **nikdy** nepúšťa na celú databázu – bežal by pri každom dotaze `N`-krát (raz za každý chunk v DB). Preto sa najprv lacným bi-encoderom vytiahne širší set a **až ten** sa preženie drahým rerankerom. Reranking býva jedno z najlacnejších a najúčinnejších vylepšení kvality RAG – ale "lacné" je myslené na *implementáciu*, nie na *výpočet*.
+**Praktický dôsledok:** reranker sa **nikdy** nepúšťa na celú databázu – bežal by pri každom dotaze `N`-krát (raz za každý chunk v DB). Preto sa najprv lacným bi-encoderom vytiahne širší set a **až ten** sa preženie drahým rerankerom. Reranking býva jedno z najlacnejších a najúčinnejších vylepšení kvality RAG – ale „lacné" je myslené na *implementáciu*, nie na *výpočet*.
 
 ---
 
 ## 4. Reranking – čo to je a kedy sa oplatí
 
-**Čo je reranking.** Vyhľadanie cez bi-encoder (`top-k` z FAISS) je **rýchle, ale hrubé** – zoraďuje podľa podobnosti dvoch *nezávisle* spočítaných vektorov, takže niekedy vytiahne chunk, ktorý je len povrchovo podobný (spoločné slová), no na otázku vlastne neodpovedá. **Reranking je druhý, presnejší priechod**, ktorý tento zoznam kandidátov **preusporiada** podľa skutočnej relevancie k otázke. Robí ho **cross-encoder** (viď 2.3): každú dvojicu *(otázka, kandidát)* prečíta **spolu** a dá jej skóre relevancie; podľa tých skóre sa kandidáti zoradia nanovo a do promptu ide finálny `top-3–5`.
+**Čo je reranking.** Vyhľadanie cez bi-encoder (`top-k` z FAISS) je **rýchle, ale hrubé** – zoraďuje podľa podobnosti dvoch *nezávisle* spočítaných vektorov, takže niekedy vytiahne chunk, ktorý je len povrchovo podobný (spoločné slová), no na otázku vlastne neodpovedá. **Reranking je druhý, presnejší priechod**, ktorý tento zoznam kandidátov **preusporiada** podľa skutočnej relevancie k otázke. Robí ho **cross-encoder** (viď sekcia 3 vyššie): každú dvojicu *(otázka, kandidát)* prečíta **spolu** a dá jej skóre relevancie; podľa tých skóre sa kandidáti zoradia nanovo a do promptu ide finálny `top-3–5`.
 
 Kľúčové je poradie krokov – **dvojfázový retrieval**:
 
@@ -214,9 +217,9 @@ Fáza 1 zúži milióny chunkov na desiatky (lacno). Fáza 2 tých pár desiatok
 - **Malá databáza a jasné, kľúčovkové otázky** – ak `top-5` z bi-encodera už spoľahlivo obsahuje odpoveď, reranker nič nepridá, len pridá latenciu.
 - **Prísny latency rozpočet bez GPU** – cross-encoder na CPU vie pridať stovky ms až sekundy na dotaz (viď nižšie); v real-time chate to môže byť neúnosné.
 - **Málo kandidátov** – rerankovať `top-3` nemá zmysel, keď aj tak všetky tri idú do promptu.
-- **Skôr rieš základy** – ak je slabý **chunking** alebo nevhodný **embedding model**, reranker to nezachráni; najprv oprav fázu 1.
+- **Skôr riešte základy** – ak je slabý **chunking** alebo nevhodný **embedding model**, reranker to nezachráni; najprv opravte fázu 1.
 
-> **Pravidlo palca:** začni **bez** rerankera (bi-encoder + `top-5`). Zmeraj kvalitu. Ak vidíš, že správny chunk *sa vyhľadá, ale je príliš nízko* (je v `top-20`, ale nie v `top-5`), pridaj reranker – vytiahni `top-20–50` a nechaj ho vybrať finálnych 3–5. To je presne situácia, keď reranking dáva najväčší zisk za najmenšiu prácu.
+> **Pravidlo palca:** začnite **bez** rerankera (bi-encoder + `top-5`) a zmerajte kvalitu. Ak sa ukáže, že správny chunk *sa vyhľadá, ale je príliš nízko* (je v `top-20`, ale nie v `top-5`), pridajte reranker – vytiahnite `top-20–50` a nechajte ho vybrať finálnych 3–5. To je presne situácia, keď reranking dáva najväčší zisk za najmenšiu prácu.
 
 **Voľba modelu.** Bežné rerankery: `cross-encoder/ms-marco-MiniLM-L-6-v2` (rýchly, anglický), `BAAI/bge-reranker-v2-m3` (viacjazyčný, aj slovenčina), `jina-reranker`. Používajú sa cez `sentence-transformers` (`CrossEncoder`) – dostanú zoznam dvojíc *(otázka, chunk)* a vrátia skóre.
 
@@ -224,9 +227,9 @@ Fáza 1 zúži milióny chunkov na desiatky (lacno). Fáza 2 tých pár desiatok
 
 ## 5. Výpočtové nároky: kde to tlačí na CPU/GPU
 
-Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:
+Zhrnutie, prečo aj „malé" modely reálne potrebujú výkon:
 
-- **Kde je záťaž:** drvivá väčšina výpočtu je v **transformer vrstvách** (Krok 3) – maticové násobenia Q/K/V, self-attention `O(n²)` a feed-forward vrstvy. Tokenizácia a lookup (Kroky 1–2) sú zanedbateľné, pooling a normalizácia (Kroky 4–5) tiež.
+- **Kde je záťaž:** drvivá väčšina výpočtu je v **transformer vrstvách** – maticové násobenia Q/K/V, self-attention `O(n²)` a feed-forward vrstvy. Tokenizácia a lookup v embedding matici sú zanedbateľné, pooling a normalizácia tiež (rozpísané krok po kroku v [04-embeddings.md](04-embeddings.md)).
 
 - **Embedding model (bi-encoder) – CPU zvládne, GPU zrýchli:**
   - *Offline indexovanie* je dávkové → CPU stačí, GPU sa oplatí len pri veľkých objemoch (throughput).
@@ -248,7 +251,7 @@ Zhrnutie, prečo aj "malé" modely reálne potrebujú výkon:
 
 ## 6. Pokročilý retrieval — kam sa RAG posunul
 
-Časti 1 a 2 opisujú **základnú pipeline**, ktorá stačí na zadanie aj na väčšinu firemných nasadení: chunkovať → embeddovať → hľadať top-k → prípadne rerankovať → generovať. Nasledujúce techniky riešia jej konkrétne slabiny. Nasadzujte ich **až keď zmeriate, že základ nestačí** – každá pridáva latenciu aj kód.
+Sekcie 1 a 2 opisujú **základnú pipeline**, ktorá stačí na zadanie aj na väčšinu firemných nasadení: chunkovať → embeddovať → hľadať top-k → prípadne rerankovať → generovať. Nasledujúce techniky riešia jej konkrétne slabiny. Nasadzujte ich **až keď zmeriate, že základ nestačí** – každá pridáva latenciu aj kód.
 
 ### 1. Hybridné vyhľadávanie (vektor + BM25)
 
@@ -270,11 +273,11 @@ Cena je vždy jedno LLM volanie navyše pred vyhľadávaním.
 
 ### 3. Filtrovanie podľa metadát
 
-Vektorové hľadanie sa dá skombinovať so **štruktúrovaným filtrom** nad metadátami z Časti 2 (`source`, `page`, dátum, oddelenie, prístupové práva). Dva typické dôvody: zúženie na relevantnú podmnožinu („len smernice platné v roku 2026") a **oprávnenia** – používateľ nesmie dostať do odpovede chunk z dokumentu, na ktorý nemá prístup. Toto je bezpečnostná, nie kvalitatívna vlastnosť, a rieši sa vo vektorovej DB, nie v prompte.
+Vektorové hľadanie sa dá skombinovať so **štruktúrovaným filtrom** nad metadátami zo sekcie 1 (`source`, `page`, dátum, oddelenie, prístupové práva). Dva typické dôvody: zúženie na relevantnú podmnožinu („len smernice platné v roku 2026") a **oprávnenia** – používateľ nesmie dostať do odpovede chunk z dokumentu, na ktorý nemá prístup. Toto je bezpečnostná, nie kvalitatívna vlastnosť, a rieši sa vo vektorovej DB, nie v prompte.
 
 ### 4. Small-to-big: varianty parent-child
 
-Princíp poznáme z Časti 2 (hľadaj malým, vkladaj veľký). V praxi sa objavuje v troch podobách:
+Princíp poznáme zo sekcie 1 (hľadaj malým, vkladaj veľký). V praxi sa objavuje v troch podobách:
 
 | Technika | Ako funguje |
 |---|---|

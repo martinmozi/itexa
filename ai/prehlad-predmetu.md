@@ -41,7 +41,7 @@ Nie je to samostatná prednáška — je to príručka, ktorú treba prejsť **p
 
 **Materiál:** [tutorials/01-prehlad](tutorials/01-prehlad/README.md) — [co-je-ai](tutorials/01-prehlad/01-co-je-ai.md) · [rezimy-strojoveho-ucenia](tutorials/01-prehlad/02-rezimy-strojoveho-ucenia.md) · [generalizacia-a-preucenie](tutorials/01-prehlad/03-generalizacia-a-preucenie.md) · [metriky](tutorials/01-prehlad/04-metriky.md)
 
-Čo je AI a čo nie je; symbolická AI vs. strojové učenie; taxonómia (AI ⊃ ML ⊃ neurónové siete ⊃ deep learning). Tri režimy učenia: s učiteľom, bez učiteľa, posilňované. Spoločná schéma učenia: predikcia → porovnanie s pravdou (loss) → úprava parametrov. Zovšeobecnenie a preučenie, delenie dát na trénovaciu/validačnú/testovaciu množinu, regularizácia a metriky kvality.
+Čo je AI a čo nie je; symbolická AI vs. strojové učenie; taxonómia (AI ⊃ ML ⊃ neurónové siete ⊃ deep learning). Tri režimy učenia: s učiteľom, bez učiteľa, posilňované. Spoločná schéma učenia: predikcia → porovnanie s pravdou (loss) → úprava parametrov. Zovšeobecnenie a preučenie, delenie dát na trénovaciu/validačnú/testovaciu množinu, regularizácia a metriky kvality (matica zámen, precision/recall, prah, PR-AUC).
 
 **Po lekcii viete:**
 - vysvetliť rozdiel medzi „pravidlá píše človek" a „vzory sa učí z dát" a kedy má ktorý prístup zmysel,
@@ -55,7 +55,7 @@ Nie je to samostatná prednáška — je to príručka, ktorú treba prejsť **p
 
 **Materiál:** [tutorials/02-typy-modelov](tutorials/02-typy-modelov/README.md) — [rozhodovacie-stromy](tutorials/02-typy-modelov/01-rozhodovacie-stromy.md) · [random-forest-a-xgboost](tutorials/02-typy-modelov/02-random-forest-a-xgboost.md) · [xgboost-priklad-iso8583](tutorials/02-typy-modelov/03-xgboost-priklad-iso8583.md)
 
-Rozhodovacie stromy a ako sa učia (Gini/entropia); prečo jeden strom preučí a ako to riešia ansámble — Random Forest (bagging, paralelne, znižuje rozptyl) vs. XGBoost (boosting, sekvenčne opravuje chyby, znižuje skreslenie). **Kľúčové posolstvo: na tabuľkové dáta je XGBoost dodnes prvá voľba — nie neurónová sieť.**
+Rozhodovacie stromy a ako sa učia (Gini/entropia); prečo jeden strom preučí a ako to riešia ansámble — Random Forest (bagging, paralelne, znižuje rozptyl) vs. XGBoost (boosting, sekvenčne opravuje chyby, znižuje skreslenie). Celý mechanizmus boostingu je potom **prepočítaný krok za krokom** na desiatich kartových transakciách ISO 8583, aby bolo vidno, čo presne je rezíduum a ako si ho stromy odovzdávajú. **Kľúčové posolstvo: na tabuľkové dáta je XGBoost dodnes prvá voľba — nie neurónová sieť.**
 
 **Po lekcii viete:**
 - prečítať a obhájiť rozhodnutie stromu; vysvetliť overfitting na jednom strome,
@@ -195,11 +195,11 @@ Materiály sú v adresári [`tutorials/`](tutorials/README.md), rozdelené do š
 | 1 | [01-prehlad/01-co-je-ai.md](tutorials/01-prehlad/01-co-je-ai.md) | symbolická AI vs. ML, taxonómia AI ⊃ ML ⊃ NN ⊃ DL | 1 |
 | 2 | [01-prehlad/02-rezimy-strojoveho-ucenia.md](tutorials/01-prehlad/02-rezimy-strojoveho-ucenia.md) | s učiteľom / bez učiteľa / posilňované, typy dát | 1 |
 | 3 | [01-prehlad/03-generalizacia-a-preucenie.md](tutorials/01-prehlad/03-generalizacia-a-preucenie.md) | train/val/test, overfitting, bias vs. variance, regularizácia | 1 |
-| 4 | [01-prehlad/04-metriky.md](tutorials/01-prehlad/04-metriky.md) | matica zámen, precision, recall, F1, MAE/RMSE | 1 |
+| 4 | [01-prehlad/04-metriky.md](tutorials/01-prehlad/04-metriky.md) | matica zámen, precision, recall, F1, prah a PR-AUC, MAE/RMSE | 1 |
 | 5 | [02-typy-modelov/01-rozhodovacie-stromy.md](tutorials/02-typy-modelov/01-rozhodovacie-stromy.md) | Gini/entropia, preučenie a nestabilita stromu | 2 |
 | 6 | [02-typy-modelov/02-random-forest-a-xgboost.md](tutorials/02-typy-modelov/02-random-forest-a-xgboost.md) | bagging vs. boosting, prečo stromy vyhrávajú na tabuľkách | 2 |
 | 7 | [02-typy-modelov/03-xgboost-priklad-iso8583.md](tutorials/02-typy-modelov/03-xgboost-priklad-iso8583.md) | rezíduá krok za krokom na kartových transakciách | 2 |
-| 8 | [02-typy-modelov/04-feed-forward-siete.md](tutorials/02-typy-modelov/04-feed-forward-siete.md) | neurón, MLP, nelineárne aktivácie | 3 |
+| 8 | [02-typy-modelov/04-feed-forward-siete.md](tutorials/02-typy-modelov/04-feed-forward-siete.md) | neurón, MLP, nelineárne aktivácie, príprava dát a backprop na príklade | 3 |
 | 9 | [02-typy-modelov/05-konvolucne-siete.md](tutorials/02-typy-modelov/05-konvolucne-siete.md) | konvolúcia, weight sharing, pooling | 3 |
 | 10 | [02-typy-modelov/06-ktory-model-kedy.md](tutorials/02-typy-modelov/06-ktory-model-kedy.md) | rozhodovacia tabuľka dáta → model | 1–3 |
 | 11 | [03-ucenie/01-adam-optimalizator.md](tutorials/03-ucenie/01-adam-optimalizator.md) | tréningová slučka, backprop, Adam do detailu | 3 |

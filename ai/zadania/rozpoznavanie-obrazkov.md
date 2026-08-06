@@ -39,7 +39,7 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
 ### Poznámky k variantom
 
 - **Variant 1 (EMNIST):** takmer identický s MNIST, len 26 tried. Pozor — obrázky v EMNIST
-  bývajú **otočené/zrkadlené**, over si orientáciu vizualizáciou pár vzoriek.
+  bývajú **otočené/zrkadlené**, overte si orientáciu vizualizáciou pár vzoriek.
 - **Variant 2 (HASYv2):** obrázky sú **32×32** → vstupná vrstva má **1024** neurónov. 369 tried
   je veľa; **je povolené vybrať si podmnožinu** ~15–30 najčastejších symbolov a klasifikovať len tie
   (napíšte do správy, ktoré). Toto je najnáročnejší variant.
@@ -161,9 +161,9 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 1. Vytvorte si **vlastný testovací obrázok** podľa svojho variantu (nakreslite písmeno / symbol /
    kúsok oblečenia v MS Paint alebo inom editore) — konzistentne s datasetom.
 2. Napíšte Python script, ktorý obrázok pripraví do formátu datasetu:
-   - **zmenší** na rozmer datasetu (28×28 alebo 32×32),
+   - **zmenšite** na rozmer datasetu (28×28 alebo 32×32),
    - preveďte na **odtiene sivej** (grayscale),
-   - **invertujte** farby, ak treba (over si, či má dataset svetlý objekt na tmavom pozadí),
+   - **invertujte** farby, ak treba (overte si, či má dataset svetlý objekt na tmavom pozadí),
    - **normalizujte** do `<0, 1>`.
    > *Hint:* `Image.open(...).convert('L').resize((W,W))`, potom `np.array(...)`.
 3. Podajte obrázok **obom natrénovaným sieťam** (2A aj 2B) a vypíšte predikciu a
@@ -172,7 +172,7 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 ### Nepovinné (bonus)
 
 - **Centrovanie a škálovanie** objektu podľa ťažiska — výrazne zlepší úspešnosť na vlastných
-  obrázkoch. > *Hint:* bounding box → orez → padding → vycentrovanie (`scipy.ndimage.center_of_mass`).
+  obrázkoch. *(Postup: bounding box → orez → padding → vycentrovanie cez `scipy.ndimage.center_of_mass`.)*
 - Jednoduché **GUI** na kreslenie (`tkinter` canvas), ktoré rovno pošle obrázok sieti.
 
 ---

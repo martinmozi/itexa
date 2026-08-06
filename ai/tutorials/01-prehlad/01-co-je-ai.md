@@ -16,7 +16,7 @@ Historicky sa vyvinuli dva veľké prúdy:
 
 Kľúčové je pochopiť **vzťah vnorenia**: hlboké učenie je podmnožinou neurónových sietí, tie sú podmnožinou strojového učenia a to je podmnožinou AI. Bežná chyba je používať „AI" a „neurónové siete" ako synonymá — v skutočnosti je neurónová sieť len jeden (dnes veľmi úspešný) nástroj vo veľkej škatuli AI. **Hlboké učenie (deep learning)** pritom nie je samostatná technológia, ale jednoducho neurónové siete s väčším počtom vrstiev; hranica nie je ostrá, no zhruba od dvoch-troch skrytých vrstiev hovoríme o hlbokej sieti. Pojem sa ujal preto, že práve hĺbka — a s ňou schopnosť učiť sa hierarchiu príznakov — stála za prelomovými výsledkami v rozpoznávaní obrazu a reči po roku 2012.
 
-Kde v tejto mape ležia modely z tohto dokumentu:
+Kde v tejto mape ležia modely, ktoré nás v kurze čakajú:
 
 - **Rozhodovacie stromy, random forest a XGBoost** patria do strojového učenia, ale nie sú to neurónové siete. Hovorí sa im aj „klasické" metódy ML — a ako uvidíme, na tabuľkových dátach klasické neznamená horšie.
 - **Feed-forward siete (MLP) a konvolučné siete (CNN)** sú neurónové siete; ak majú veľa vrstiev, spadajú do hlbokého učenia.

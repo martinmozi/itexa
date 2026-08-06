@@ -1,6 +1,6 @@
 # Zadanie: Odpovedanie na otázky z dlhého textu (RAG alebo fine-tuning)
 
-> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [04-embeddings.md](../tutorials/04-llm/04-embeddings.md), [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md)
+> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [04-embeddings.md](../tutorials/04-llm/04-embeddings.md), [05-rag.md](../tutorials/04-llm/05-rag.md), [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md)
 
 ## Cieľ
 
@@ -21,8 +21,8 @@ Máte na výber **dva prístupy** — vyberte si (alebo vám bude pridelený) **
 Podstatná je **rovnaká výstupná schopnosť** (odpovedať na otázky z textu) dosiahnutá
 **dvoma principiálne odlišnými cestami** — a pochopenie, **kedy sa ktorá oplatí**.
 
-> Teoretické podklady k RAG (tokenizácia, embeddingy, chunking, vyhľadávanie, similarity)
-> sú v [04-embeddings.md](../tutorials/04-llm/04-embeddings.md).
+> Tokenizácia, embeddingy a podobnosť vektorov sú v [04-embeddings.md](../tutorials/04-llm/04-embeddings.md);
+> chunking, indexovanie, vyhľadávanie a reranking v [05-rag.md](../tutorials/04-llm/05-rag.md).
 > LoRA/QLoRA a rozhodovanie RAG vs. fine-tuning sú v [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md).
 
 ---
