@@ -1,0 +1,4 @@
+*.npy
+*.svg
+*.png
+mnist
