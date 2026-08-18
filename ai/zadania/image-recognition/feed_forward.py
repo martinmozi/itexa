@@ -34,6 +34,60 @@ class AdamConfig:
     epsilon: float = 1e-8
 
 
+@dataclass
+class AugmentConfig:
+    """Rozsahy augmentácie. Zapína sa cez --augment, hodnoty sú napevno tu."""
+    max_shift: float = 2.0       # posun v px, náhodne z <-max, max> pre každú os
+    max_rotation: float = 10.0   # rotácia v stupňoch, náhodne z <-max, max>
+
+
+def augment_batch(batch, config: AugmentConfig, rng, image_size=28):
+    """Náhodne posunie a otočí každý obrázok v batchi.
+
+    Posun aj rotácia sa poskladajú do jednej afinnej transformácie, ktorá sa
+    aplikuje spätným mapovaním s bilineárnou interpoláciou (jediná
+    interpolácia namiesto dvoch). Mimo obrázka sa dopĺňa čierna.
+
+    batch: (n, image_size * image_size) v rozsahu 0..1. Vracia rovnaký tvar.
+    """
+    n = batch.shape[0]
+    imgs = batch.reshape(n, image_size, image_size)
+
+    angles = np.deg2rad(rng.uniform(-config.max_rotation, config.max_rotation, size=n))
+    shifts = rng.uniform(-config.max_shift, config.max_shift, size=(n, 2))  # (dy, dx)
+
+    center = (image_size - 1) / 2.0
+    yy, xx = np.mgrid[0:image_size, 0:image_size]
+
+    # cieľová súradnica -> zdrojová (teda inverzná transformácia)
+    d_y = yy - center - shifts[:, 0][:, None, None]
+    d_x = xx - center - shifts[:, 1][:, None, None]
+    cos = np.cos(angles)[:, None, None]
+    sin = np.sin(angles)[:, None, None]
+    src_y = cos * d_y + sin * d_x + center
+    src_x = -sin * d_y + cos * d_x + center
+
+    y0 = np.floor(src_y).astype(np.int64)
+    x0 = np.floor(src_x).astype(np.int64)
+    w_y = src_y - y0
+    w_x = src_x - x0
+    sample_idx = np.arange(n)[:, None, None]
+
+    def gather(y_idx, x_idx):
+        inside = (y_idx >= 0) & (y_idx < image_size) & (x_idx >= 0) & (x_idx < image_size)
+        values = imgs[sample_idx, np.clip(y_idx, 0, image_size - 1), np.clip(x_idx, 0, image_size - 1)]
+        return np.where(inside, values, 0.0)
+
+    out = (
+        gather(y0, x0) * (1.0 - w_y) * (1.0 - w_x)
+        + gather(y0, x0 + 1) * (1.0 - w_y) * w_x
+        + gather(y0 + 1, x0) * w_y * (1.0 - w_x)
+        + gather(y0 + 1, x0 + 1) * w_y * w_x
+    )
+
+    return out.reshape(n, -1)
+
+
 class FeedForwardNetwork:
     def __init__(self, config: NetworkConfig, adam: AdamConfig):
         self.config = config
@@ -174,7 +228,7 @@ class FeedForwardNetwork:
             self.weights[idx] -= self.adam.learning_rate * m_w_hat / (np.sqrt(v_w_hat) + self.adam.epsilon)
             self.biases[idx] -= self.adam.learning_rate * m_b_hat / (np.sqrt(v_b_hat) + self.adam.epsilon)
 
-    def fit(self, X, y, epochs=10, batch_size=64, verbose=True, validation_split=0.1):
+    def fit(self, X, y, epochs=10, batch_size=64, verbose=True, validation_split=0.1, augment=None):
         X = np.asarray(X, dtype=np.float64)
         y = np.asarray(y, dtype=np.int64)
         n_samples = X.shape[0]
@@ -208,6 +262,9 @@ class FeedForwardNetwork:
                 batch_idx = indices[start:start + batch_size]
                 batch_x = X_train[batch_idx]
                 batch_y = y_train[batch_idx]
+
+                if augment is not None:
+                    batch_x = augment_batch(batch_x, augment, self.rng)
 
                 loss, grads = self._loss_and_gradients(batch_x, batch_y)
                 self._apply_adam(grads)
@@ -400,6 +457,7 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--activation', type=str, default='relu', choices=['relu', 'leaky_relu'], help='Hidden-layer activation function')
     parser.add_argument('--validation-split', type=float, default=0.1, help='Fraction of training data used as validation during training; set 0.0 to disable.')
+    parser.add_argument('--augment', action='store_true', help='Augment training batches with random shifts and rotations (see AugmentConfig)')
     parser.add_argument('--save-model', type=str, default=None, help='Path to save trained model (.npy)')
     return parser.parse_args()
 
@@ -422,6 +480,10 @@ def main():
         epsilon=args.epsilon,
     )
 
+    augment = AugmentConfig() if args.augment else None
+    if augment is not None:
+        print(f'Augmentácia zapnutá: posun ±{augment.max_shift} px, rotácia ±{augment.max_rotation}°')
+
     model = FeedForwardNetwork(config=config, adam=adam)
     history, accuracy_history = model.fit(
         x_train,
@@ -430,6 +492,7 @@ def main():
         batch_size=args.batch_size,
         verbose=True,
         validation_split=args.validation_split,
+        augment=augment,
     )
 
     train_accuracy = model.accuracy(x_train, y_train)
