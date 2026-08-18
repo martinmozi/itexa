@@ -3,6 +3,7 @@ import struct
 from array import array
 # loading data from https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download
 
+
 class MnistDataloader(object):
     def __init__(self, training_images_filepath, training_labels_filepath,
                  test_images_filepath, test_labels_filepath):

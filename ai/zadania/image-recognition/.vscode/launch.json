@@ -16,7 +16,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "feed_forward.py",
-            "args": ["--epochs", "10", "--save-model", "feed_forward_trained", "--activation", "leaky_relu"],
+            "args": ["--epochs", "50", "--save-model", "feed_forward_trained", "--activation", "leaky_relu", "--augment"],
             "console": "integratedTerminal",
         },
         {
