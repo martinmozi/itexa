@@ -21,7 +21,10 @@ from inference import load_image_to_mnist_vector
 
 
 class DrawingPad(QWidget):
-    def __init__(self, size=28, pen_width=2):
+    # Kreslíme vo vyššom rozlíšení než 28x28: ťah tak dostane mäkké,
+    # antialiasované okraje ako v MNIST (ten vznikol downsamplingom).
+    # Hrúbka je zvolená tak, aby po zmenšení do 20x20 boxu vyšla na ~2-3 px.
+    def __init__(self, size=280, pen_width=28):
         super().__init__()
         self.size = size
         self.pen_width = pen_width
@@ -57,16 +60,20 @@ class DrawingPad(QWidget):
         y = max(0, min(self.size - 1, y))
         return QPoint(x, y)
 
-    def _draw_at(self, point):
+    def _painter(self):
         painter = QPainter(self.image)
+        painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setPen(QPen(Qt.white, self.pen_width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        return painter
+
+    def _draw_at(self, point):
+        painter = self._painter()
         painter.drawPoint(point)
         painter.end()
         self.update()
 
     def _draw_line(self, start, end):
-        painter = QPainter(self.image)
-        painter.setPen(QPen(Qt.white, self.pen_width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter = self._painter()
         painter.drawLine(start, end)
         painter.end()
         self.update()
@@ -161,7 +168,7 @@ class DigitApp(QWidget):
                 temp_path = tmp.name
 
             self.drawing_pad.save_image(temp_path)
-            x = load_image_to_mnist_vector(temp_path, target_size=(28, 28), invert=True).reshape(1, -1)
+            x = load_image_to_mnist_vector(temp_path, invert=True).reshape(1, -1)
             model = FeedForwardNetwork.load(self.model_path)
             probabilities = model.predict_proba(x)
             prediction = int(model.predict(x)[0])
