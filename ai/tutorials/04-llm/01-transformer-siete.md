@@ -1,10 +1,10 @@
 # Transformery a attention — ako fungujú
 
-> **Poradie čítania:** ← [Čo sa pri učení pokazí](../03-ucenie/02-problemy-pri-uceni.md) · **lekcia 4** · [Ako sa trénuje LLM](02-llm-trening.md) →
+> **Poradie čítania:** ← [Čo sa pri učení pokazí](../03-ucenie/02-problemy-pri-uceni.md) · **lekcia 4** · [Vnútro transformera](02-transformer-vnutro.md) →
 
 > **Cieľ dokumentu:** vysvetliť krok po kroku, ako funguje **transformer** — architektúra, ktorá stojí za dnešnými veľkými jazykovými modelmi (GPT, Claude, BERT…), prekladačmi aj generovaním obrázkov. Ťažiskom sú **detailné obrázky** mechanizmu **attention**, pretože práve on je jadrom celej myšlienky.
 
-Nadväzuje na všeobecný [prehľad AI a modelov](../01-prehlad/README.md). Ako sa z textu stanú vektory, ktoré do transformera vstupujú, je rozpísané až v [04-embeddings.md](04-embeddings.md) (lekcia 6) — tu nám zatiaľ postačí vedieť, že každý token má svoj vektor.
+Nadväzuje na všeobecný [prehľad AI a modelov](../01-prehlad/README.md). Ako sa z textu stanú vektory, ktoré do transformera vstupujú, je rozpísané až v [05-embeddings.md](05-embeddings.md) (lekcia 6) — tu nám zatiaľ postačí vedieť, že každý token má svoj vektor.
 
 ---
 
@@ -29,23 +29,24 @@ Pôvodný transformer má dve časti — **encoder** (prečíta a pochopí vstup
 
 Čítajme to **zdola nahor**:
 
-1. **Vstup → tokeny → embeddingy.** Text sa rozseká na tokeny a každý sa premení na vektor (viď [04-embeddings.md](04-embeddings.md)).
+1. **Vstup → tokeny → embeddingy.** Text sa rozseká na tokeny a každý sa premení na vektor (viď [05-embeddings.md](05-embeddings.md)).
 2. **+ Positional encoding.** Ku každému embeddingu sa pripočíta informácia o **pozícii** tokenu vo vete (o tom nižšie).
 3. **Encoder blok (N-krát za sebou):** *Multi-Head Self-Attention* → *Add & Norm* → *Feed Forward* → *Add & Norm*. Každý token si po ceste „nazbiera" kontext z ostatných.
 4. **Decoder blok (N-krát):** navyše obsahuje **maskovanú** self-attention (pozerá len dozadu, nie do budúcnosti) a **cross-attention** (pozerá na výstup encodera).
-5. **Linear → Softmax.** Z posledného vektora sa vyrobí pravdepodobnosť ďalšieho tokenu.
+5. **Linear → Softmax.** Pri generovaní sa z **posledného** vektora vyrobí pravdepodobnosť ďalšieho tokenu; pri tréningu sa to isté počíta naraz pre všetky pozície (každý token predpovedá ten nasledujúci).
 
 Dnešné modely často používajú len **jednu z častí**:
 
 | Variant | Používa | Príklady | Na čo |
 |---|---|---|---|
-| **Encoder-only** | len ľavý stĺpec | BERT, embedding modely | pochopenie textu, klasifikácia, [embeddingy](04-embeddings.md) |
+| **Encoder-only** | len ľavý stĺpec | BERT, embedding modely | pochopenie textu, klasifikácia, [embeddingy](05-embeddings.md) |
 | **Decoder-only** | len pravý stĺpec (s maskou) | GPT, Claude, Llama | **generovanie textu** — dnešné LLM |
 | **Encoder-decoder** | obe časti | T5, prekladače | preklad, sumarizácia (vstup → iný výstup) |
 
 Dva stavebné prvky, ktoré sa opakujú v každom bloku:
 
 - **Add & Norm** — *reziduálne spojenie* (k výstupu vrstvy sa pripočíta jej vstup) + normalizácia. Umožňuje trénovať veľmi hlboké siete bez toho, aby sa gradient „stratil".
+  > **Poradie sa medzitým zmenilo.** Schéma vyššie je pôvodná z roku 2017 — normalizuje sa **až po** bloku: `x = Norm(x + blok(x))` (*post-norm*). Dnešné LLM normalizujú **pred** blokom, `x = x + blok(Norm(x))` (*pre-norm*), lebo sa tak hlboké siete trénujú stabilnejšie. Rozdiel a jeho dôsledky rozoberá [02-transformer-vnutro.md](02-transformer-vnutro.md#2-cesta-jedného-vektora-jednou-vrstvou).
 - **Feed Forward** — obyčajný [MLP](../02-typy-modelov/04-feed-forward-siete.md) aplikovaný na každý token zvlášť; tu si model „premyslí" informáciu nazbieranú attention.
 
 Zvyšok dokumentu sa venuje srdcu celej veci — **attention**.
@@ -74,7 +75,7 @@ Výpočet má tri kroky (na obrázku očíslované):
 
 V príklade na obrázku pri spracovaní zámena **„ju"** dostane najväčšiu váhu (0.78) slovo **„rybu"** — model sa naučil, že zámeno odkazuje práve naň. Toto rozhodnutie **nie je naprogramované**; vyplynulo z tréningu z obrovského množstva textu.
 
-> **Chcete si to prepočítať na papieri?** Presne tento postup — Q/K/V projekcie, skóre, škálovanie, softmax aj vážený súčet — je s konkrétnymi číslami na troch tokenoch rozpísaný v [embeddings.md, Krok 3](04-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je to dobrovoľné rozšírenie; v **lekcii 6** ho budeme potrebovať povinne, takže sa k nemu ešte vrátime.
+> **Chcete si to prepočítať na papieri?** Presne tento postup — Q/K/V projekcie, skóre, škálovanie, softmax aj vážený súčet — je s konkrétnymi číslami na troch tokenoch rozpísaný v [embeddings.md, Krok 3](05-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je to dobrovoľné rozšírenie; v **lekcii 6** ho budeme potrebovať povinne, takže sa k nemu ešte vrátime.
 
 > **Prečo je to lepšie než RNN:** tento výpočet sa deje pre **všetky tokeny naraz a paralelne** (je to v podstate násobenie matíc), a každý token má **priamy prístup** ku každému inému — aj tomu na opačnom konci vety. Odtiaľ paralelizovateľnosť aj dlhá pamäť.
 
@@ -96,7 +97,7 @@ Jedna attention „hlava" zachytí **jeden typ vzťahu** (napr. gramatickú zhod
 
 Postup:
 
-1. Vstup sa rozdelí do **h hláv** (napr. 8, 12, 96…). Každá hlava pracuje v menšom rozmere `d/h`.
+1. Vstup prejde **jednou** projekciou na Q, K a V a ten výsledok sa **rozreže na `h` hláv** (napr. 8, 12, 96…) — každá hlava dostane svoj výsek `d/h` súradníc. (Hlavy teda nie sú `h` samostatných matíc: je to jedna veľká matica a potom preskupenie rozmerov. Pri implementácii je to obyčajný `reshape` — detaily v [02-transformer-vnutro.md](02-transformer-vnutro.md#2-cesta-jedného-vektora-jednou-vrstvou).)
 2. Každá hlava spraví **vlastnú self-attention** (presne tú z predchádzajúcej sekcie) — a keďže má vlastné váhy, naučí sa sledovať iný typ vzťahu.
 3. Výstupy všetkých hláv sa **spoja (concat)** a prejdú cez výstupnú lineárnu vrstvu `W_O`.
 
@@ -137,6 +138,8 @@ Poskladajme diely do jedného behu **decoder-only** modelu (GPT/Claude štýl), 
 
 Tento „autoregresívny" cyklus — *predpovedz ďalší token, priraď ho, opakuj* — je celé tajomstvo generovania textu. Všetka „inteligencia" je v naučených váhach (matice attention a feed-forward vrstiev), ktorých sú v dnešných modeloch miliardy.
 
+> **Krok 5 sa v skutočnosti nepočíta celý odznova.** Vďaka maske sa staré Key a Value vektory nemenia, takže sa dajú odložiť do **KV cache** — a s nimi celá otázka, prečo je prvý token odpovede pomalý, koľko pamäte zožerie dlhý kontext a čo presne obmedzuje kontextové okno. To všetko rozoberá nasledujúci dokument [02-transformer-vnutro.md](02-transformer-vnutro.md).
+
 ### Ako presne sa vyberá „ďalší token" (dekódovanie)
 
 Krok 4 vyššie sme odbavili slovami „vyberie sa ďalší token" — v skutočnosti je to nastavenie,
@@ -144,9 +147,11 @@ ktoré zásadne mení správanie modelu, a v oboch zadaniach ho budete zadávať
 
 - **Greedy** — vezme sa vždy token s najvyššou pravdepodobnosťou. Deterministické (rovnaký prompt
   = rovnaká odpoveď), ale ploché a náchylné na zacyklenie („a preto a preto a preto…").
-- **Sampling s teplotou `T`** — pravdepodobnosti sa pred výberom vydelia teplotou a znova prejdú
-  softmaxom, potom sa z nich náhodne losuje. `T < 1` rozdiely zvýrazní (opatrnejší, faktickejší
-  text), `T > 1` ich zarovná (kreatívnejší, ale aj nezmyselnejší). `T → 0` je to isté ako greedy.
+- **Sampling s teplotou `T`** — **logity** (surové skóre pred softmaxom) sa vydelia teplotou,
+  až potom ide softmax a z výsledného rozdelenia sa náhodne losuje: `softmax(logity / T)`.
+  `T < 1` rozdiely zvýrazní (opatrnejší, faktickejší text), `T > 1` ich zarovná (kreatívnejší,
+  ale aj nezmyselnejší). `T → 0` je to isté ako greedy. *Pozor: deliť teplotou už hotové
+  pravdepodobnosti je iná operácia a dá iné výsledky — teplota patrí pred softmax.*
 - **Top-p (nucleus)** — losuje sa len z najpravdepodobnejších tokenov, ktoré spolu dajú `p`
   (napr. 0.9) pravdepodobnostnej hmoty; zvyšný dlhý chvost sa odreže. Príbuzné **top-k** necháva
   pevný počet `k` najlepších.
@@ -204,5 +209,6 @@ nízka teplota (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [tutorials/01-prehlad](../01-prehlad/README.md) — kam transformery zapadajú v celej AI (lekcia 1)
 - [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam — lekcia 3)
-- [02-llm-trening.md](02-llm-trening.md) — **nasledujúca lekcia**: ako sa táto architektúra trénuje na jazyk
-- [04-embeddings.md](04-embeddings.md) — tá istá attention s číslami + cesta textu na vektor (lekcia 6)
+- [02-transformer-vnutro.md](02-transformer-vnutro.md) — **nasleduje**: rozmery, feed-forward, výstupný token, KV cache a limity kontextu
+- [03-llm-trening.md](03-llm-trening.md) — **lekcia 5**: ako sa táto architektúra trénuje na jazyk
+- [05-embeddings.md](05-embeddings.md) — tá istá attention s číslami + cesta textu na vektor (lekcia 6)

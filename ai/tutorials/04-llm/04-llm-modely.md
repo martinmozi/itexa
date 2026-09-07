@@ -1,12 +1,12 @@
 # Prehľad súčasných modelov — proprietárne, open-weight a open-source
 
-> **Poradie čítania:** ← [Ako sa trénuje LLM](02-llm-trening.md) · **lekcia 5** · [Embeddingy](04-embeddings.md) →
+> **Poradie čítania:** ← [Ako sa trénuje LLM](03-llm-trening.md) · **lekcia 5** · [Embeddingy](05-embeddings.md) →
 
 > **Cieľ dokumentu:** zorientovať sa v dnešnej ponuke veľkých modelov. Kľúčom je pochopiť **tri stupne otvorenosti** (proprietárne API → otvorené váhy → plne otvorené vrátane tréningových dát) a vedieť si vybrať model **podľa úlohy** — OCR, kódovanie, tabuľkové dáta, embeddingy, lokálne nasadenie…
 >
 > *Stav: júl 2026. Krajina modelov sa mení každých pár mesiacov — konkrétne verzie berte ako momentku, kategórie a princípy výberu platia dlhodobo.*
 
-Nadväzuje na [typy modelov](../02-typy-modelov/README.md) a [02-llm-trening.md](02-llm-trening.md) (ako sa LLM trénujú — vysvetľuje aj pojmy *base* a *Instruct*, ktoré sa v tabuľkách nižšie objavujú).
+Nadväzuje na [typy modelov](../02-typy-modelov/README.md) a [03-llm-trening.md](03-llm-trening.md) (ako sa LLM trénujú — vysvetľuje aj pojmy *base* a *Instruct*, ktoré sa v tabuľkách nižšie objavujú).
 
 ---
 
@@ -68,7 +68,7 @@ Modelov, kde je verejné **všetko** — váhy, dáta, kód, priebežné checkpo
 | **StarCoder 2** | BigCode | váhy, dáta (The Stack) | otvorený kódovací model s auditovateľným korpusom |
 | **BLOOM** | BigScience | váhy, dáta (ROOTS) | historicky prvý veľký plne otvorený model (2022), dnes prekonaný |
 
-**Prečo na tom záleží:** len pri týchto modeloch viete odpovedať na otázky „*čo presne model videl pri tréningu?*", „*je v dátach môj text?*", „*prečo model vie X a nevie Y?*" — pri open-weight modeloch sú to dohady. Ako presne tréningové dáta formujú model, rozoberá [02-llm-trening.md](02-llm-trening.md).
+**Prečo na tom záleží:** len pri týchto modeloch viete odpovedať na otázky „*čo presne model videl pri tréningu?*", „*je v dátach môj text?*", „*prečo model vie X a nevie Y?*" — pri open-weight modeloch sú to dohady. Ako presne tréningové dáta formujú model, rozoberá [03-llm-trening.md](03-llm-trening.md).
 
 ---
 
@@ -79,14 +79,14 @@ Modelov, kde je verejné **všetko** — váhy, dáta, kód, priebežné checkpo
 | **OCR / extrakcia z dokumentov** | multimodálny LLM (Claude, Gemini, Qwen-VL) na komplexné dokumenty; klasické OCR (Tesseract, PaddleOCR) na jednoduchý čistý text | LLM zvláda tabuľky, formuláre, rukopis a rovno štruktúruje výstup (JSON) |
 | **Kódovanie / programátorský agent** | Claude (Opus/Sonnet) cez API; open-weight: Qwen 3.5, GLM-5, DeepSeek | agentické kódovanie = model + nástroje (viď lekcia 8) |
 | **Tabuľkové dáta** (predikcia, skóring) | ❌ **nie LLM** → **XGBoost / stromy** ([02-random-forest-a-xgboost.md](../02-typy-modelov/02-random-forest-a-xgboost.md)) | LLM sa hodí nanajvýš na *rozhranie* nad tabuľkou (text → SQL), nie na samotnú predikciu |
-| **Embeddingy / RAG retrieval** | špecializované embedding modely: `bge-m3`, `multilingual-e5`, prípadne API embeddingy | malý model stačí; detaily v [04-embeddings.md](04-embeddings.md) |
-| **Reranking** | `bge-reranker-v2-m3`, Cohere Rerank | cross-encoder, viď [05-rag.md](05-rag.md) |
+| **Embeddingy / RAG retrieval** | špecializované embedding modely: `bge-m3`, `multilingual-e5`, prípadne API embeddingy | malý model stačí; detaily v [05-embeddings.md](05-embeddings.md) |
+| **Reranking** | `bge-reranker-v2-m3`, Cohere Rerank | cross-encoder, viď [06-rag.md](06-rag.md) |
 | **Reasoning / matematika** | o-séria, DeepSeek R1, Claude s extended thinking | „premýšľajúce" modely — viac výpočtu pri inferencii |
-| **Slovenčina / multilingválne** | veľké proprietárne modely; open-weight: Qwen, Gemma | malé open modely na slovenčine citeľne strácajú (aj kvôli tokenizácii — viď [04-embeddings.md](04-embeddings.md)) |
+| **Slovenčina / multilingválne** | veľké proprietárne modely; open-weight: Qwen, Gemma | malé open modely na slovenčine citeľne strácajú (aj kvôli tokenizácii — viď [05-embeddings.md](05-embeddings.md)) |
 | **Lokálny beh na notebooku** | Qwen/Llama/Gemma 1–8B kvantované (Ollama, llama.cpp); na experimenty SmolLM | 4-bit kvantizácia zníži pamäť ~4× za malú stratu kvality |
 | **Prepis reči (ASR)** | Whisper (open-weight) | beží aj lokálne |
 | **Klasifikácia obrázkov (úzka úloha)** | vlastná malá **CNN** ([05-konvolucne-siete.md](../02-typy-modelov/05-konvolucne-siete.md)), prípadne fine-tunovaný ViT | nasadiť LLM na „je na páse chybný výrobok?" je zbytočne drahé |
-| **Firemný chatbot nad dokumentmi** | RAG: embedding model + LLM (API alebo open-weight podľa citlivosti dát) | viď [05-rag.md](05-rag.md) a [zadanie](../../zadania/RAG_Fine_tunning.md) |
+| **Firemný chatbot nad dokumentmi** | RAG: embedding model + LLM (API alebo open-weight podľa citlivosti dát) | viď [06-rag.md](06-rag.md) a [zadanie](../../zadania/RAG_Fine_tunning.md) |
 
 ### Rozhodovací postup (zjednodušene)
 
@@ -159,7 +159,7 @@ pozrieť na chybovosť **po skupinách** (viď [04-metriky.md](../01-prehlad/04-
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
-- [02-llm-trening.md](02-llm-trening.md) — **prvá polovica lekcie 5**: ako sa LLM trénujú
+- [03-llm-trening.md](03-llm-trening.md) — **prvá polovica lekcie 5**: ako sa LLM trénujú
 - [tutorials/02-typy-modelov](../02-typy-modelov/README.md) — stromy, XGBoost, MLP, CNN
-- [04-embeddings.md](04-embeddings.md) — **nasledujúca lekcia**: embedding modely a RAG pipeline
+- [05-embeddings.md](05-embeddings.md) — **nasledujúca lekcia**: embedding modely a RAG pipeline
 - [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md) — na čom vybraný model reálne spustíte

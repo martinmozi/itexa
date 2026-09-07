@@ -7,7 +7,7 @@ Podľa toho, aké dáta máme k dispozícii a čo od modelu chceme, rozlišujeme
 | Režim | Čo máme | Čo sa učí | Typický príklad |
 |---|---|---|---|
 | **Učenie s učiteľom** (*supervised*) | vstupy **aj správne odpovede** (labely) | mapovanie vstup → výstup | „táto fotka = mačka", predikcia ceny bytu |
-| **Učenie bez učiteľa** (*unsupervised*) | len vstupy, **bez labelov** | štruktúra, zhluky, podobnosti | segmentácia zákazníkov, [embeddingy](../04-llm/04-embeddings.md) |
+| **Učenie bez učiteľa** (*unsupervised*) | len vstupy, **bez labelov** | štruktúra, zhluky, podobnosti | segmentácia zákazníkov, [embeddingy](../04-llm/05-embeddings.md) |
 | **Posilňované učenie** (*reinforcement*) | prostredie + **odmena** za akcie | stratégia (politika) maximalizujúca odmenu | hra Go, riadenie robota, [demo s tankom](../../../demo/Readme.md) |
 
 Väčšina modelov v tomto kurze (stromy, XGBoost, klasifikačné siete) sú príklady **učenia s učiteľom**. Spoločná schéma je vždy rovnaká:

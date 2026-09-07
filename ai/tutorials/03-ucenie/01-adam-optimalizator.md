@@ -461,4 +461,4 @@ rozbehu** (`m̂`, `v̂`) — čím každý parameter dostane vlastnú adaptívnu
 - [zadania/rozpoznavanie-obrazkov.md](../../zadania/rozpoznavanie-obrazkov.md) — **zadanie 1**: naprogramovať sieť aj tento optimalizátor
 - [02-problemy-pri-uceni.md](02-problemy-pri-uceni.md) — **keď tréning nefunguje**: diagnostika a riešenia
 - [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — ďalšia lekcia: architektúra dnešných LLM
-- [02-llm-trening.md](../04-llm/02-llm-trening.md) — tá istá slučka, len s miliardami parametrov (lekcia 5)
+- [03-llm-trening.md](../04-llm/03-llm-trening.md) — tá istá slučka, len s miliardami parametrov (lekcia 5)

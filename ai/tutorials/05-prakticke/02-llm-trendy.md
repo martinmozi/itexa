@@ -10,7 +10,7 @@
 
 - **Reasoning modely ako predvolená voľba.** Model dostane priestor „premýšľať" pred odpoveďou a kvalita rastie s množstvom výpočtu pri **inferencii**, nie len s veľkosťou modelu. Škálovanie sa tým presunulo z tréningu čiastočne do behu — čo mení aj ekonomiku: viac platíte za odpoveď, menej za tréning.
 - **Agenti ako hlavný spôsob nasadenia.** Od „chatbot nad dokumentmi" k systémom, ktoré vykonávajú viackrokové úlohy s nástrojmi (viď [lekcia 8](01-agenti-a-nastroje.md)). S tým prichádza aj hlavné riziko obdobia — **bezpečnosť agentov**.
-- **Malé a destilované modely popri veľkých.** Nie všetko potrebuje špičkový model; úzke úlohy sa presúvajú na malé lokálne modely kvôli cene, latencii a súkromiu (viď [lekcia 7](../04-llm/06-fine-tuning-lora.md), distillation).
+- **Malé a destilované modely popri veľkých.** Nie všetko potrebuje špičkový model; úzke úlohy sa presúvajú na malé lokálne modely kvôli cene, latencii a súkromiu (viď [lekcia 7](../04-llm/07-fine-tuning-lora.md), distillation).
 - **Multimodalita ako samozrejmosť.** Obraz, zvuk a video na vstupe aj výstupe; hlasoví agenti pracujúci v reálnom čase.
 - **Dlhý kontext.** Okná v státisícoch až miliónoch tokenov posúvajú hranicu, kedy ešte treba RAG a kedy stačí vložiť celý dokument do promptu.
 
@@ -45,6 +45,6 @@ Kto rozumie týmto piatim veciam, vie si nový model, novú knižnicu aj nový b
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [01-agenti-a-nastroje.md](01-agenti-a-nastroje.md) — agentová slučka, MCP, bezpečnosť (lekcia 8)
-- [03-llm-modely.md](../04-llm/03-llm-modely.md) — ako si vybrať model a na čo si dať pozor právne (lekcia 5)
-- [05-rag.md](../04-llm/05-rag.md) — RAG vrátane pokročilého retrievalu (lekcia 6)
-- [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md) — LoRA, distillation, RAG vs. fine-tuning (lekcia 7)
+- [04-llm-modely.md](../04-llm/04-llm-modely.md) — ako si vybrať model a na čo si dať pozor právne (lekcia 5)
+- [06-rag.md](../04-llm/06-rag.md) — RAG vrátane pokročilého retrievalu (lekcia 6)
+- [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md) — LoRA, distillation, RAG vs. fine-tuning (lekcia 7)

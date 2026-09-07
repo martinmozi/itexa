@@ -83,23 +83,25 @@ Neurón (vážený súčet + bias + aktivácia), viacvrstvový perceptrón, pre�
 
 ## Lekcia 4 — Transformery a attention
 
-**Materiál:** [01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md)
+**Materiál:** [01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md) → [02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md)
 
-Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attention Is All You Need". Self-attention krok po kroku: Query/Key/Value, skóre, softmax, vážený súčet — každý token sa „pozrie" na všetky ostatné naraz. Multi-head, positional encoding, maskovaná attention. Encoder / decoder / decoder-only, autoregresívne generovanie a **dekódovanie** (greedy, teplota, top-p).
+Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attention Is All You Need". Self-attention krok po kroku: Query/Key/Value, skóre, softmax, vážený súčet — každý token sa „pozrie" na všetky ostatné naraz. Multi-head, positional encoding, maskovaná attention. Encoder / decoder / decoder-only, autoregresívne generovanie a **dekódovanie** (greedy, teplota, top-p). Druhá polovica lekcie ide do vnútra: **odkiaľ sa berú rozmery** (`d_model`, hlavy, `d_ff`) a kde v modeli sedia parametre, ako každý vektor prechádza **feed-forward** vrstvou token po tokene, ako z posledného vektora vznikne cez `lm_head` a softmax **konkrétny výstupný token**, prefill vs. decode, **KV cache** a prompt caching — a prečo je **kontextové okno obmedzené**.
 
 **Po lekcii viete:**
 - vysvetliť roly Q, K, V analógiou s vyhľadávaním a opísať postup výpočtu attention,
 - povedať, prečo je attention kvadratická v dĺžke vstupu a čo z toho plynie pre dlhý kontext,
 - opísať, ako z „predpovedz ďalší token" vzniká generovanie celých odpovedí,
-- nastaviť dekódovanie podľa toho, či chcete faktickú alebo kreatívnu odpoveď.
+- nastaviť dekódovanie podľa toho, či chcete faktickú alebo kreatívnu odpoveď,
+- spočítať veľkosť KV cache pre daný model a kontext a vymenovať štyri dôvody, prečo sa okno nedá len tak zväčšiť,
+- povedať, čo sa pri generovaní dá cachovať a ako skladať prompt, aby cache fungovala.
 
-> Ručne prepočítaný príklad tej istej attention (s číslami) je v [embeddings.md, Krok 3](tutorials/04-llm/04-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je nepovinný, v lekcii 6 sa k nemu vrátime.
+> Ručne prepočítaný príklad tej istej attention (s číslami) je v [embeddings.md, Krok 3](tutorials/04-llm/05-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je nepovinný, v lekcii 6 sa k nemu vrátime.
 
 ---
 
 ## Lekcia 5 — Ako sa trénuje LLM a krajina dnešných modelov
 
-**Materiál:** [02-llm-trening.md](tutorials/04-llm/02-llm-trening.md) → [03-llm-modely.md](tutorials/04-llm/03-llm-modely.md)
+**Materiál:** [03-llm-trening.md](tutorials/04-llm/03-llm-trening.md) → [04-llm-modely.md](tutorials/04-llm/04-llm-modely.md)
 
 Celá tréningová pipeline: dáta (filtrovanie, deduplikácia, mix) → **pretraining** (predikcia ďalšieho tokenu, self-supervised, scaling laws) → **base model** (dokončovač textu) → **SFT / instruction tuning** (chat šablóna, loss len na odpovedi) → **Instruct model**; výhľad na RLHF/DPO. Potom prehľad trhu: **proprietárne vs. open-weight vs. plne open-source** a výber modelu podľa úlohy. Na záver právne a etické mantinely (GDPR, licencie, AI Act, bias).
 
@@ -113,7 +115,7 @@ Celá tréningová pipeline: dáta (filtrovanie, deduplikácia, mix) → **pretr
 
 ## Lekcia 6 — Embeddingy a RAG
 
-**Materiál:** [04-embeddings.md](tutorials/04-llm/04-embeddings.md) → [05-rag.md](tutorials/04-llm/05-rag.md) → **[Zadanie 2, úloha A: RAG](zadania/RAG_Fine_tunning.md)**
+**Materiál:** [05-embeddings.md](tutorials/04-llm/05-embeddings.md) → [06-rag.md](tutorials/04-llm/06-rag.md) → **[Zadanie 2, úloha A: RAG](zadania/RAG_Fine_tunning.md)**
 
 Cesta textu na vektor: tokenizácia (BPE) → embedding matica → transformer vrstvy → pooling → normalizácia — celé prepočítané ručne na malom príklade. Podobnosť (cosine, dot product), prečo sú modely vzájomne nekompatibilné (kontrastívne učenie). RAG pipeline: chunking, indexovanie (FAISS, flat vs. ANN), retrieval, reranking (bi-encoder vs. cross-encoder), výpočtové nároky. Na záver pokročilý retrieval: hybrid search, prepis dotazu, agentický RAG.
 
@@ -127,7 +129,7 @@ Cesta textu na vektor: tokenizácia (BPE) → embedding matica → transformer v
 
 ## Lekcia 7 — Fine-tuning a rozhodovanie RAG vs. fine-tuning
 
-**Materiál:** [06-fine-tuning-lora.md](tutorials/04-llm/06-fine-tuning-lora.md) → **[Zadanie 2, úloha B: fine-tuning](zadania/RAG_Fine_tunning.md)**
+**Materiál:** [07-fine-tuning-lora.md](tutorials/04-llm/07-fine-tuning-lora.md) → **[Zadanie 2, úloha B: fine-tuning](zadania/RAG_Fine_tunning.md)**
 
 Prečo sa celý model dotrénovať nedá (pamäťová matematika). **LoRA** — rozklad `ΔW = A·B`, čo je rank `r`, prečo malé adaptéry stačia; **QLoRA** ako 4-bitová nadstavba. Kedy sa fine-tuning oplatí (štýl, formát, distillation, edge) a kedy nie (nové fakty → RAG; často sa meniace dáta; potreba citovať zdroj). Halucinácie a ako ich meria testovacia sada s „chytákmi".
 
@@ -206,11 +208,12 @@ Materiály sú v adresári [`tutorials/`](tutorials/README.md), rozdelené do š
 | 12 | [03-ucenie/02-problemy-pri-uceni.md](tutorials/03-ucenie/02-problemy-pri-uceni.md) | miznúce/explodujúce gradienty, `NaN`, dáta, fp16, hardvér | 3 |
 | — | [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md) | **zadanie 1** — vlastná sieť + Adam + PyTorch | 3–4 |
 | 13 | [04-llm/01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md) | attention, multi-head, positional encoding, dekódovanie | 4 |
-| 14 | [04-llm/02-llm-trening.md](tutorials/04-llm/02-llm-trening.md) | pretraining → base → SFT → Instruct | 5 |
-| 15 | [04-llm/03-llm-modely.md](tutorials/04-llm/03-llm-modely.md) | proprietárne / open-weight / open-source, právo a etika | 5 |
-| 16 | [04-llm/04-embeddings.md](tutorials/04-llm/04-embeddings.md) | tokenizácia, embeddingy, pooling, normalizácia | 6 |
-| 17 | [04-llm/05-rag.md](tutorials/04-llm/05-rag.md) | chunking, index, retrieval, reranking, pokročilý RAG | 6 |
+| 14 | [04-llm/02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md) | rozmery, feed-forward, výstupný token, KV cache, limity kontextu | 4 |
+| 15 | [04-llm/03-llm-trening.md](tutorials/04-llm/03-llm-trening.md) | pretraining → base → SFT → Instruct | 5 |
+| 16 | [04-llm/04-llm-modely.md](tutorials/04-llm/04-llm-modely.md) | proprietárne / open-weight / open-source, právo a etika | 5 |
+| 17 | [04-llm/05-embeddings.md](tutorials/04-llm/05-embeddings.md) | tokenizácia, embeddingy, pooling, normalizácia | 6 |
+| 18 | [04-llm/06-rag.md](tutorials/04-llm/06-rag.md) | chunking, index, retrieval, reranking, pokročilý RAG | 6 |
 | — | [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) | **zadanie 2** — RAG alebo LoRA fine-tuning | 6–7 |
-| 18 | [04-llm/06-fine-tuning-lora.md](tutorials/04-llm/06-fine-tuning-lora.md) | LoRA/QLoRA, RAG vs. fine-tuning, halucinácie | 7 |
-| 19 | [05-prakticke/01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) | agentová slučka, tool use, MCP, Claude Code, bezpečnosť | 8 |
-| 20 | [05-prakticke/02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) | trendy a čo sledovať po kurze | 8 (záver) |
+| 19 | [04-llm/07-fine-tuning-lora.md](tutorials/04-llm/07-fine-tuning-lora.md) | LoRA/QLoRA, RAG vs. fine-tuning, halucinácie | 7 |
+| 20 | [05-prakticke/01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) | agentová slučka, tool use, MCP, Claude Code, bezpečnosť | 8 |
+| 21 | [05-prakticke/02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) | trendy a čo sledovať po kurze | 8 (záver) |

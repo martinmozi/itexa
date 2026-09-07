@@ -1,8 +1,8 @@
 # RAG — vyhľadávanie ako pamäť pre LLM
 
-> **Poradie čítania:** ← [Embeddingy](04-embeddings.md) · **lekcia 6** · [Fine-tuning: LoRA a QLoRA](06-fine-tuning-lora.md) →
+> **Poradie čítania:** ← [Embeddingy](05-embeddings.md) · **lekcia 6** · [Fine-tuning: LoRA a QLoRA](07-fine-tuning-lora.md) →
 
-**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **podsunieme do promptu** — ale len tie kúsky, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](04-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
+**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **podsunieme do promptu** — ale len tie kúsky, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](05-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
 
 Celá pipeline má dve polovice — jednu, ktorá beží raz dopredu, a druhú, ktorá beží pri každej otázke:
 
@@ -39,7 +39,7 @@ Toto sa robí **raz** (alebo pri zmene dokumentov) a je to *dávkové* spracovan
 
 1. **Extrakcia textu** – z PDF, DOCX, HTML, wiki... získame surový text.
 2. **Chunking** – text sa nareže na kúsky (viac nižšie).
-3. **Embedding** – každý chunk prejde embedding modelom ([04-embeddings.md](04-embeddings.md)) → vektor.
+3. **Embedding** – každý chunk prejde embedding modelom ([05-embeddings.md](05-embeddings.md)) → vektor.
 4. **Indexovanie** – vektory + metadáta (ID chunku, `parent_id`, zdroj, odkaz na text) sa uložia do vektorovej DB (napr. FAISS).
 
 Keďže je to offline a dávkové, dá sa to nechať bežať aj dlhšie na CPU, alebo to výrazne zrýchliť na GPU pri veľkom objeme dokumentov. **Latencia tu nie je kritická**, dôležitý je throughput.
@@ -85,7 +85,7 @@ Všimnite si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 tok
 | **Recursive** | skúša deliť po odsekoch → vetách → slovách, kým sa nezmestí | najbežnejší kompromis |
 | **Semantic** | reže tam, kde sa mení téma (podľa poklesu podobnosti susedných viet) | drahšie, ale najčistejšie hranice |
 
-> **Preto:** veľkosť chunku treba prispôsobiť **konkrétnemu** embedding modelu, ktorý sa použije. Je nutné **vopred vedieť presnú špecifikáciu modelu** od toho, kto vektorovú DB pripravuje. (A nezabudnite na postreh z [tokenizácie](04-embeddings.md#krok-1-tokenizácia) – slovenský text zaberie viac tokenov, takže reálne sa doň zmestí menej textu, než by sa zdalo.)
+> **Preto:** veľkosť chunku treba prispôsobiť **konkrétnemu** embedding modelu, ktorý sa použije. Je nutné **vopred vedieť presnú špecifikáciu modelu** od toho, kto vektorovú DB pripravuje. (A nezabudnite na postreh z [tokenizácie](05-embeddings.md#krok-1-tokenizácia) – slovenský text zaberie viac tokenov, takže reálne sa doň zmestí menej textu, než by sa zdalo.)
 
 ### Metadáta – čo sa ukladá popri vektore
 
@@ -116,7 +116,7 @@ Príklad: child-chunk „nárok vzniká po odpracovaní 60 dní" sa vo vyhľadá
 
 Toto sa deje **pri každej otázke používateľa** a tu už **latencia záleží** – používateľ čaká na odpoveď:
 
-1. **Embedding otázky** – tá istá cesta ako pri chunkoch ([04-embeddings.md](04-embeddings.md)), ale len pre jednu krátku vetu → *query vektor*. Keďže je to bi-encoder, chunky boli zaembeddované vopred, teraz sa počíta iba embedding query.
+1. **Embedding otázky** – tá istá cesta ako pri chunkoch ([05-embeddings.md](05-embeddings.md)), ale len pre jednu krátku vetu → *query vektor*. Keďže je to bi-encoder, chunky boli zaembeddované vopred, teraz sa počíta iba embedding query.
 2. **Vyhľadanie top-k** – vo FAISS sa nájde napr. `top-20–50` najbližších vektorov (rýchle, čistá lineárna algebra / ANN index).
 3. **Reranking (voliteľné, ale veľmi účinné)** – užší set kandidátov prejde cross-encoderom, ktorý vyberie skutočný `top-3–5`.
 4. **Generovanie odpovede** – vybrané chunky sa vložia do promptu a **veľký generatívny LLM** vygeneruje odpoveď.
@@ -133,7 +133,7 @@ riadok | id            | vektor
    3   | chunk_vypoved   | [ 0.20, 0.10, 0.97 ]
 ```
 
-Príde otázka *„Koľko dní dovolenky mám?"*, zaembedduje sa ([rovnakým modelom](04-embeddings.md)) a znormuje na query vektor:
+Príde otázka *„Koľko dní dovolenky mám?"*, zaembedduje sa ([rovnakým modelom](05-embeddings.md)) a znormuje na query vektor:
 
 ```text
 q = [ 0.78, 0.60, 0.18 ]
@@ -229,7 +229,7 @@ Fáza 1 zúži milióny chunkov na desiatky (lacno). Fáza 2 tých pár desiatok
 
 Zhrnutie, prečo aj „malé" modely reálne potrebujú výkon:
 
-- **Kde je záťaž:** drvivá väčšina výpočtu je v **transformer vrstvách** – maticové násobenia Q/K/V, self-attention `O(n²)` a feed-forward vrstvy. Tokenizácia a lookup v embedding matici sú zanedbateľné, pooling a normalizácia tiež (rozpísané krok po kroku v [04-embeddings.md](04-embeddings.md)).
+- **Kde je záťaž:** drvivá väčšina výpočtu je v **transformer vrstvách** – maticové násobenia Q/K/V, self-attention `O(n²)` a feed-forward vrstvy. Tokenizácia a lookup v embedding matici sú zanedbateľné, pooling a normalizácia tiež (rozpísané krok po kroku v [05-embeddings.md](05-embeddings.md)).
 
 - **Embedding model (bi-encoder) – CPU zvládne, GPU zrýchli:**
   - *Offline indexovanie* je dávkové → CPU stačí, GPU sa oplatí len pri veľkých objemoch (throughput).
@@ -320,9 +320,9 @@ Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, 
 
 ### Súvisiace dokumenty
 
-- [04-embeddings.md](04-embeddings.md) — ako vzniká vektor, ktorý sa tu indexuje
+- [05-embeddings.md](05-embeddings.md) — ako vzniká vektor, ktorý sa tu indexuje
 - [01-transformer-siete.md](01-transformer-siete.md) — attention mechanika, ktorá beží vo vnútri
-- [02-llm-trening.md](02-llm-trening.md) — ako sa trénuje generatívny LLM na konci pipeline
-- [06-fine-tuning-lora.md](06-fine-tuning-lora.md) — **nasleduje**: druhá cesta k tomu istému cieľu
+- [03-llm-trening.md](03-llm-trening.md) — ako sa trénuje generatívny LLM na konci pipeline
+- [07-fine-tuning-lora.md](07-fine-tuning-lora.md) — **nasleduje**: druhá cesta k tomu istému cieľu
 - [01-agenti-a-nastroje.md](../05-prakticke/01-agenti-a-nastroje.md) — agentová slučka za agentickým RAG
 - [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — **zadanie 2A**: postaviť túto pipeline

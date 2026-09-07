@@ -1,6 +1,6 @@
 # Zadanie: Odpovedanie na otázky z dlhého textu (RAG alebo fine-tuning)
 
-> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [04-embeddings.md](../tutorials/04-llm/04-embeddings.md), [05-rag.md](../tutorials/04-llm/05-rag.md), [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md)
+> **Zadanie 2 z 2** · úloha A sa rieši počas lekcie 6, úloha B počas lekcie 7 · podklady: [05-embeddings.md](../tutorials/04-llm/05-embeddings.md), [06-rag.md](../tutorials/04-llm/06-rag.md), [07-fine-tuning-lora.md](../tutorials/04-llm/07-fine-tuning-lora.md)
 
 ## Cieľ
 
@@ -21,9 +21,9 @@ Máte na výber **dva prístupy** — vyberte si (alebo vám bude pridelený) **
 Podstatná je **rovnaká výstupná schopnosť** (odpovedať na otázky z textu) dosiahnutá
 **dvoma principiálne odlišnými cestami** — a pochopenie, **kedy sa ktorá oplatí**.
 
-> Tokenizácia, embeddingy a podobnosť vektorov sú v [04-embeddings.md](../tutorials/04-llm/04-embeddings.md);
-> chunking, indexovanie, vyhľadávanie a reranking v [05-rag.md](../tutorials/04-llm/05-rag.md).
-> LoRA/QLoRA a rozhodovanie RAG vs. fine-tuning sú v [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md).
+> Tokenizácia, embeddingy a podobnosť vektorov sú v [05-embeddings.md](../tutorials/04-llm/05-embeddings.md);
+> chunking, indexovanie, vyhľadávanie a reranking v [06-rag.md](../tutorials/04-llm/06-rag.md).
+> LoRA/QLoRA a rozhodovanie RAG vs. fine-tuning sú v [07-fine-tuning-lora.md](../tutorials/04-llm/07-fine-tuning-lora.md).
 
 ---
 
@@ -86,7 +86,7 @@ Vyberte si **jeden** malý **instruct** model z Hugging Face, ktorý sa zmestí 
 > Dôležitejšie než veľkosť je, aby ste **celý proces prešli** a vedeli ho porovnať s baseline.
 
 > *Poznámka k verziám:* tabuľka uvádza **overené, stabilné** ID. Novšie generácie tých istých
-> rodín (Qwen 3, Llama 4, Gemma 3, Phi-4 — viď [03-llm-modely.md](../tutorials/04-llm/03-llm-modely.md)) fungujú s tou
+> rodín (Qwen 3, Llama 4, Gemma 3, Phi-4 — viď [04-llm-modely.md](../tutorials/04-llm/04-llm-modely.md)) fungujú s tou
 > istou pipeline; ID si overte na Hugging Face, keďže sa menia každých pár mesiacov.
 
 ### Povolené nástroje
@@ -106,13 +106,13 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
 
 1. **Chunking** — dokument rozdeľte na kúsky (napr. 200–500 tokenov s prekryvom ~50).
    Zvážte delenie po odsekoch/vetách, nie naslepo v strede vety.
-   > *Podklad:* stratégie chunkingu a metadáta sú rozpísané v [05-rag.md](../tutorials/04-llm/05-rag.md).
+   > *Podklad:* stratégie chunkingu a metadáta sú rozpísané v [06-rag.md](../tutorials/04-llm/06-rag.md).
 2. **Embeddingy** — každý chunk preveďte na vektor embeddovacím modelom
    (napr. `sentence-transformers/all-MiniLM-L6-v2` alebo viacjazyčný `intfloat/multilingual-e5-small`).
 3. **Index** — vektory (a k nim pôvodný text + metadáta) uložte do vektorovej databázy /
    FAISS indexu.
    > *Hint:* embeddingy **normalizujte** a používajte kosínusovú podobnosť — prečo, viď
-   > [04-embeddings.md](../tutorials/04-llm/04-embeddings.md) (sekcia o normalizácii).
+   > [05-embeddings.md](../tutorials/04-llm/05-embeddings.md) (sekcia o normalizácii).
 
 ## A2 — Dotaz (online)
 
@@ -205,7 +205,7 @@ Model sa neučí zo surového textu dobre — potrebuje **inštrukčný formát*
 
 ## Diskusná otázka (do správy)
 
-Stručne odpovedzte (podklad: [06-fine-tuning-lora.md](../tutorials/04-llm/06-fine-tuning-lora.md), sekcie 2 a 4):
+Stručne odpovedzte (podklad: [07-fine-tuning-lora.md](../tutorials/04-llm/07-fine-tuning-lora.md), sekcie 2 a 4):
 
 - Kedy sa oplatí **RAG** a kedy **fine-tuning**? Uveďte po 2 konkrétne situácie z praxe.
 - Ako každý z prístupov rieši **aktualizáciu obsahu** (dokument sa zmení / pribudne nový)?

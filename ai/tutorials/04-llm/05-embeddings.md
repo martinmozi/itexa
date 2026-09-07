@@ -1,12 +1,12 @@
 # Embeddingy a príprava dát pre RAG
 
-> **Poradie čítania:** ← [Prehľad súčasných modelov](03-llm-modely.md) · **lekcia 6** · [RAG](05-rag.md) →
+> **Poradie čítania:** ← [Prehľad súčasných modelov](04-llm-modely.md) · **lekcia 6** · [RAG](06-rag.md) →
 
-> **Cieľ dokumentu:** ukázať, ako sa z obyčajného textu stane vektor, ktorý sa dá vyhľadávať — a to na číslach, nie v metaforách. Práve tento vektor je stavebný kameň [RAG](05-rag.md), ktorému sa venuje nadväzujúci dokument.
+> **Cieľ dokumentu:** ukázať, ako sa z obyčajného textu stane vektor, ktorý sa dá vyhľadávať — a to na číslach, nie v metaforách. Práve tento vektor je stavebný kameň [RAG](06-rag.md), ktorému sa venuje nadväzujúci dokument.
 
 Tento dokument sleduje **cestu jedného kúsku textu** od surových znakov až po hotový vektor: tokenizácia → token embeddingy → transformer vrstvy → pooling → normalizácia. Všetko na konkrétnych číslach, ktoré sa dajú prepočítať ceruzkou.
 
-Čo sa s hotovým vektorom ďalej robí — indexovanie, vyhľadávanie, reranking a celá RAG pipeline — je v nadväzujúcom dokumente **[05-rag.md](05-rag.md)**.
+Čo sa s hotovým vektorom ďalej robí — indexovanie, vyhľadávanie, reranking a celá RAG pipeline — je v nadväzujúcom dokumente **[06-rag.md](06-rag.md)**.
 
 Predpokladá znalosť [transformerov](01-transformer-siete.md) z lekcie 4: attention, multi-head, positional encoding a reziduálne spojenia tu už len použijeme a doplníme im čísla.
 
@@ -182,7 +182,8 @@ Pre každý token sa z jeho vektora `h` spočítajú **lineárnou transformácio
 Aby sa to dalo počítať v hlave, zvolíme extrémne jednoduché váhové matice. Nech `W_Q`, `W_K`, `W_V` len **vyberajú a škálujú niektoré dimenzie** (v realite sú husté a naučené, ale princíp je ten istý – lineárna kombinácia vstupných čísel):
 
 ```text
-        (každý riadok W hovorí, ako namiešať vstupné dim0..dim3 do jedného výstupného čísla)
+        (počítame q = h · W, takže každý STĹPEC W hovorí, ako sa vstupné dim0..dim3
+         namiešajú do jedného výstupného čísla; riadok i hovorí, kam prispieva vstupná dim i)
 W_Q =  [ 1 0 0 0 ]      W_K = [ 1 0 0 0 ]      W_V = [ 1 0 0 0 ]
        [ 0 1 0 0 ]            [ 0 1 0 0 ]            [ 0 1 0 0 ]
        [ 0 0 0 0 ]            [ 0 0 0 0 ]            [ 0 0 1 0 ]
@@ -215,7 +216,9 @@ v_dovolenku = [ 1.209, 0.284,  0.420, 0.900 ]
 
 ### 3b) Attention skóre = dot product Q · K
 
-Relevancia tokenu `i` voči tokenu `j` je **dot product** `q_i · k_j`. Spočítame ho pre **všetky páry** – to je matica `n × n`, u nás `3 × 3`. Zoberme si za `i` token **„nárok"** (`q = (0.200, 1.900)`) a počítajme skóre voči každému tokenu:
+Relevancia tokenu `i` voči tokenu `j` je **dot product** `q_i · k_j`. Spočítame ho pre **všetky páry** – to je matica `n × n`, u nás `3 × 3`.
+
+> **Prečo tu nie je kauzálna maska.** Embedding modely sú **obojsmerné** – token „nárok" sa smie pozerať aj dopredu na „na" a „dovolenku", lebo cieľom je pochopiť celý text, nie predpovedať pokračovanie. Generatívny (decoder-only) model by tu mal [masku](01-transformer-siete.md#maskovaná-attention-v-decoderi) a horná polovica tejto matice by bola nulová. Je to jediný rozdiel v tomto kroku – aritmetika je identická. Zoberme si za `i` token **„nárok"** (`q = (0.200, 1.900)`) a počítajme skóre voči každému tokenu:
 
 ```text
 score(nárok, nárok)     = 0.200·0.200 + 1.900·1.900 = 0.040 + 3.610 = 3.650
@@ -225,7 +228,7 @@ score(nárok, dovolenku) = 0.200·1.209 + 1.900·0.284 = 0.242 + 0.540 = 0.782
 
 ### 3c) Škálovanie /√d_k
 
-Skóre sa vydelí odmocninou z rozmeru kľúča `d_k` (aby pri veľkých dimenziách skóre neexplodovali a softmax nespadol do extrémov). U nás sú aktívne 2 dimenzie, `√2 ≈ 1.414`:
+Skóre sa vydelí odmocninou z rozmeru kľúča `d_k` (aby pri veľkých dimenziách skóre neexplodovali a softmax nespadol do extrémov). V reálnom modeli je `d_k` rozmer kľúča z konfigurácie – u nás by to bolo `√4 = 2`. Naše hračkárske `W_Q`/`W_K` však dve dimenzie vynulovali, takže kľúč reálne žije v 2 rozmeroch a delíme `√2 ≈ 1.414` (v kóde vždy berte `d_k` z konfigurácie modelu, nie „na oko"):
 
 ```text
 3.650 / 1.414 = 2.581
@@ -281,6 +284,8 @@ r_nárok = h_nárok + out_nárok = [0.200+0.433, 1.900+1.563, -0.100-0.024, 1.30
         = [ 0.633, 3.463, -0.124, 2.549 ]
 ```
 
+> **Poznámka k poradiu:** takto to robil pôvodný transformer – najprv sčítanie, potom normalizácia (*post-norm*). Dnešné generatívne modely normalizujú **pred** blokom (*pre-norm*), pozri [02-transformer-vnutro.md](02-transformer-vnutro.md#2-cesta-jedného-vektora-jednou-vrstvou). Na aritmetiku tohto príkladu to nemá vplyv, ale pri vlastnej implementácii si treba vybrať jedno.
+
 Reziduálne spojenie zabezpečí, že sa pôvodná informácia „nestratí" a že gradient má pri trénovaní kadiaľ tiecť aj cez desiatky vrstiev. LayerNorm potom prečísluje vektor tak, aby mal (naprieč svojimi 4 súradnicami) priemer 0 a rozptyl 1, a ešte ho preškáluje dvomi naučenými parametrami `γ, β`.
 
 Ukážka samotnej normalizácie na `r_nárok`. Priemer je `(0.633 + 3.463 − 0.124 + 2.549) / 4 = 1.630`, odchýlky od priemeru sú `[−0.997, 1.833, −1.754, 0.919]`, ich druhé mocniny `[0.994, 3.359, 3.077, 0.844]`, takže rozptyl je `8.275 / 4 = 2.069` a smerodajná odchýlka `√2.069 = 1.438`:
@@ -305,7 +310,7 @@ Typicky prvá vrstva dimenziu **zväčší** (napr. 1024 → 4096), aplikuje sa 
 
 Jedna transformer vrstva teda je: `attention → +residual → LayerNorm → FFN → +residual → LayerNorm`. Toto sa opakuje cez všetky vrstvy (`N`-krát) – vektory sa vrstvu po vrstve stávajú čoraz „abstraktnejšími" a kontextovo bohatšími. Po prejdení celého modelu máme stále `n` vektorov (jeden na token), len teraz každý z nich odzrkadľuje aj zvyšok vety.
 
-> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Čo z toho plynie pre plánovanie hardvéru, je v [05-rag.md, sekcia 5](05-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
+> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Čo z toho plynie pre plánovanie hardvéru, je v [06-rag.md, sekcia 5](06-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
 
 ---
 
@@ -344,7 +349,7 @@ pooled = [ 0.933, 0.700, 0.167, 1.067 ]
 
 > **Poznámka k padding maske:** ak sme v batchi doplnili `[PAD]` tokeny, ich vektory sa do priemeru **nezapočítavajú** (tzv. *masked mean pooling*) – inak by výplň skreslila výsledok. V praxi sa priemer počíta len cez reálne tokeny.
 
-> **Prečo je pooling to, čím sa embedding model líši od chatovacieho.** Obe rodiny majú rovnaké transformer vrstvy; generatívny model berie posledný vektor a predpovedá z neho ďalší token (viď [lekcia 4](01-transformer-siete.md)), embedding model všetky vektory zlúči do jedného a ten uloží. Rovnaká architektúra, iný výstupný krok a iná loss – presne ten princíp „dáta a loss určujú, čo sa model naučí" z [lekcie 5](02-llm-trening.md).
+> **Prečo je pooling to, čím sa embedding model líši od chatovacieho.** Obe rodiny majú rovnaké transformer vrstvy; generatívny model berie posledný vektor a predpovedá z neho ďalší token (viď [lekcia 4](01-transformer-siete.md)), embedding model všetky vektory zlúči do jedného a ten uloží. Rovnaká architektúra, iný výstupný krok a iná loss – presne ten princíp „dáta a loss určujú, čo sa model naučí" z [lekcie 5](03-llm-trening.md).
 
 ---
 
@@ -545,7 +550,7 @@ A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý mo
 
 ### Súvisiace dokumenty
 
-- [05-rag.md](05-rag.md) — **nasleduje**: čo sa s vektormi robí ďalej (indexovanie, retrieval, reranking)
+- [06-rag.md](06-rag.md) — **nasleduje**: čo sa s vektormi robí ďalej (indexovanie, retrieval, reranking)
 - [01-transformer-siete.md](01-transformer-siete.md) — architektúra, ktorá vektory vyrába
-- [03-llm-modely.md](03-llm-modely.md) — výber embedding modelu
+- [04-llm-modely.md](04-llm-modely.md) — výber embedding modelu
 - [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — zadanie 2A

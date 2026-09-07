@@ -1,10 +1,10 @@
 # Ako sa trénuje LLM — od surového textu po Instruct model
 
-> **Poradie čítania:** ← [Transformery a attention](01-transformer-siete.md) · **lekcia 5** · [Prehľad súčasných modelov](03-llm-modely.md) →
+> **Poradie čítania:** ← [Vnútro transformera](02-transformer-vnutro.md) · **lekcia 5** · [Prehľad súčasných modelov](04-llm-modely.md) →
 
 > **Cieľ dokumentu:** vysvetliť celú tréningovú pipeline veľkého jazykového modelu — čo sa deje od stiahnutia surového internetu až po model s príponou `-Instruct`, ktorý si viete stiahnuť z Hugging Face a ktorý odpovedá na otázky. Po prečítaní budete rozumieť, prečo *base* model „nevie odpovedať", čo presne pridáva inštrukčné ladenie, a kam do tejto pipeline zapadá váš vlastný fine-tuning (LoRA).
 
-Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-ucenie/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskom merítku). Tokenizáciu a BPE detailne rozoberá [04-embeddings.md](04-embeddings.md).
+Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-ucenie/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskom merítku). Tokenizáciu a BPE detailne rozoberá [05-embeddings.md](05-embeddings.md).
 
 ---
 
@@ -47,9 +47,9 @@ Surový web je ale plný spamu, duplikátov a smetí, preto sa robí:
 2. **Deduplikácia** — ten istý text miliónkrát by model naučila memorovať, nie generalizovať.
 3. **Mixovanie** — pomery zdrojov sú starostlivo ladené; „dáta sú nový hyperparameter".
 
-> **Prečo je to dôležité pochopiť:** kvalita a zloženie dát vysvetľuje väčšinu rozdielov medzi modelmi. Preto je taký veľký rozdiel medzi *open-weight* (dáta tajné) a *plne open-source* modelmi (dáta verejné) — viď [03-llm-modely.md](03-llm-modely.md). A preto malé modely horšie zvládajú slovenčinu: v mixe jej je málo.
+> **Prečo je to dôležité pochopiť:** kvalita a zloženie dát vysvetľuje väčšinu rozdielov medzi modelmi. Preto je taký veľký rozdiel medzi *open-weight* (dáta tajné) a *plne open-source* modelmi (dáta verejné) — viď [04-llm-modely.md](04-llm-modely.md). A preto malé modely horšie zvládajú slovenčinu: v mixe jej je málo.
 
-Text sa nakoniec **tokenizuje** (BPE — detailne v [04-embeddings.md](04-embeddings.md)) a nareže na bloky dĺžky kontextového okna.
+Text sa nakoniec **tokenizuje** (BPE — detailne v [05-embeddings.md](05-embeddings.md)) a nareže na bloky dĺžky kontextového okna.
 
 ---
 
@@ -152,7 +152,7 @@ Po SFT model:
 
 ### Váš vlastný fine-tuning = tá istá Fáza 2 v malom
 
-Keď v [zadaní](../../zadania/RAG_Fine_tunning.md) robíte **LoRA/QLoRA** fine-tuning, robíte presne SFT — dvojice otázka → odpoveď, chat šablóna, loss na odpovedi. Rozdiel je len v úspornosti: namiesto všetkých miliárd váh trénujete malé **adaptérové matice** (LoRA) pripojené k zamrznutému modelu, takže to zvládne jedno GPU. Ako presne tie adaptéry vyzerajú a prečo stačia, rozoberá [06-fine-tuning-lora.md](06-fine-tuning-lora.md) (lekcia 7).
+Keď v [zadaní](../../zadania/RAG_Fine_tunning.md) robíte **LoRA/QLoRA** fine-tuning, robíte presne SFT — dvojice otázka → odpoveď, chat šablóna, loss na odpovedi. Rozdiel je len v úspornosti: namiesto všetkých miliárd váh trénujete malé **adaptérové matice** (LoRA) pripojené k zamrznutému modelu, takže to zvládne jedno GPU. Ako presne tie adaptéry vyzerajú a prečo stačia, rozoberá [07-fine-tuning-lora.md](07-fine-tuning-lora.md) (lekcia 7).
 
 ---
 
@@ -180,7 +180,7 @@ Zhrnutie celej cesty jednou vetou: **pretraining dá modelu schopnosti, SFT z ne
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [01-transformer-siete.md](01-transformer-siete.md) — architektúra, ktorá sa tu trénuje (lekcia 4)
 - [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka a optimalizátor (rovnaké aj pre LLM)
-- [03-llm-modely.md](03-llm-modely.md) — **druhá polovica lekcie 5**: prehľad dnešných modelov
-- [04-embeddings.md](04-embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza (lekcia 6)
-- [06-fine-tuning-lora.md](06-fine-tuning-lora.md) — SFT v malom: LoRA/QLoRA, kedy fine-tuning áno/nie (lekcia 7)
+- [04-llm-modely.md](04-llm-modely.md) — **druhá polovica lekcie 5**: prehľad dnešných modelov
+- [05-embeddings.md](05-embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza (lekcia 6)
+- [07-fine-tuning-lora.md](07-fine-tuning-lora.md) — SFT v malom: LoRA/QLoRA, kedy fine-tuning áno/nie (lekcia 7)
 - [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — vlastný SFT cez LoRA/QLoRA

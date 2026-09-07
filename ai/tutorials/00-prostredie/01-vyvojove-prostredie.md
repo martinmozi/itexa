@@ -267,7 +267,7 @@ Pri výbere karty na AI je najdôležitejšie jediné číslo: **VRAM**. Výkon 
 | ~30B | ~60 GB | ~18 GB | 24 GB karta (4-bit) |
 | 70B | ~140 GB | ~40 GB | 2× 24 GB, Mac 64 GB+, alebo cloud |
 
-**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
+**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
 
 Odporúčania podľa rozpočtu (stav v roku 2026, ceny sa hýbu):
 
@@ -294,7 +294,7 @@ Dve praktické rady:
 1. **Vyvíjajte lokálne, trénujte v cloude.** Skript odlaďte doma na malom modeli a vzorke dát; na prenajatej GPU už len spustite hotovú vec. Ladenie preklepov za 2 $/hodinu je zbytočný luxus.
 2. **Vypínajte pody.** Účtuje sa každá hodina behu — beh cez zabudnutý víkend stojí viac než celý mesiac experimentov.
 
-A ešte jedno rozhodnutie pred prenájmom: ak nepotrebujete **vlastné váhy** (fine-tuning, plná kontrola, citlivé dáta), býva lacnejšie nevolať žiadnu GPU a použiť hotové **API** (Anthropic, OpenAI, Together…) — platí sa za tokeny, nie za hodiny. Kritériá výberu modelu rozoberá [03-llm-modely.md](../04-llm/03-llm-modely.md).
+A ešte jedno rozhodnutie pred prenájmom: ak nepotrebujete **vlastné váhy** (fine-tuning, plná kontrola, citlivé dáta), býva lacnejšie nevolať žiadnu GPU a použiť hotové **API** (Anthropic, OpenAI, Together…) — platí sa za tokeny, nie za hodiny. Kritériá výberu modelu rozoberá [04-llm-modely.md](../04-llm/04-llm-modely.md).
 
 ---
 
@@ -329,6 +329,6 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [tutorials/01-prehlad](../01-prehlad/README.md) — **nasleduje**: čo je AI, režimy učenia, metriky
 - [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka, backpropagation, Adam (lekcia 3)
-- [03-llm-modely.md](../04-llm/03-llm-modely.md) — výber modelu (proprietárne / open-weight / open-source — lekcia 5)
-- [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md) — LoRA/QLoRA a pamäťové nároky fine-tuningu (lekcia 7)
+- [04-llm-modely.md](../04-llm/04-llm-modely.md) — výber modelu (proprietárne / open-weight / open-source — lekcia 5)
+- [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md) — LoRA/QLoRA a pamäťové nároky fine-tuningu (lekcia 7)
 - [zadania/rozpoznavanie-obrazkov.md](../../zadania/rozpoznavanie-obrazkov.md), [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — praktické úlohy

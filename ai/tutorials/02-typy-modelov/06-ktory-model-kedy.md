@@ -26,4 +26,4 @@
 
 - [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — **nasleduje**: ako sa neurónové siete trénujú
 - [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — modely pre text a postupnosti
-- [03-llm-modely.md](../04-llm/03-llm-modely.md) — tá istá otázka o úroveň vyššie: ktorý LLM kedy
+- [04-llm-modely.md](../04-llm/04-llm-modely.md) — tá istá otázka o úroveň vyššie: ktorý LLM kedy

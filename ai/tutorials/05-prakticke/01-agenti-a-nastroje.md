@@ -1,10 +1,10 @@
 # Agenti, nástroje a Claude Code
 
-> **Poradie čítania:** ← [Fine-tuning: LoRA a QLoRA](../04-llm/06-fine-tuning-lora.md) · **lekcia 8** · [Trendy — čo sledovať ďalej](02-llm-trendy.md) →
+> **Poradie čítania:** ← [Fine-tuning: LoRA a QLoRA](../04-llm/07-fine-tuning-lora.md) · **lekcia 8** · [Trendy — čo sledovať ďalej](02-llm-trendy.md) →
 
 > **Cieľ dokumentu:** vysvetliť, čo presne robí z jazykového modelu **agenta** — slučku model → nástroj → výsledok → model — a ukázať ju na najkratšom možnom kóde. Potom: ako sa nástroje pripájajú (function calling, MCP), ako vyzerá hotový agent v praxi (Claude Code), kedy siahnuť po frameworku (LangChain/LangGraph) a kedy nie, a aké riziká agent prináša.
 
-Nadväzuje na [01-transformer-siete.md](../04-llm/01-transformer-siete.md) (model generuje token po tokene) a [05-rag.md](../04-llm/05-rag.md) (agentický RAG je jeden z prípadov použitia tejto slučky).
+Nadväzuje na [01-transformer-siete.md](../04-llm/01-transformer-siete.md) (model generuje token po tokene) a [06-rag.md](../04-llm/06-rag.md) (agentický RAG je jeden z prípadov použitia tejto slučky).
 
 ---
 
@@ -144,7 +144,7 @@ Kde reálne pomáha:
 - mechanická, ale rozsiahla práca — premenovanie naprieč projektom, doplnenie testov, migrácia knižnice,
 - prvý návrh riešenia, ktorý potom upravíte.
 
-**Kedy mu neveriť:** agent má tendenciu tvrdiť, že je hotový. Overujte tri veci — či testy naozaj prešli (pozrite výstup, nie zhrnutie), či nezmenil viac, než mal (`git diff`), a či navrhnuté API/knižnica existuje. Platí to isté, čo v [lekcii 7](../04-llm/06-fine-tuning-lora.md) pri halucináciách: model generuje najpravdepodobnejšie pokračovanie, nie overený fakt.
+**Kedy mu neveriť:** agent má tendenciu tvrdiť, že je hotový. Overujte tri veci — či testy naozaj prešli (pozrite výstup, nie zhrnutie), či nezmenil viac, než mal (`git diff`), a či navrhnuté API/knižnica existuje. Platí to isté, čo v [lekcii 7](../04-llm/07-fine-tuning-lora.md) pri halucináciách: model generuje najpravdepodobnejšie pokračovanie, nie overený fakt.
 
 A jedna vec z pohľadu tohto predmetu: pri zadaniach je cieľom pochopiť mechaniku vlastnými rukami. Agentom si dajte vysvetľovať, nie riešiť.
 
@@ -201,7 +201,7 @@ Toto sa **nedá spoľahlivo vyriešiť promptom.** Inštrukcia „ignoruj pokyny
 
 ### Context engineering
 
-Súvisiaca (a menej dramatická) téma: čo presne má agent v kontexte. Pri dlhých behoch kontext rastie o každý výsledok nástroja a začne to byť drahé aj kontraproduktívne — podstatná informácia sa utopí v šume. Preto sa rieši, čo do kontextu vôbec pustiť (výber nástrojov a dokumentov), čo priebežne zhrnúť a čo zahodiť. Je to priame pokračovanie [chunkingu](../04-llm/05-rag.md#chunking--prečo-naň-záleží) z lekcie 6, len o úroveň vyššie.
+Súvisiaca (a menej dramatická) téma: čo presne má agent v kontexte. Pri dlhých behoch kontext rastie o každý výsledok nástroja a začne to byť drahé aj kontraproduktívne — podstatná informácia sa utopí v šume. Preto sa rieši, čo do kontextu vôbec pustiť (výber nástrojov a dokumentov), čo priebežne zhrnúť a čo zahodiť. Je to priame pokračovanie [chunkingu](../04-llm/06-rag.md#chunking--prečo-naň-záleží) z lekcie 6, len o úroveň vyššie.
 
 ### Vyhodnocovanie a sledovanie
 
@@ -229,7 +229,7 @@ Agent je nedeterministický: ten istý vstup môže dať iný priebeh (viď [tep
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — model, ktorý v tejto slučke beží (lekcia 4)
-- [05-rag.md](../04-llm/05-rag.md) — agentický RAG ako typický prípad použitia (lekcia 6)
-- [06-fine-tuning-lora.md](../04-llm/06-fine-tuning-lora.md) — **predchádzajúca lekcia**: LoRA a rozhodovanie RAG vs. fine-tuning
+- [06-rag.md](../04-llm/06-rag.md) — agentický RAG ako typický prípad použitia (lekcia 6)
+- [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md) — **predchádzajúca lekcia**: LoRA a rozhodovanie RAG vs. fine-tuning
 - [02-llm-trendy.md](02-llm-trendy.md) — kam sa to celé hýbe a čo sledovať ďalej
-- [03-llm-modely.md](../04-llm/03-llm-modely.md) — výber modelu pre agenta (a právne mantinely)
+- [04-llm-modely.md](../04-llm/04-llm-modely.md) — výber modelu pre agenta (a právne mantinely)
