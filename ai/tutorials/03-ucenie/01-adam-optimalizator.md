@@ -18,13 +18,27 @@ Než sa pustíme do optimalizátora, treba vedieť, **čo vlastne Adam upravuje*
 obrázok ukazuje jednoduchú doprednú sieť s troma vrstvami. Signál tečie zľava doprava
 (preto „feed-forward"): vstupy → skrytá vrstva → výstupy.
 
-![Prehľad feed-forward neurónovej siete: vstupná, skrytá a výstupná vrstva prepojené váhami](../../images/ff-siet-prehlad.svg)
+![Prehľad feed-forward neurónovej siete: tri vrstvy, modré hrany sú váhy zhrnuté do matíc W₁ a W₂, oranžové štítky pri neurónoch sú biasy b₁ a b₂](../../images/ff-siet-prehlad.svg)
 
-Medzi každými dvoma susednými vrstvami je jedna **váhová matica `W`** a jeden **vektor
-biasov `b`** (na obrázku `W₁, b₁` medzi vstupom a skrytou vrstvou, `W₂, b₂` medzi skrytou
-a výstupnou). Vnútri každého neurónu (okrem vstupných) sa navyše aplikuje **aktivačná
-funkcia `σ`**. Práve `W` a `b` sú **učené parametre** — to sú tie, ktoré Adam v každom kroku
-posúva. Aktivačná funkcia `σ` je pevne daná a nemení sa.
+Ako obrázok čítať:
+
+- **Váhy sú hrany.** Každá modrá čiara medzi dvoma neurónmi je **jedno číslo** — jedna váha.
+  Zvýraznená hrana `w₁₂` je váha zo vstupu `x₁` do 2. neurónu skrytej vrstvy. Váhy sa
+  nekreslia po jednej, ale zhrnú sa do **matice**: všetkých 3 × 4 = 12 hrán medzi vstupom
+  a skrytou vrstvou tvorí maticu `W₁`, všetkých 4 × 2 = 8 hrán medzi skrytou a výstupnou
+  vrstvou tvorí `W₂`. Modré štítky sedia priamo na zväzku hrán, ktorý pomenúvajú.
+- **Biasy sú v neurónoch, nie na hranách.** Bias nemá odkiaľ prísť — nie je to spojenie
+  medzi neurónmi, ale **konštanta, ktorú si každý neurón pripočíta k svojmu váženému
+  súčtu**. Preto je na obrázku nakreslený ako oranžový štítok so šípkou vstupujúcou do
+  neurónu: `b₁,₁ … b₁,₄` sú biasy štyroch neurónov skrytej vrstvy a spolu tvoria **vektor
+  `b₁`** (4 čísla), `b₂,₁` a `b₂,₂` sú biasy dvoch výstupných neurónov a tvoria **vektor
+  `b₂`** (2 čísla). Platí jednoduché pravidlo: **koľko neurónov vo vrstve, toľko biasov.**
+  Vstupná vrstva bias nemá — len podáva dáta ďalej.
+- **Aktivácia je vnútri neurónu.** Zelené `σ` v každom neuróne (okrem vstupných) je
+  aktivačná funkcia, ktorá sa aplikuje na výsledok `váhy · vstupy + bias`.
+
+Táto sieť má teda spolu 12 + 4 + 8 + 2 = **26 učených parametrov**. Práve `W₁, b₁, W₂, b₂`
+sú tie, ktoré Adam v každom kroku posúva. Aktivačná funkcia `σ` je pevne daná a nemení sa.
 
 ### Čo sa deje v jednom neuróne
 
@@ -49,28 +63,58 @@ Neurón robí dva kroky:
 | **Sigmoid** | `1 / (1 + e⁻ᶻ)` | `(0, 1)` | **výstupná vrstva pri binárnej klasifikácii** — výstup sa dá čítať ako pravdepodobnosť (spam / nie spam) |
 | **Softmax** | `eᶻⁱ / Σ eᶻʲ` | pravdepodobnosti so súčtom 1 | **výstupná vrstva pri klasifikácii do viacerých tried** — z 10 výstupov spraví rozdelenie pravdepodobnosti (číslice 0–9) |
 | **Tanh** | `(eᶻ − e⁻ᶻ) / (eᶻ + e⁻ᶻ)` | `(−1, 1)` | skryté vrstvy, keď je výhodný výstup centrovaný okolo nuly; historicky v rekurentných sieťach |
+| **Leaky ReLU** | `max(αz, z)`, čiže `z` pre `z > 0` a `αz` pre `z ≤ 0` (typicky `α = 0,01`) | `(−∞, ∞)` | náhrada ReLU tam, kde sieti odumierajú neuróny — záporná časť má malý sklon `α`, takže gradient nikdy nie je presne nula |
+| **GELU** | `z · Φ(z)`, kde `Φ` je distribučná funkcia normálneho rozdelenia `N(0, 1)` | `⟨−0,17; ∞)` | **skryté vrstvy transformerov** (BERT, GPT) — hladká, všade diferencovateľná verzia ReLU |
+
+K posledným dvom riadkom:
+
+- **`α` v Leaky ReLU je hyperparameter**, nie učený parameter — volíte ho vy (bežne `0,01`)
+  a Adam s ním nič nerobí. Varianta **PReLU** z neho učený parameter spraví, ale tá sa
+  používa zriedka.
+- **GELU** sa dá čítať ako „ReLU s mäkkým prechodom": namiesto tvrdého vypnutia pri nule
+  násobí vstup pravdepodobnosťou `Φ(z)`, že je náhodná hodnota z `N(0, 1)` menšia než `z`.
+  Pre veľké kladné `z` je `Φ(z) ≈ 1` (teda `GELU(z) ≈ z`), pre veľké záporné `z` je
+  `Φ(z) ≈ 0` (teda `GELU(z) ≈ 0`). Keďže `Φ` sa počíta cez `erf`, v praxi sa často používa
+  lacnejšia aproximácia:
+
+  ```
+  GELU(z) ≈ 0,5 · z · (1 + tanh(√(2/π) · (z + 0,044715 · z³)))
+  ```
+
+  Na rozdiel od ReLU je GELU pre mierne záporné `z` **mierne záporná** (minimum ≈ `−0,17`
+  okolo `z ≈ −0,75`), a práve tá hladkosť okolo nuly je dôvod, prečo sa v hlbokých
+  transformeroch trénuje stabilnejšie.
+
+Ako tieto funkcie vyzerajú vykreslené (`z` na vodorovnej osi, výstup na zvislej):
+
+![Grafy aktivačných funkcií: ReLU, Leaky ReLU, GELU, sigmoid, tanh a stĺpcový graf softmaxu](../../images/aktivacne-funkcie.svg)
+
+Na grafoch je dobre vidieť to podstatné pre tréning — **aký strmý je sklon krivky**, lebo
+sklon (derivácia) je presne to, čím sa pri backprope násobí gradient:
+
+- **ReLU** má naľavo od nuly úplne vodorovnú čiaru → sklon 0 → neurón, ktorý sa tam dostane,
+  už nedostane žiadny gradient („mŕtvy neurón").
+- **Leaky ReLU** a **GELU** sú tam mierne naklonené (u GELU navyše hladko, bez zlomu),
+  takže gradient nikdy nespadne presne na nulu. Čierkovaná sivá krivka je pre porovnanie
+  ReLU.
+- **Sigmoid** a **tanh** sú na oboch koncoch takmer ploché — pre `|z| > 3` je sklon blízky
+  nule a gradient sa pri backprope cez viac vrstiev postupne „stratí" (**vanishing
+  gradient**), takže sieť sa prestane učiť. Preto sa v **skrytých** vrstvách hlbokých sietí
+  už takmer nepoužívajú.
+- **Softmax** nie je funkcia jedného čísla, preto je vykreslený inak: berie celý vektor
+  výstupov naraz a spraví z neho pravdepodobnosti, ktoré dávajú spolu 100 %.
 
 Praktické pravidlo: **skryté vrstvy = ReLU, výstupná vrstva podľa úlohy** — sigmoid pre
 áno/nie, softmax pre výber z viacerých tried, žiadna aktivácia (identita) pre regresiu,
 kde má výstup byť ľubovoľné číslo (napr. cena bytu).
 
-Dve poznámky k okrajom:
-
-- Sigmoid a tanh sa v **skrytých** vrstvách hlbokých sietí už takmer nepoužívajú: pre veľké
-  `|z|` sú takmer ploché, ich derivácia je blízka nule a gradient sa pri backprope cez viac
-  vrstiev postupne „stratí" (**vanishing gradient**) — sieť sa prestane učiť.
-- ReLU má zas problém „mŕtvych neurónov": neurón, ktorý sa dostane trvalo do záporného `z`,
-  má nulový gradient a už sa nikdy nepohne. Riešia to drobné varianty ako **Leaky ReLU**
-  (záporná časť má malý sklon namiesto nuly) alebo hladká **GELU**, ktorá je dnes štandardom
-  v transformeroch.
-
 Zhrnutie mapovania na algoritmus nižšie:
 
-| Prvok na obrázku | Symbol | Učený parameter? | Adam ho upravuje? |
-|---|---|---|---|
-| váhy | `W` (`wᵢ`) | áno | **áno** |
-| bias | `b` | áno | **áno** |
-| aktivačná funkcia | `σ` | nie (pevná voľba) | nie |
+| Prvok na obrázku | Kde ho na obrázku nájdem | Symbol | Učený parameter? | Adam ho upravuje? |
+|---|---|---|---|---|
+| váhy | modré hrany medzi neurónmi (zhrnuté do matíc) | `W₁`, `W₂` (prvok `wᵢⱼ`) | áno | **áno** |
+| bias | oranžové štítky so šípkou do neurónu | `b₁`, `b₂` (prvok `bₗ,ⱼ`) | áno | **áno** |
+| aktivačná funkcia | zelené `σ` vnútri neurónu | `σ` | nie (pevná voľba) | nie |
 
 Adam teda pracuje s gradientmi `dW` a `db` (parciálne derivácie chyby podľa `W` a `b`) —
 presne s tými, ktoré vypadnú z backpropu.
