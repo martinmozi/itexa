@@ -1,13 +1,13 @@
 # Zadanie projektu: Simulátor križovatky so semaformi
 
 ## Úvod
-Vytvorte webovú aplikáciu pre real-time simuláciu križovatky v tvare plus so semaformi a premávkou. Aplikácia musí využívať backend v Pythone pre simuláciu pohybu áut a riadenie semaforov, frontend v JavaScripte pre vizualizáciu a WebSocket pre jednosmernú komunikáciu v reálnom čase.
+Vytvorte webovú aplikáciu pre simuláciu v reálnom čase križovatky v tvare plus so semaformi a premávkou. Aplikácia musí využívať backend v Pythone pre simuláciu pohybu áut a riadenie semaforov, frontend v JavaScripte pre vizualizáciu a WebSocket pre jednosmernú komunikáciu v reálnom čase.
 
 ---
 
 ## Architektúra komunikácie
 
-### Communication Flow:
+### Tok komunikácie
 ```
 FÁZA 1: VYTVORENIE KONFIGURÁCIE SEMAFOROV
 1. Používateľ nastaví časovanie semaforov v setup formulári/editore
@@ -16,7 +16,7 @@ FÁZA 1: VYTVORENIE KONFIGURÁCIE SEMAFOROV
    ↓
 3. Backend: Validácia parametrov → Kontrola konfliktov → Uloženie konfigurácie
    ↓
-4. Backend → Frontend: JSON response (config_id, validácia konfliktov, warnings)
+4. Backend → Frontend: JSON response (config_id, validácia konfliktov, varovania)
    ↓
 5. Frontend: Zobrazenie uloženej konfigurácie v zozname
 
@@ -115,7 +115,7 @@ Backend musí kontrolovať **konflikty** medzi semaformi. Nemôžu mať zelenú 
 **Požiadavky:**
 - Backend validuje konfliktné nastavenia pri vytvorení konfigurácie
 - Ak používateľ nastaví konfliktné zelené fázy, backend vráti chybu
-- Backend generuje warning ak sú intervaly neefektívne (malé využitie)
+- Backend generuje varovanie, ak sú intervaly neefektívne (malé využitie)
 
 ### 1.3 Generovanie a pohyb áut
 
@@ -193,7 +193,7 @@ Vytvorí a uloží novú konfiguráciu časovania semaforov. **Nespúšťa simul
 #### `GET /api/intersection/configurations`
 Vráti zoznam všetkých uložených konfigurácií.
 
-**Query parametre:**
+**Parametre dotazu:**
 - `include_presets` - zahrnúť prednastavené konfigurácie (default: true)
 
 **Odpoveď:**
@@ -232,7 +232,7 @@ Aktualizuje existujúcu konfiguráciu (iba ak nie je preset).
 Zmaže konfiguráciu (iba používateľské, nie presety).
 
 #### `POST /api/intersection/configurations/validate`
-Validácia nastavení bez uloženia (pre real-time feedback v editore).
+Validácia nastavení bez uloženia (pre priebežnú spätnú väzbu v editore).
 
 ### 1.5 REST API - Správa simulácií
 
@@ -286,7 +286,7 @@ Spustí simuláciu na základe existujúcej konfigurácie.
 #### `GET /api/intersection/simulations`
 Vráti zoznam všetkých simulácií.
 
-**Query parametre:**
+**Parametre dotazu:**
 - `status` - filter podľa stavu: "running", "completed", "stopped"
 - `config_id` - filter podľa konfigurácie
 - `limit` - maximálny počet výsledkov (default 50)
@@ -348,12 +348,12 @@ Zastaví bežiacu simuláciu.
 #### Ďalšie endpointy:
 - `GET /api/intersection/configurations/{config_id}/history` - história simulácií pre danú konfiguráciu
 - `GET /api/intersection/presets` - vráti prednastavené konfigurácie
-- `GET /api/info` - server info
+- `GET /api/info` - informácie o serveri
 
 ### 1.6 WebSocket server (jednosmerný)
 - Framework: `websockets` alebo `socket.io` pre Python
 - Endpoint: `ws://localhost:8000/ws/{simulation_id}`
-- **Iba jednostranná komunikácia:** server → klient
+- **Iba jednosmerná komunikácia:** server → klient
 
 **Prvá správa (setup):**
 ```json
@@ -442,14 +442,14 @@ Zastaví bežiacu simuláciu.
 - Vizuálny editor pre nastavenie časovania semaforov
 - Timeline zobrazujúci celý cyklus
 - Možnosť drag & drop pre nastavenie intervalov
-- Real-time detekcia konfliktov (zvýraznenie červenou)
+- Detekcia v reálnom čase konfliktov (zvýraznenie červenou)
 - Formulár s parametrami:
   - Názov konfigurácie
   - Popis
   - Dĺžka cyklu (s)
   - Pre každý semafor: start_time, duration
 - Tlačidlo "Uložiť konfiguráciu"
-- Zobrazenie warnings a konfliktov po uložení
+- Zobrazenie varovaní a konfliktov po uložení
 
 **Sekcia 2: Zoznam konfigurácií**
 - Tabuľka/karty zobrazujúce všetky konfigurácie
@@ -474,7 +474,7 @@ Zastaví bežiacu simuláciu.
 - 12 semaforov s farebnými šípkami
 - Animácia pohybu áut
 - Progress bar cyklu (kde sa práve nachádza v cykle)
-- Real-time štatistiky:
+- Štatistiky v reálnom čase:
   - Čas simulácie
   - Počet áut (generovaných, čakajúcich, prejdených)
   - Priemerná čakacia doba
@@ -490,9 +490,9 @@ Zastaví bežiacu simuláciu.
 - Filter podľa konfigurácie
 - Porovnanie výsledkov
 
-- Responzívny dizajn (mobile-friendly)
+- Responzívny dizajn (použiteľný aj na mobile)
 
-### 2.2 Workflow používateľa
+### 2.2 Postup práce používateľa
 
 **Vytvorenie konfigurácie:**
 1. Používateľ otvorí editor časovania
@@ -509,7 +509,7 @@ Zastaví bežiacu simuláciu.
 4. Frontend: POST `/api/intersection/simulations/start` s `config_id` a parametrami
 5. Získanie `simulation_id` a `websocket_url`
 6. Otvorenie WebSocket spojenia
-7. Real-time vizualizácia
+7. Vizualizácia v reálnom čase
 
 ### 2.3 Príklad implementácie
 
@@ -596,7 +596,7 @@ function connectWebSocket(wsUrl) {
     };
 }
 
-// Real-time validácia konfliktov v editore
+// Priebežná validácia konfliktov v editore
 async function validateTimings() {
     const timings = getSignalTimingsFromEditor();
     
@@ -626,13 +626,13 @@ async function validateTimings() {
 5. Ukladať konfigurácie a históriu simulácií do databázy
 6. Generovať autá podľa nastavených intenzít
 7. Simulovať pohyb áut s rešpektovaním semaforov
-8. Bežať simuláciu asynchrónne na pozadí
+8. Spúšťať simuláciu asynchrónne na pozadí
 9. Posielať state updates cez WebSocket
 10. Počítať štatistiky v reálnom čase
 
 ### Frontend musí:
 1. **Poskytovať vizuálny editor pre konfiguráciu časovania**
-2. **Real-time detekciu konfliktov v editore**
+2. **Detekciu v reálnom čase konfliktov v editore**
 3. **Zobrazovať zoznam všetkých konfigurácií**
 4. Umožňovať výber konfigurácie a nastavenie parametrov premávky
 5. **Volať správne API endpointy** (konfigurácie vs simulácie)
@@ -645,7 +645,7 @@ async function validateTimings() {
 12. Umožniť úpravu a mazanie konfigurácií
 13. Byť responzívny
 
-### Security musí:
+### Bezpečnosť musí:
 1. Zabrániť základným typom útokov
 2. Implementovať rate limiting
 3. Validovať všetky IDs
@@ -753,11 +753,11 @@ CREATE TABLE simulations (
 - Vytvorte maticu konfliktov (12x12) pre detekciu
 - Použite Poissonov proces pre generovanie áut
 - Implementujte efektívne dátové štruktúry (deque pre rady)
-- Cachujte validáciu konfliktov v konfigurácii
+- Ukladajte validáciu konfliktov do cache v konfigurácii
 
 ### Pre frontend:
 - Použite drag & drop knižnicu pre editor (Interact.js)
-- Implementujte debouncing pri validácii
+- Implementujte obmedzenie frekvencie volaní (debouncing) pri validácii
 - Použite WebWorkers pre náročné výpočty
 - Canvas optimalizácia pre plynulú animáciu
 

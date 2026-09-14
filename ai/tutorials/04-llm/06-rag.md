@@ -2,7 +2,7 @@
 
 > **Poradie čítania:** ← [Embeddingy](05-embeddings.md) · **lekcia 6** · [Fine-tuning: LoRA a QLoRA](07-fine-tuning-lora.md) →
 
-**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **podsunieme do promptu** — ale len tie kúsky, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](05-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
+**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **podsunieme do promptu** — ale len tie časti, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](05-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
 
 Celá pipeline má dve polovice — jednu, ktorá beží raz dopredu, a druhú, ktorá beží pri každej otázke:
 
@@ -38,7 +38,7 @@ Kľúčové je uvedomiť si, že **v RAG bežia typicky až tri modely**, a dva 
 Toto sa robí **raz** (alebo pri zmene dokumentov) a je to *dávkové* spracovanie:
 
 1. **Extrakcia textu** – z PDF, DOCX, HTML, wiki... získame surový text.
-2. **Chunking** – text sa nareže na kúsky (viac nižšie).
+2. **Chunking** – text sa rozdelí na časti – *chunky* (viac nižšie).
 3. **Embedding** – každý chunk prejde embedding modelom ([05-embeddings.md](05-embeddings.md)) → vektor.
 4. **Indexovanie** – vektory + metadáta (ID chunku, `parent_id`, zdroj, odkaz na text) sa uložia do vektorovej DB (napr. FAISS).
 
@@ -237,7 +237,7 @@ Zhrnutie, prečo aj „malé" modely reálne potrebujú výkon:
 
 - **Reranker (cross-encoder) – tu GPU dáva najväčší zmysel:**
   - Beží `k`-krát pri **každom** dotaze (napr. 20–50× priebeh modelu na jednu otázku).
-  - Vstup je dlhší (otázka **+** celý chunk spolu), takže `n` je väčšie a `O(n²)` attention bolí.
+  - Vstup je dlhší (otázka **+** celý chunk spolu), takže `n` je väčšie a kvadratická zložitosť attention je citeľná.
   - Na CPU to vie pridať stovky ms až sekundy na dotaz; na GPU je to prijateľné.
   - **Toto je typicky prvý kandidát na GPU** v RAG systéme.
 

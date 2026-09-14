@@ -12,7 +12,7 @@ technická dokumentácia).
 Máte na výber **dva prístupy** — vyberte si (alebo vám bude pridelený) **jeden**:
 
 - **Úloha A — RAG (Retrieval-Augmented Generation):** dokument sa neučí do váh modelu.
-  Rozdelí sa na kúsky, zaindexuje cez embeddingy a pri každej otázke sa relevantné kúsky
+  Rozdelí sa na časti (*chunky*), zaindexuje cez embeddingy a pri každej otázke sa relevantné časti
   **vyhľadajú a vložia do promptu** ako kontext.
 - **Úloha B — Fine-tuning:** obsah dokumentu (resp. dvojice otázka–odpoveď z neho) sa
   **doučí priamo do modelu** (typicky metódou **LoRA / QLoRA**), takže model odpovedá
@@ -104,7 +104,7 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
 
 ## A1 — Príprava dát (indexovanie, offline)
 
-1. **Chunking** — dokument rozdeľte na kúsky (napr. 200–500 tokenov s prekryvom ~50).
+1. **Chunking** — dokument rozdeľte na časti (*chunky*) (napr. 200–500 tokenov s prekryvom ~50).
    Zvážte delenie po odsekoch/vetách, nie naslepo v strede vety.
    > *Podklad:* stratégie chunkingu a metadáta sú rozpísané v [06-rag.md](../tutorials/04-llm/06-rag.md).
 2. **Embeddingy** — každý chunk preveďte na vektor embeddovacím modelom

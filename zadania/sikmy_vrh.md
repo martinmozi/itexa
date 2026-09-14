@@ -1,13 +1,13 @@
 # Zadanie projektu: Simulátor šikmého vrhu - Hod kameňom
 
 ## Úvod
-Vytvorte webovú aplikáciu pre real-time simuláciu šikmého vrhu kameňa (hmotný bod bez odporu vzduchu). Aplikácia musí využívať backend v Pythone pre fyzikálne výpočty balistickej trajektórie, frontend v JavaScripte pre vizualizáciu a WebSocket pre jednosmernú komunikáciu v reálnom čase.
+Vytvorte webovú aplikáciu pre simuláciu v reálnom čase šikmého vrhu kameňa (hmotný bod bez odporu vzduchu). Aplikácia musí využívať backend v Pythone pre fyzikálne výpočty balistickej trajektórie, frontend v JavaScripte pre vizualizáciu a WebSocket pre jednosmernú komunikáciu v reálnom čase.
 
 ---
 
 ## Architektúra komunikácie
 
-### Communication Flow:
+### Tok komunikácie
 ```
 FÁZA 1: VYTVORENIE KONFIGURÁCIE
 1. Používateľ vyplní formulár (hmotnosť, počiatočná rýchlosť, uhol vrhu, krok, metóda)
@@ -56,7 +56,7 @@ FÁZA 3: SPUSTENIE SIMULÁCIE
 - WebSocket je **jednosmerný** (server → klient) - slúži iba na prenos simulačných dát
 - Backend riadi celý beh simulácie nezávisle po spustení cez REST API
 - Frontend iba vizualizuje prijímané dáta, nemení beh simulácie cez WebSocket
-- Simulácia sa končí automaticky keď kameň dopadne na zem (y ≤ 0)
+- Simulácia sa končí automaticky, keď kameň dopadne na zem (y ≤ 0)
 
 ---
 
@@ -235,7 +235,7 @@ Spustí simuláciu na základe existujúcej konfigurácie.
 #### `GET /api/projectile/simulations`
 Vráti zoznam všetkých simulácií (aktívnych aj dokončených).
 
-**Query parametre:**
+**Parametre dotazu:**
 - `status` - filter podľa stavu: "running", "completed", "stopped"
 - `config_id` - filter podľa konfigurácie
 - `limit` - maximálny počet výsledkov (default 50)
@@ -288,12 +288,12 @@ Zastaví bežiacu simuláciu.
 #### Ďalšie endpointy:
 - `POST /api/projectile/configurations/validate` - validácia parametrov pred vytvorením konfigurácie
 - `GET /api/projectile/configurations/{config_id}/history` - história simulácií pre danú konfiguráciu
-- `GET /api/info` - vráti server info (verzia, podporované rozsahy parametrov, dostupné metódy)
+- `GET /api/info` - vráti informácie o serveri (verzia, podporované rozsahy parametrov, dostupné metódy)
 
 ### 1.4 WebSocket server (jednosmerný)
 - Framework: `websockets` alebo `socket.io` pre Python
 - Endpoint: `ws://localhost:8000/ws/{simulation_id}`
-- **Iba jednostranná komunikácia:** server → klient
+- **Iba jednosmerná komunikácia:** server → klient
 - Klient sa pripojí pomocou `simulation_id` z REST API odpovede
 
 **Prvá správa (setup):**
@@ -364,7 +364,7 @@ Zastaví bežiacu simuláciu.
   - Počiatočná rýchlosť (m/s) - default 20
   - Uhol vrhu (stupne) - default 45
   - **Časový krok simulácie** (s) - default 0.01
-  - **Numerická metóda** - dropdown (Euler, RK2, RK4)
+  - **Numerická metóda** - rozbaľovací zoznam (Euler, RK2, RK4)
 - Tlačidlo "Uložiť konfiguráciu"
 - Zobrazenie analytických výsledkov po uložení
 - Validácia na strane klienta (rozsahy hodnôt, numerické vstupy)
@@ -392,9 +392,9 @@ Zastaví bežiacu simuláciu.
 **Sekcia 4: História simulácií**
 - Zoznam posledných spustených simulácií
 - Filter podľa konfigurácie
-- Možnosť replay
+- Možnosť opakovaného prehratia
 
-### 2.2 Workflow používateľa
+### 2.2 Postup práce používateľa
 
 **Vytvorenie konfigurácie:**
 1. Používateľ vyplní formulár s parametrami
@@ -409,7 +409,7 @@ Zastaví bežiacu simuláciu.
 3. Frontend: POST `/api/projectile/simulations/start` s `config_id`
 4. Získanie `simulation_id` a `websocket_url`
 5. Otvorenie WebSocket spojenia
-6. Real-time vizualizácia
+6. Vizualizácia v reálnom čase
 
 **Správa konfigurácií:**
 1. Načítanie všetkých konfigurácií: GET `/api/projectile/configurations`
@@ -493,7 +493,7 @@ function connectWebSocket(wsUrl) {
 ### 2.4 Vizualizácia
 Vytvorte animáciu pomocou **Canvas API** alebo **SVG**:
 - 2D pohľad zboku na trajektóriu
-- Real-time pohyb kameňa
+- Pohyb v reálnom čase kameňa
 - Stopa trajektórie za kameňom
 - Zobrazenie analytickej trajektórie (transparentná čiara pre porovnanie)
 - Graf výšky v čase (Chart.js/D3.js)
@@ -510,7 +510,7 @@ Vytvorte animáciu pomocou **Canvas API** alebo **SVG**:
 3. **Poskytnúť API pre správu simulácií** (spustenie, zastavenie, história)
 4. Ukladať konfigurácie a históriu simulácií do databázy (SQLite/PostgreSQL)
 5. Generovať unikátne `config_id` a `simulation_id`
-6. Bežať simuláciu asynchrónne (background task) po spustení cez REST API
+6. Spúšťať simuláciu asynchrónne (background task) po spustení cez REST API
 7. Posielať dáta cez WebSocket v správnom formáte (setup → data → completed)
 8. Podporovať viacero súčasných simulácií
 9. Validovať všetky vstupy a odmietnuť neplatné hodnoty
@@ -529,9 +529,9 @@ Vytvorte animáciu pomocou **Canvas API** alebo **SVG**:
 10. Správne spracovať výpadky spojenia
 11. Umožniť manuálne zastavenie simulácie
 12. Umožniť úpravu a mazanie konfigurácií
-13. Byť responzívny (mobile-friendly)
+13. Byť responzívny (použiteľný aj na mobile)
 
-### Security musí:
+### Bezpečnosť musí:
 1. Zabrániť základným typom útokov (XSS, SQL injection, CSRF)
 2. Implementovať rate limiting na REST API
 3. Validovať `config_id` a `simulation_id` pred použitím
@@ -659,24 +659,24 @@ CREATE TABLE simulations (
 
 ### Pre backend:
 - Použite ORM (SQLAlchemy pre Python) pre prácu s databázou
-- Implementujte transakcional handling pri vytváraní konfigurácií
+- Implementujte transakčné spracovanie pri vytváraní konfigurácií
 - Pri mazaní konfigurácie skontrolujte, či nemá aktívne simulácie
-- Cachujte analytické výsledky v konfigurácii
+- Ukladajte do cache analytické výsledky v konfigurácii
 - Pre UUID použite `import uuid`
 
 ### Pre frontend:
 - Použite state management (React Context/Redux alebo jednoduchý objekt)
-- Implementujte debouncing pri validácii formulára
-- Zobrazujte loading states pri API calloch
+- Implementujte obmedzenie frekvencie volaní (debouncing) pri validácii formulára
+- Zobrazujte stav načítavania pri volaniach API
 - Použite optimistic UI updates pre lepší UX
-- Implementujte pagination pre veľké zoznamy konfigurácií
+- Implementujte stránkovanie pre veľké zoznamy konfigurácií
 
 ### Pre DevOps:
 - Databázové migrácie (Alembic pre SQLAlchemy)
-- Backup stratégia pre databázu
+- Stratégia zálohovania databázy
 - Monitoring aktívnych simulácií
-- Health check endpointy
+- Endpointy na kontrolu stavu (health check)
 
 ---
 
-**Veľa úspechov pri realizácii projektu! **
+**Veľa úspechov pri realizácii projektu!**

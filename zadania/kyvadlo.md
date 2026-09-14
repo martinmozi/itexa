@@ -1,13 +1,13 @@
 # Zadanie projektu: Simulátor matematického kyvadla
 
 ## Úvod
-Vytvorte webovú aplikáciu pre real-time simuláciu matematického (rovnoramenného) kyvadla. Aplikácia demonštruje rozdiely medzi analytickým riešením (platné len pre malé uhly) a numerickými metódami (potrebné pre veľké výchylky). Backend v Pythone zabezpečuje fyzikálne výpočty, frontend v JavaScripte vizualizáciu a WebSocket jednosmernú komunikáciu v reálnom čase.
+Vytvorte webovú aplikáciu pre simuláciu v reálnom čase matematického (rovnoramenného) kyvadla. Aplikácia demonštruje rozdiely medzi analytickým riešením (platné len pre malé uhly) a numerickými metódami (potrebné pre veľké výchylky). Backend v Pythone zabezpečuje fyzikálne výpočty, frontend v JavaScripte vizualizáciu a WebSocket jednosmernú komunikáciu v reálnom čase.
 
 ---
 
 ## Architektúra komunikácie
 
-### Communication Flow:
+### Tok komunikácie
 ```
 FÁZA 1: VYTVORENIE KONFIGURÁCIE
 1. Používateľ vyplní formulár (dĺžka, hmotnosť, tlmenie, počiatočný uhol, krok, metóda)
@@ -125,7 +125,7 @@ kde:
   3. **Analytická metóda** - najpresnejšia **iba pre θ₀ < 5°**
   
 - **Dôležité:** Pri vytvorení konfigurácie s θ₀ ≥ 5° a analytickou metódou:
-  - Backend vráti **WARNING**: "Analytické riešenie nie je presné pre uhly ≥ 5°"
+  - Backend vráti **varovanie**: "Analytické riešenie nie je presné pre uhly ≥ 5°"
   - Ponúkne odporúčanie použiť RK4
   - Ak používateľ trvá na analytickej metóde, backend ju použije (ale výsledky nebudú presné)
 
@@ -289,7 +289,7 @@ Vytvorí a uloží novú konfiguráciu kyvadla. **Nespúšťa simuláciu**, len 
 #### `GET /api/pendulum/configurations`
 Vráti zoznam všetkých uložených konfigurácií.
 
-**Query parametre:**
+**Parametre dotazu:**
 - `oscillation_type` - filter: "small_angle" / "large_angle"
 - `method` - filter podľa metódy
 
@@ -342,7 +342,7 @@ Aktualizuje existujúcu konfiguráciu.
 Zmaže konfiguráciu.
 
 #### `POST /api/pendulum/configurations/validate`
-Real-time validácia (pre frontend feedback).
+Validácia v reálnom čase (pre spätnú väzbu vo frontende).
 
 ### 1.4 REST API - Správa simulácií
 
@@ -375,7 +375,7 @@ Spustí simuláciu na základe existujúcej konfigurácie.
 #### `GET /api/pendulum/simulations`
 Vráti zoznam všetkých simulácií.
 
-**Query parametre:**
+**Parametre dotazu:**
 - `status` - "running" / "completed" / "stopped"
 - `config_id` - filter podľa konfigurácie
 - `oscillation_type` - "small_angle" / "large_angle"
@@ -396,12 +396,12 @@ Zastaví bežiacu simuláciu.
   - "large_swing" (θ₀=30°, netlmené, RK4)
   - "extreme_swing" (θ₀=90°, netlmené, RK4)
   - "near_vertical" (θ₀=179°, netlmené, RK4)
-- `GET /api/info` - server info
+- `GET /api/info` - informácie o serveri
 
 ### 1.5 WebSocket server (jednosmerný)
 - Framework: `websockets` alebo `socket.io`
 - Endpoint: `ws://localhost:8000/ws/{simulation_id}`
-- **Iba jednostranná komunikácia:** server → klient
+- **Iba jednosmerná komunikácia:** server → klient
 
 **Prvá správa (setup):**
 ```json
@@ -485,10 +485,10 @@ Zastaví bežiacu simuláciu.
 - Formulár na vytvorenie novej konfigurácie:
   - Názov konfigurácie
   - Popis (voliteľné)
-  - Dĺžka kyvadla (m) - slider 0.1-5m, default 1.0
-  - Hmotnosť závaží (kg) - slider 0.1-10kg, default 1.0
-  - Koeficient tlmenia (kg·m²/s) - slider 0-2.0, default 0.0
-  - **Počiatočný uhol (°)** - slider -180° až 180°, default 10°
+  - Dĺžka kyvadla (m) - posuvník 0.1-5 m, default 1.0
+  - Hmotnosť závaží (kg) - posuvník 0.1-10 kg, default 1.0
+  - Koeficient tlmenia (kg·m²/s) - posuvník 0-2.0, default 0.0
+  - **Počiatočný uhol (°)** - posuvník -180° až 180°, default 10°
     - **Vizuálny indikátor:**
       - Zelená zóna: |θ| < 5° (analytické riešenie platné)
       - Žltá zóna: 5° ≤ |θ| < 30° (mierne nelineárne)
@@ -496,12 +496,12 @@ Zastaví bežiacu simuláciu.
       - Červená zóna: |θ| ≥ 90° (extrémne výchylky)
   - Počiatočná uhlová rýchlosť (rad/s) - default 0.0
   - Časový krok (s) - default 0.01
-  - **Numerická metóda** - dropdown s odporúčaním:
+  - **Numerická metóda** - rozbaľovací zoznam s odporúčaním:
     - Euler
     - RK2
     - RK4 (odporúčané pre θ > 5°)
     - Analytical (platné len pre θ < 5°)
-- **Real-time warning system:**
+- **Systém varovaní v reálnom čase:**
   - Ak θ ≥ 5° a metóda je "analytical": zobraz červené varovanie
   - Ponúkni tlačidlo "Zmeniť na RK4"
 - Tlačidlo "Uložiť konfiguráciu"
@@ -541,7 +541,7 @@ Zastaví bežiacu simuláciu.
   - Stopa trajektórie (oblúk)
   - Značka rovnovážnej polohy
   - Grid s uhlami (každých 15°)
-- **Real-time hodnoty:**
+- **Hodnoty v reálnom čase:**
   - Čas (s)
   - Uhol (°)
   - Uhlová rýchlosť (rad/s)
@@ -569,9 +569,9 @@ Zastaví bežiacu simuláciu.
 
 - Responzívny dizajn
 
-### 2.2 Workflow používateľa
+### 2.2 Postup práce používateľa
 
-**Typický experimentálny workflow:**
+**Typický experimentálny postup:**
 
 1. **Experiment 1: Malé uhly (θ₀ = 3°)**
    - Vytvoriť konfiguráciu s analytical metódou
@@ -597,12 +597,12 @@ Zastaví bežiacu simuláciu.
 ### 2.3 Príklad implementácie
 
 ```javascript
-// Vytvorenie konfigurácie s real-time validáciou
+// Vytvorenie konfigurácie s priebežnou validáciou
 async function saveConfiguration() {
     const angle = parseFloat(document.getElementById('initialAngle').value);
     const method = document.getElementById('method').value;
     
-    // Real-time warning
+    // Priebežné varovanie
     if (Math.abs(angle) >= 5 && method === 'analytical') {
         showWarning('⚠️ Analytické riešenie nie je presné pre θ ≥ 5°. Odporúčame RK4.');
     }
@@ -627,7 +627,7 @@ async function saveConfiguration() {
     
     const config = await response.json();
     
-    // Zobraz warnings z backendu
+    // Zobraz varovania z backendu
     if (config.warnings && config.warnings.length > 0) {
         displayWarnings(config.warnings);
     }
@@ -730,7 +730,7 @@ Jeden graf s tromi krivkami:
 
 ### Frontend musí:
 1. Formulár s vizuálnymi indikátormi pre uhly
-2. **Real-time warning systém** pri θ ≥ 5° a analytical
+2. **Systém varovaní v reálnom čase** pri θ ≥ 5° a zvolenom analytickom riešení
 3. Zoznam konfigurácií s farebným kódovaním
 4. **Funkcia porovnania metód**
 5. Volať správne API endpointy
@@ -743,12 +743,12 @@ Jeden graf s tromi krivkami:
 12. Responzívny dizajn
 
 ### Edukačné prvky musí obsahovať:
-1. **Tooltip vysvetlenia:**
+1. **Vysvetlivky v bublinách (*tooltip*):**
    - Čo je linearizácia
    - Prečo sin(θ) ≈ θ pre malé uhly
    - Čo je neizochronizmus
 2. **Interaktívne demonštrácie:**
-   - Slider uhla s real-time aktualizáciou chyby aproximácie
+   - Posuvník uhla s aktualizáciou v reálnom čase chyby aproximácie
    - Animácia porovnania linearizovaného a presného riešenia
 3. **Prednastavené experimenty:**
    - "Malé oscilace" - ukázať presnosť analytical
@@ -888,9 +888,9 @@ CREATE TABLE simulations (
   ```
 
 ### Pre frontend:
-- Použiť gradient farby pre slider uhla (zelená → žltá → červená)
+- Použiť farebný prechod pre posuvník uhla (zelená → žltá → červená)
 - Animovať prechod z malých na veľké uhly
-- Tooltip s matematickými vzorcami
+- Bublinový popis s matematickými vzorcami
 - Interaktívny graf sin(θ) vs θ s posuvníkom
 
 ---

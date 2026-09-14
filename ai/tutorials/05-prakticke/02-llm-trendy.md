@@ -37,7 +37,7 @@ Konkrétne verzie modelov, knižníc aj frameworkov sa vymenia. Mechanika nie:
 - **typ dát určuje model** — na tabuľky stále XGBoost, na obraz CNN. Táto vec sa za desať rokov nezmenila a pravdepodobne sa ani nezmení,
 - **vyhodnotenie proti baseline** — bez merania sa nedá povedať, že niečo pomohlo. Platí to pri sieti zo zadania 1 rovnako ako pri agentovi.
 
-Kto rozumie týmto piatim veciam, vie si nový model, novú knižnicu aj nový buzzword zaradiť sám.
+Kto rozumie týmto piatim veciam, vie si nový model, novú knižnicu aj nový módny pojem zaradiť sám.
 
 ---
 

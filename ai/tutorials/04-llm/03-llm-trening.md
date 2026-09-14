@@ -49,7 +49,7 @@ Surový web je ale plný spamu, duplikátov a smetí, preto sa robí:
 
 > **Prečo je to dôležité pochopiť:** kvalita a zloženie dát vysvetľuje väčšinu rozdielov medzi modelmi. Preto je taký veľký rozdiel medzi *open-weight* (dáta tajné) a *plne open-source* modelmi (dáta verejné) — viď [04-llm-modely.md](04-llm-modely.md). A preto malé modely horšie zvládajú slovenčinu: v mixe jej je málo.
 
-Text sa nakoniec **tokenizuje** (BPE — detailne v [05-embeddings.md](05-embeddings.md)) a nareže na bloky dĺžky kontextového okna.
+Text sa nakoniec **tokenizuje** (BPE — detailne v [05-embeddings.md](05-embeddings.md)) a rozdelí na bloky dĺžky kontextového okna.
 
 ---
 
@@ -69,7 +69,7 @@ model:  P(" Bratislava") = 0.62   ← správny token, chceme čo najvyššie
         ...
 ```
 
-Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0.01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md), len parametrov sú miliardy.
+Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0,01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md), len parametrov sú miliardy.
 
 Dve vlastnosti robia z tejto jednoduchej úlohy zázrak:
 
@@ -148,7 +148,7 @@ Po SFT model:
 - má natrénovaný štýl a základné odmietanie škodlivých požiadaviek,
 - **znalosti má stále z pretrainingu** — SFT ich len sprístupnil formou dialógu.
 
-> **Dôležitý dôsledok pre prax:** fine-tuning je dobrý na **štýl a správanie**, zlý na **vkladanie nových faktov** — fakty „sedia" vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše. Na nové/aktuálne fakty použite RAG. (Detailne v [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md) a v [zadaní](../../zadania/RAG_Fine_tunning.md).)
+> **Dôležitý dôsledok pre prax:** fine-tuning je dobrý na **štýl a správanie**, zlý na **vkladanie nových faktov** — fakty sú uložené vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše. Na nové/aktuálne fakty použite RAG. (Detailne v [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md) a v [zadaní](../../zadania/RAG_Fine_tunning.md).)
 
 ### Váš vlastný fine-tuning = tá istá Fáza 2 v malom
 

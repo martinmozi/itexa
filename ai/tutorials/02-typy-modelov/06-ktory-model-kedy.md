@@ -10,7 +10,7 @@
 | **Text / postupnosti / jazyk** | **transformer** → [01-transformer-siete.md](../04-llm/01-transformer-siete.md) | attention, kontext, dnešné LLM |
 | Univerzálny nelineárny vzťah, koncová hlava | **feed-forward (MLP)** | jednoduchý, univerzálny aproximátor |
 
-**Najdôležitejšie pravidlo:** typ dát určuje model viac než čokoľvek iné. Na tabuľky nasadzujte stromy/XGBoost, na obraz CNN, na text transformery — a neurónovú sieť neťahajte tam, kde jednoduchší model spraví rovnakú prácu lacnejšie a vysvetliteľnejšie.
+**Najdôležitejšie pravidlo:** typ dát určuje model viac než čokoľvek iné. Na tabuľky nasadzujte stromy/XGBoost, na obraz CNN, na text transformery — a neurónovú sieť nenasadzujte tam, kde jednoduchší model spraví rovnakú prácu lacnejšie a vysvetliteľnejšie.
 
 ---
 

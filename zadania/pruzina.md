@@ -1,13 +1,13 @@
 # Zadanie projektu: Simulátor kmitajúcej pružiny so závažím
 
 ## Úvod
-Vytvorte webovú aplikáciu pre real-time simuláciu kmitajúcej pružiny so závažím. Aplikácia využíva backend v Pythone pre fyzikálne výpočty, frontend v JavaScripte pre vizualizáciu a WebSocket pre jednosmernú komunikáciu v reálnom čase.
+Vytvorte webovú aplikáciu pre simuláciu v reálnom čase kmitajúcej pružiny so závažím. Aplikácia využíva backend v Pythone pre fyzikálne výpočty, frontend v JavaScripte pre vizualizáciu a WebSocket pre jednosmernú komunikáciu v reálnom čase.
 
 ---
 
 ## Architektúra komunikácie
 
-### Communication Flow:
+### Tok komunikácie
 ```
 FÁZA 1: VYTVORENIE KONFIGURÁCIE
 1. Používateľ vyplní formulár (hmotnosť, tuhost, tlmenie, výchylka, krok, metóda)
@@ -225,7 +225,7 @@ Spustí simuláciu na základe existujúcej konfigurácie.
 #### `GET /api/spring/simulations`
 Vráti zoznam všetkých simulácií (aktívnych aj dokončených).
 
-**Query parametre:**
+**Parametre dotazu:**
 - `status` - filter podľa stavu: "running", "completed", "stopped"
 - `config_id` - filter podľa konfigurácie
 - `limit` - maximálny počet výsledkov (default 50)
@@ -275,12 +275,12 @@ Zastaví bežiacu simuláciu.
 #### Ďalšie endpointy:
 - `POST /api/spring/configurations/validate` - validácia parametrov pred vytvorením konfigurácie
 - `GET /api/spring/configurations/{config_id}/history` - história simulácií pre danú konfiguráciu
-- `GET /api/info` - vráti server info (verzia, podporované rozsahy parametrov, dostupné metódy)
+- `GET /api/info` - vráti informácie o serveri (verzia, podporované rozsahy parametrov, dostupné metódy)
 
 ### 1.4 WebSocket server (jednosmerný)
 - Framework: `websockets` alebo `socket.io` pre Python
 - Endpoint: `ws://localhost:8000/ws/{simulation_id}`
-- **Iba jednostranná komunikácia:** server → klient
+- **Iba jednosmerná komunikácia:** server → klient
 - Klient sa pripojí pomocou `simulation_id` z REST API odpovede
 
 **Prvá správa (setup):**
@@ -343,11 +343,11 @@ Zastaví bežiacu simuláciu.
   - Názov konfigurácie (string)
   - Popis (voliteľné)
   - Hmotnosť závaží (kg) - default 1.0
-  - Tuhost pružiny (N/m) - default 10.0
+  - Tuhosť pružiny (N/m) - default 10.0
   - Koeficient tlmenia (kg/s) - default 0.5
   - Počiatočná výchylka (m) - default 0.5
   - **Časový krok simulácie** (s) - default 0.01
-  - **Numerická metóda** - dropdown (Euler, RK2, RK4, Analytical)
+  - **Numerická metóda** - rozbaľovací zoznam (Euler, RK2, RK4, analytické riešenie)
 - Tlačidlo "Uložiť konfiguráciu"
 - Zobrazenie charakteristík systému po uložení:
   - Perióda a frekvencia
@@ -373,7 +373,7 @@ Zastaví bežiacu simuláciu.
 
 **Sekcia 4: Vizualizácia simulácie**
 - Canvas/SVG zobrazenie pružiny a závaží
-- Real-time animácia pohybu závaží
+- Animácia v reálnom čase pohybu závaží
 - Zobrazenie aktuálnych hodnôt:
   - Čas (s)
   - Výchylka (m)
@@ -395,9 +395,9 @@ Zastaví bežiacu simuláciu.
 - Filter podľa konfigurácie
 - Porovnanie výsledkov
 
-- Responzívny dizajn (mobile-friendly)
+- Responzívny dizajn (použiteľný aj na mobile)
 
-### 2.2 Workflow používateľa
+### 2.2 Postup práce používateľa
 
 **Vytvorenie konfigurácie:**
 1. Používateľ vyplní formulár s fyzikálnymi parametrami
@@ -413,7 +413,7 @@ Zastaví bežiacu simuláciu.
 4. Frontend: POST `/api/spring/simulations/start` s `config_id` a `duration`
 5. Získanie `simulation_id` a `websocket_url`
 6. Otvorenie WebSocket spojenia
-7. Real-time vizualizácia
+7. Vizualizácia v reálnom čase
 
 **Správa konfigurácií:**
 1. Načítanie všetkých konfigurácií: GET `/api/spring/configurations`
@@ -524,7 +524,7 @@ Vytvorte animáciu pomocou **Canvas API** alebo **SVG**:
 - Grafické znázornenie pružiny a závaží
   - Pružina sa správne rozťahuje/sťahuje
   - Realistický efekt pomocou sínusového tvaru závitov
-- Real-time pohyb závaží podľa prijatých dát
+- Pohyb v reálnom čase závaží podľa prijatých dát
 - Grafy (Chart.js/D3.js):
   - Výchylka v čase
   - Rýchlosť v čase
@@ -543,7 +543,7 @@ Vytvorte animáciu pomocou **Canvas API** alebo **SVG**:
 3. **Poskytnúť API pre správu simulácií** (spustenie, zastavenie, história)
 4. Ukladať konfigurácie a históriu simulácií do databázy (SQLite/PostgreSQL)
 5. Generovať unikátne `config_id` a `simulation_id`
-6. Bežať simuláciu asynchrónne (background task) po spustení cez REST API
+6. Spúšťať simuláciu asynchrónne (background task) po spustení cez REST API
 7. Posielať dáta cez WebSocket v správnom formáte (setup → data → completed)
 8. Podporovať viacero súčasných simulácií
 9. Validovať všetky vstupy a odmietnuť neplatné hodnoty
@@ -561,9 +561,9 @@ Vytvorte animáciu pomocou **Canvas API** alebo **SVG**:
 9. Správne spracovať výpadky spojenia
 10. Umožniť manuálne zastavenie simulácie
 11. Umožniť úpravu a mazanie konfigurácií
-12. Byť responzívny (mobile-friendly)
+12. Byť responzívny (použiteľný aj na mobile)
 
-### Security musí:
+### Bezpečnosť musí:
 1. Zabrániť základným typom útokov (XSS, SQL injection, CSRF)
 2. Implementovať rate limiting na REST API
 3. Validovať `config_id` a `simulation_id` pred použitím
@@ -712,7 +712,7 @@ CREATE TABLE simulations (
       return [dxdt, dvdt]
   ```
 - Použite ORM (SQLAlchemy) pre prácu s databázou
-- Cachujte charakteristiky systému v konfigurácii
+- Ukladajte do cache charakteristiky systému v konfigurácii
 
 ### Pre frontend:
 - Pre Canvas animáciu použite `requestAnimationFrame()` pre plynulé 60 FPS
@@ -726,13 +726,13 @@ CREATE TABLE simulations (
   ```
 - Implementujte zoom/pan pre fázový diagram
 - Použite rôzne farby pre rôzne typy tlmenia
-- Zobrazujte tooltips s informáciami pri hover nad grafmi
+- Zobrazujte popisy s informáciami pri prejdení myšou nad grafmi
 
 ### Pre DevOps:
 - Databázové migrácie (Alembic pre SQLAlchemy)
-- Backup stratégia pre databázu
+- Stratégia zálohovania databázy
 - Monitoring aktívnych simulácií
-- Health check endpointy
+- Endpointy na kontrolu stavu (health check)
 
 ---
 
@@ -747,4 +747,4 @@ CREATE TABLE simulations (
 
 ---
 
-**Veľa úspechov pri realizácii projektu! **
+**Veľa úspechov pri realizácii projektu!**

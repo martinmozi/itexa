@@ -10,7 +10,7 @@ Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](../../zadania
 
 ## 1. Python prostredie
 
-Na AI vývoj stačí **Python 3.10 až 3.12**. S úplne najnovšou verziou Pythonu sa neoplatí ponáhľať — PyTorch a spol. ju podporia typicky až o pár mesiacov po vydaní.
+Na vývoj v AI stačí **Python 3.10 až 3.12**. S úplne najnovšou verziou Pythonu sa neoplatí ponáhľať — PyTorch a spol. ju podporia typicky až o pár mesiacov po vydaní.
 
 Prvé pravidlo: **nikdy neinštalujte knižnice do systémového Pythonu.** AI knižnice sú veľké, majú prísne vzájomné závislosti na verziách a jeden pokazený upgrade vie rozbiť celé prostredie. Každý projekt preto dostane vlastné **virtuálne prostredie** — samostatný priečinok `.venv` s vlastnou kópiou Pythonu a knižníc.
 
@@ -40,7 +40,7 @@ uv run python train.py              # spustí v prostredí — netreba nič akti
 Dve veci, ktoré stoja za pozornosť:
 
 - **`uv run` nahrádza aktiváciu.** Nemusíte robiť `source .venv/bin/activate` — `uv run` prostredie nájde a použije sám, a pred spustením si overí, že zodpovedá `pyproject.toml`. Kto má radšej klasiku, aktivácia funguje tiež (`.venv` je obyčajné virtuálne prostredie).
-- **`uv.lock` je zoznam presných verzií** všetkého, čo je nainštalované. Zaveďte ho do gitu — kolega (alebo vy o pol roka) potom príkazom `uv sync` dostane **bit po bite rovnaké prostredie**. Presne to sa pri AI knižniciach oplatí: „u mňa to fungovalo" má tu obvykle na svedomí inú verziu `torch` alebo `transformers`.
+- **`uv.lock` je zoznam presných verzií** všetkého, čo je nainštalované. Pridajte ho do gitu — kolega (alebo vy o pol roka) potom príkazom `uv sync` dostane **bit po bite rovnaké prostredie**. Presne to sa pri AI knižniciach oplatí: „u mňa to fungovalo" má tu obvykle na svedomí inú verziu `torch` alebo `transformers`.
 
 Ak nechcete projektový režim a stačí vám holé prostredie, `uv` vie aj to:
 
@@ -88,7 +88,7 @@ Editor je vec vkusu, ale ak nemáte vyhranený názor, zvoľte **Visual Studio C
 | **Python** (Microsoft) | spúšťanie, debugovanie, výber interpretera; automaticky doinštaluje **Pylance** (napovedanie, kontrola typov) |
 | **Jupyter** (Microsoft) | notebooky `.ipynb` priamo v editore — netreba spúšťať JupyterLab v prehliadači |
 | **Ruff** | rýchly linter a formátovač Python kódu — udrží kód čistý bez ručného upratovania |
-| **Remote – SSH** | vývoj na vzdialenom stroji: pripojíte sa na prenajatý runpod server a pracujete v ňom, akoby bol lokálny (zíde sa v sekcii 8) |
+| **Remote – SSH** | vývoj na vzdialenom stroji: pripojíte sa na prenajatý server na RunPode a pracujete v ňom, akoby bol lokálny (zíde sa v sekcii 8) |
 | **WSL** | len pre Windows: otvorí projekt priamo v Ubuntu vo WSL2, kde beží celý AI ekosystém |
 
 Jedno nastavenie, ktoré si treba osvojiť hneď: **výber interpretera.** Po vytvorení virtuálneho prostredia (`uv venv`, `uv sync` alebo `python3 -m venv`) stlačte `Ctrl+Shift+P` → *Python: Select Interpreter* → vyberte `.venv` v projekte. VS Code potom prostredie sám aktivuje v každom novom termináli a debugger aj notebooky používajú správne knižnice. Ak vám import „nefunguje", v deviatich prípadoch z desiatich beží kód proti inému interpreteru, než do ktorého ste inštalovali.
@@ -138,9 +138,9 @@ Neurónové siete sú v jadre násobenie matíc a to je presne úloha, na ktorú
 nvidia-smi
 ```
 
-Výpis ukáže model karty, obsadenú pamäť a verziu ovládača (a najvyššiu verziu CUDA, ktorú ovládač podporuje — tá musí byť aspoň taká, akú vyžaduje zvolený PyTorch build). Ak `nvidia-smi` nefunguje, treba najprv doinštalovať ovládač: na Linuxe z balíkov distribúcie, na Windows bežný GeForce ovládač.
+Výpis ukáže model karty, obsadenú pamäť a verziu ovládača (a najvyššiu verziu CUDA, ktorú ovládač podporuje — tá musí byť aspoň taká, akú vyžaduje zvolená verzia PyTorchu). Ak `nvidia-smi` nefunguje, treba najprv doinštalovať ovládač: na Linuxe z balíkov distribúcie, na Windows bežný GeForce ovládač.
 
-Samostatný CUDA toolkit (kompilátor `nvcc`) budete potrebovať, až keď budete niečo kompilovať zo zdrojákov — napríklad špecializované kernely. V tomto kurze taká situácia nenastane.
+Samostatný CUDA toolkit (kompilátor `nvcc`) budete potrebovať, až keď budete niečo kompilovať zo zdrojových kódov — napríklad špecializované kernely. V tomto kurze taká situácia nenastane.
 
 **Poznámka k Windows:** PyTorch s CUDA funguje na Windows natívne, ale veľká časť AI ekosystému (vrátane vLLM) beží len na Linuxe. Odporúčame preto **WSL2** (Ubuntu vo Windows) — GPU je v ňom plne dostupná a ušetríte si veľa trápenia s nekompatibilnými nástrojmi.
 
@@ -245,7 +245,7 @@ brew install ollama            # Linux: curl -fsSL https://ollama.com/install.sh
 ollama run llama3.2            # stiahne model a otvorí chat v termináli
 ```
 
-Ollama tiež vystavuje OpenAI-kompatibilné API (na `http://localhost:11434/v1`), takže kód z príkladu vyššie stačí presmerovať na iný port. Ak preferujete grafické rozhranie, rovnakú službu spraví **LM Studio**.
+Ollama tiež vystavuje OpenAI-kompatibilné API (na `http://localhost:11434/v1`), takže kód z príkladu vyššie stačí presmerovať na iný port. Ak preferujete grafické rozhranie, rovnakú službu poskytne **LM Studio**.
 
 Praktické delenie: **Ollama** = pohodlie, jeden používateľ, beží všade. **vLLM** = priepustnosť a produkčné API, vyžaduje NVIDIA. Na zadanie 2 vystačíte s ktorýmkoľvek z nich.
 
@@ -267,14 +267,14 @@ Pri výbere karty na AI je najdôležitejšie jediné číslo: **VRAM**. Výkon 
 | ~30B | ~60 GB | ~18 GB | 24 GB karta (4-bit) |
 | 70B | ~140 GB | ~40 GB | 2× 24 GB, Mac 64 GB+, alebo cloud |
 
-**Tréning žerie omnoho viac než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
+**Tréning spotrebuje omnoho viac pamäte než inferencia.** Pri plnom fine-tuningu sa okrem váh držia v pamäti aj gradienty a stavy optimalizátora Adam — dokopy zhruba **16 bajtov na parameter**, takže plný fine-tuning 7B modelu chce vyše 100 GB a patrí do cloudu. Zachraňuje to **QLoRA** (základný model 4-bitový a zmrazený, trénujú sa len malé adaptéry — mechanika v [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md), lekcia 7): fine-tuning 7B modelu sa vojde do ~10–12 GB, teda na slušnú domácu kartu.
 
 Odporúčania podľa rozpočtu (stav v roku 2026, ceny sa hýbu):
 
-- **Vstupná úroveň — NVIDIA s 12–16 GB VRAM** (RTX 3060 12 GB z bazáru, 4060 Ti 16 GB, 5060 Ti 16 GB): zvládne všetky zadania kurzu, 4-bit inferenciu do ~14B aj QLoRA 7B.
-- **Nadšenecká úroveň — 24 GB a viac** (bazárová RTX 3090 je dlhodobo najlacnejších 24 GB; 4090, 5090 s 32 GB): pohodlný fp16 beh 7–8B, 4-bit inferencia ~30B, väčší priestor na experimenty.
+- **Vstupná úroveň — NVIDIA s 12–16 GB VRAM** (RTX 3060 12 GB z druhej ruky, 4060 Ti 16 GB, 5060 Ti 16 GB): zvládne všetky zadania kurzu, 4-bit inferenciu do ~14B aj QLoRA 7B.
+- **Nadšenecká úroveň — 24 GB a viac** (RTX 3090 z druhej ruky je dlhodobo najlacnejších 24 GB; 4090, 5090 s 32 GB): pohodlný fp16 beh 7–8B, 4-bit inferencia ~30B, väčší priestor na experimenty.
 - **Mac:** M-čip so **16 GB je minimum, 32 GB a viac je na LLM príjemné** — vďaka zjednotenej pamäti výborný na inferenciu cez Ollamu, na tréning rátajte s trpezlivosťou.
-- **Bez GPU?** Žiadna tragédia: malé modely v 4-bit bežia cez llama.cpp aj na CPU a **Google Colab dáva zadarmo GPU T4 (16 GB)** — tá pokryje všetky zadania tohto kurzu. Kúpu karty pokojne odložte, kým nebudete vedieť, že ju využijete.
+- **Bez GPU?** Nie je to prekážka: malé modely v 4-bit bežia cez llama.cpp aj na CPU a **Google Colab dáva zadarmo GPU T4 (16 GB)** — tá pokryje všetky zadania tohto kurzu. Kúpu karty pokojne odložte, kým nebudete vedieť, že ju využijete.
 
 ---
 
@@ -287,14 +287,14 @@ Hranica je jednoduchá: **keď sa úloha nezmestí do vašej VRAM ani po kvantiz
 - dlhé behy, ktoré by domácu kartu blokovali na dni,
 - potreba viacerých GPU alebo veľkej pamäte jednej karty (A100/H100 s 80 GB).
 
-**[runpod.io](https://runpod.io)** je požičovňa GPU: vyberiete si kartu, hotový image s PyTorch/CUDA, a o minútu máte SSH a Jupyter na stroji s H100 — cez rozšírenie Remote – SSH (sekcia 2) sa naň pripojíte priamo z VS Code a pracujete ako na lokálnom projekte. Platí sa za hodinu behu; orientačne (ceny sa menia, pozrite aktuálny cenník) stojí RTX 4090 desiatky centov za hodinu, A100/H100 rádovo 1–3 $ za hodinu. Dáta medzi behmi prežijú na prenajatom sieťovom disku (*network volume*). Podobné služby: **vast.ai** (aukčný trh, býva najlacnejší), **Lambda**, platený **Colab Pro**; na malé experimenty zadarmo aj **Kaggle** notebooky.
+**[runpod.io](https://runpod.io)** je požičovňa GPU: vyberiete si kartu, hotový obraz (*image*) s PyTorchom a CUDA, a o minútu máte SSH a Jupyter na stroji s H100 — cez rozšírenie Remote – SSH (sekcia 2) sa naň pripojíte priamo z VS Code a pracujete ako na lokálnom projekte. Platí sa za hodinu behu; orientačne (ceny sa menia, pozrite aktuálny cenník) stojí RTX 4090 desiatky centov za hodinu, A100/H100 rádovo 1–3 $ za hodinu. Dáta medzi behmi prežijú na prenajatom sieťovom disku (*network volume*). Podobné služby: **vast.ai** (aukčný trh, býva najlacnejší), **Lambda**, platený **Colab Pro**; na malé experimenty zadarmo aj **Kaggle** notebooky.
 
 Dve praktické rady:
 
 1. **Vyvíjajte lokálne, trénujte v cloude.** Skript odlaďte doma na malom modeli a vzorke dát; na prenajatej GPU už len spustite hotovú vec. Ladenie preklepov za 2 $/hodinu je zbytočný luxus.
-2. **Vypínajte pody.** Účtuje sa každá hodina behu — beh cez zabudnutý víkend stojí viac než celý mesiac experimentov.
+2. **Vypínajte prenajaté inštancie (*pody*).** Účtuje sa každá hodina behu — beh cez zabudnutý víkend stojí viac než celý mesiac experimentov.
 
-A ešte jedno rozhodnutie pred prenájmom: ak nepotrebujete **vlastné váhy** (fine-tuning, plná kontrola, citlivé dáta), býva lacnejšie nevolať žiadnu GPU a použiť hotové **API** (Anthropic, OpenAI, Together…) — platí sa za tokeny, nie za hodiny. Kritériá výberu modelu rozoberá [04-llm-modely.md](../04-llm/04-llm-modely.md).
+A ešte jedno rozhodnutie pred prenájmom: ak nepotrebujete **vlastné váhy** (fine-tuning, plná kontrola, citlivé dáta), býva lacnejšie GPU vôbec neprenajímať a použiť hotové **API** (Anthropic, OpenAI, Together…) — platí sa za tokeny, nie za hodiny. Kritériá výberu modelu rozoberá [04-llm-modely.md](../04-llm/04-llm-modely.md).
 
 ---
 

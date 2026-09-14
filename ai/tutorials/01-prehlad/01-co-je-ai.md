@@ -6,7 +6,7 @@
 
 Historicky sa vyvinuli dva veľké prúdy:
 
-1. **Symbolická AI** (staršia, „Good Old-Fashioned AI"). Znalosti a pravidlá do systému **vloží človek** vo forme explicitných pravidiel typu „ak–tak", logických výrokov, rozhodovacích tabuliek alebo prehľadávania stavového priestoru. Príklady: expertné systémy pre diagnostiku, šachové enginy so stromom ťahov, plánovače, pravidlové chatboty. Výhoda: je to **vysvetliteľné** a predvídateľné. Nevýhoda: pravidiel je pri reálnych problémoch priveľa a niektoré veci (napr. „čo je na obrázku mačka") sa pravidlami napísať prakticky nedajú.
+1. **Symbolická AI** (staršia, „Good Old-Fashioned AI"). Znalosti a pravidlá do systému **vloží človek** vo forme explicitných pravidiel typu „ak–tak", logických výrokov, rozhodovacích tabuliek alebo prehľadávania stavového priestoru. Príklady: expertné systémy pre diagnostiku, šachové programy so stromom ťahov, plánovače, pravidlové chatboty. Výhoda: je to **vysvetliteľné** a predvídateľné. Nevýhoda: pravidiel je pri reálnych problémoch priveľa a niektoré veci (napr. „čo je na obrázku mačka") sa pravidlami napísať prakticky nedajú.
 
 2. **Strojové učenie (Machine Learning, ML)** (dominantné dnes). Systém sa **naučí vzory priamo z dát**, namiesto toho, aby mu ich niekto naprogramoval. Ukážeme mu tisíce príkladov a on si sám nastaví vnútorné parametre tak, aby dobre predpovedal. Sem patria stromy, XGBoost aj celé hlboké učenie.
 
@@ -14,7 +14,7 @@ Historicky sa vyvinuli dva veľké prúdy:
 
 ![Taxonómia umelej inteligencie: AI obsahuje symbolickú AI a strojové učenie; strojové učenie obsahuje klasické metódy a neurónové siete; neurónové siete obsahujú hlboké učenie](../../images/ai-taxonomia.svg)
 
-Kľúčové je pochopiť **vzťah vnorenia**: hlboké učenie je podmnožinou neurónových sietí, tie sú podmnožinou strojového učenia a to je podmnožinou AI. Bežná chyba je používať „AI" a „neurónové siete" ako synonymá — v skutočnosti je neurónová sieť len jeden (dnes veľmi úspešný) nástroj vo veľkej škatuli AI. **Hlboké učenie (deep learning)** pritom nie je samostatná technológia, ale jednoducho neurónové siete s väčším počtom vrstiev; hranica nie je ostrá, no zhruba od dvoch-troch skrytých vrstiev hovoríme o hlbokej sieti. Pojem sa ujal preto, že práve hĺbka — a s ňou schopnosť učiť sa hierarchiu príznakov — stála za prelomovými výsledkami v rozpoznávaní obrazu a reči po roku 2012.
+Kľúčové je pochopiť **vzťah vnorenia**: hlboké učenie je podmnožinou neurónových sietí, tie sú podmnožinou strojového učenia a to je podmnožinou AI. Bežná chyba je používať „AI" a „neurónové siete" ako synonymá — v skutočnosti je neurónová sieť len jeden (dnes veľmi úspešný) nástroj v širokej oblasti AI. **Hlboké učenie (deep learning)** pritom nie je samostatná technológia, ale jednoducho neurónové siete s väčším počtom vrstiev; hranica nie je ostrá, no zhruba od dvoch až troch skrytých vrstiev hovoríme o hlbokej sieti. Pojem sa ujal preto, že práve hĺbka — a s ňou schopnosť učiť sa hierarchiu príznakov — stála za prelomovými výsledkami v rozpoznávaní obrazu a reči po roku 2012.
 
 Kde v tejto mape ležia modely, ktoré nás v kurze čakajú:
 

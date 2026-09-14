@@ -4,7 +4,7 @@
 
 > **Cieľ dokumentu:** ukázať, ako sa z obyčajného textu stane vektor, ktorý sa dá vyhľadávať — a to na číslach, nie v metaforách. Práve tento vektor je stavebný kameň [RAG](06-rag.md), ktorému sa venuje nadväzujúci dokument.
 
-Tento dokument sleduje **cestu jedného kúsku textu** od surových znakov až po hotový vektor: tokenizácia → token embeddingy → transformer vrstvy → pooling → normalizácia. Všetko na konkrétnych číslach, ktoré sa dajú prepočítať ceruzkou.
+Tento dokument sleduje **cestu jedného úseku textu** od surových znakov až po hotový vektor: tokenizácia → token embeddingy → transformer vrstvy → pooling → normalizácia. Všetko na konkrétnych číslach, ktoré sa dajú prepočítať ceruzkou.
 
 Čo sa s hotovým vektorom ďalej robí — indexovanie, vyhľadávanie, reranking a celá RAG pipeline — je v nadväzujúcom dokumente **[06-rag.md](06-rag.md)**.
 
@@ -28,7 +28,7 @@ Predstavme si vetu z firemného dokumentu:
 
 ## Krok 1: Tokenizácia
 
-Model nepracuje priamo so slovami, ale s **tokenmi** – kúskami textu, ktoré nemusia byť celé slová. Tokenizér (napr. BPE, WordPiece, SentencePiece) má svoj naučený slovník (*vocabulary*), typicky `30 000 – 100 000+` položiek, a vetu podľa neho rozreže:
+Model nepracuje priamo so slovami, ale s **tokenmi** – časťami textu, ktoré nemusia byť celé slová. Tokenizér (napr. BPE, WordPiece, SentencePiece) má svoj naučený slovník (*vocabulary*), typicky `30 000 – 100 000+` položiek, a vetu podľa neho rozdelí:
 
 ```text
 "Zamestnanec má nárok na 25 dní dovolenky."
@@ -63,9 +63,9 @@ Spočítame páry (frekvencia = koľkokrát sa slovo vyskytuje):
 (o,s)  = 1             (s,ť)  = 1        ...
 ```
 
-Najčastejší je `(n,í)=8` → zlúčime na `ní`. Prepíšeme korpus a znova počítame; teraz vyhrá `(ní,z)=8` → `níz`, potom `(níz,k)=8` → `nízk`. Po troch merge pravidlách máme podreťazec `nízk` ako jeden token, ktorý zdieľajú všetky tri slová. Zriedke zakončenia (`osť`) zostanú rozbité na menšie kúsky. Presne **preto** sa časté kmene slov stanú jedným tokenom a zriedkavé slová sa poskladajú z viacerých – slovník je kompromis medzi „všetko sú znaky" (krátky slovník, dlhé sekvencie) a „všetko sú slová" (obrovský slovník, problém s neznámymi slovami).
+Najčastejší je `(n,í)=8` → zlúčime na `ní`. Prepíšeme korpus a znova počítame; teraz vyhrá `(ní,z)=8` → `níz`, potom `(níz,k)=8` → `nízk`. Po troch merge pravidlách máme podreťazec `nízk` ako jeden token, ktorý zdieľajú všetky tri slová. Zriedke zakončenia (`osť`) zostanú rozbité na menšie časti. Presne **preto** sa časté kmene slov stanú jedným tokenom a zriedkavé slová sa poskladajú z viacerých – slovník je kompromis medzi „všetko sú znaky" (krátky slovník, dlhé sekvencie) a „všetko sú slová" (obrovský slovník, problém s neznámymi slovami).
 
-### Ako sa nová veta rozreže (inferencia)
+### Ako sa nová veta rozdelí (inferencia)
 
 Pri reálnom použití sa merge pravidlá aplikujú **v tom istom poradí**, v akom sa naučili. Slovo sa rozbije na znaky a postupne sa aplikuje prvé použiteľné pravidlo, potom ďalšie, atď. WordPiece namiesto toho robí **greedy longest-match**: od začiatku slova hľadá najdlhší reťazec, ktorý je v slovníku, ten odreže a pokračuje od zvyšku. Príklad greedy segmentácie proti slovníku `{"dovolen", "ku", "ky", "do", "vo", "len", ...}`:
 
@@ -78,7 +78,7 @@ Pri reálnom použití sa merge pravidlá aplikujú **v tom istom poradí**, v a
   výsledok: ["dovolen", "ky"]
 ```
 
-> **Dôležitý postreh:** slovenčina/čeština sa pri mnohých (najmä anglicky trénovaných) modeloch rozreže na **viac** tokenov ako ekvivalentná anglická veta, lebo slovník bol trénovaný hlavne na angličtine – teda časté anglické kmene majú svoj token, kým slovenské sa musia poskladať z drobných kúskov. Napr. anglické „vacation" môže byť 1 token, kým „dovolenka" pokojne 3–4. To má priamy dopad na to, koľko textu sa zmestí do jedného chunku.
+> **Dôležitý postreh:** slovenčina/čeština sa pri mnohých (najmä anglicky trénovaných) modeloch rozdelí na **viac** tokenov ako ekvivalentná anglická veta, lebo slovník bol trénovaný hlavne na angličtine – teda časté anglické kmene majú svoj token, kým slovenské sa musia poskladať z drobných častí. Napr. anglické „vacation" môže byť 1 token, kým „dovolenka" pokojne 3–4. To má priamy dopad na to, koľko textu sa zmestí do jedného chunku.
 
 ### Špeciálne tokeny
 
@@ -97,19 +97,19 @@ Po tokenizácii teda reálne do modelu nevchádza `[4521, 892, ...]`, ale napr. 
 
 ## Krok 2: Token embeddings – obyčajná lookup tabuľka
 
-Prvá "vrstva" modelu vôbec nie je nič inteligentné – je to **embedding matica**, obyčajná tabuľka rozmerov `[vocab_size × hidden_dim]`, napr. `[50 000 × 1024]`. Token ID je index riadku:
+Prvá „vrstva" modelu vôbec nie je nič inteligentné – je to **embedding matica**, obyčajná tabuľka rozmerov `[vocab_size × hidden_dim]`, napr. `[50 000 × 1024]`. Token ID je index riadku:
 
 ```text
 token ID 4521 ("Zamest") → riadok 4521 v matici → vektor [0.03, -0.12, 0.44, ..., 0.09]  (1024 čísel)
 ```
 
-Toto je čisté **vyhľadanie v tabuľke**, žiadny výpočet. Na začiatku trénovania sú tieto čísla náhodné; trénovaním sa postupne "naučia" byť užitočné.
+Toto je čisté **vyhľadanie v tabuľke**, žiadny výpočet. Na začiatku trénovania sú tieto čísla náhodné; trénovaním sa postupne „naučia" byť užitočné.
 
-> **Dôležité:** toto ešte **NIE JE** finálny embedding vety, ani len embedding slova v kontexte. Slovo *"banka"* by v tomto kroku malo úplne rovnaký vektor, či ide o vetu o financiách alebo o rieke – model ešte nevidel žiadny kontext.
+> **Dôležité:** toto ešte **NIE JE** finálny embedding vety, ani len embedding slova v kontexte. Slovo *„banka"* by v tomto kroku malo úplne rovnaký vektor, či ide o vetu o financiách alebo o rieke – model ešte nevidel žiadny kontext.
 
 ### Náš bežecký príklad (potiahneme ho cez celý zvyšok dokumentu)
 
-Aby sa dalo počítať ručne, zmenšíme všetko na hračkárske rozmery: **slovník má 6 tokenov** a **hidden_dim = 4**. Spracujeme kratučkú vetu *„nárok na dovolenku"*, ktorá sa (v tomto hračkárskom tokenizéri) rozreže na tri tokeny:
+Aby sa dalo počítať ručne, zmenšíme všetko na miniatúrne rozmery: **slovník má 6 tokenov** a **hidden_dim = 4**. Spracujeme kratučkú vetu *„nárok na dovolenku"*, ktorá sa (v tomto miniatúrnom tokenizéri) rozdelí na tri tokeny:
 
 ```text
 token:    "nárok"   "na"   "dovolenku"
@@ -169,7 +169,7 @@ Tieto tri vektory `h_*` sú **vstup do prvej transformer vrstvy**.
 
 ---
 
-## Krok 3: Transformer vrstvy – tu sa deje "pochopenie kontextu"
+## Krok 3: Transformer vrstvy – tu sa deje „pochopenie kontextu"
 
 Toto je **jadro celého modelu** a zároveň to najdrahšie na výpočet. Máme teraz `n` vektorov (u nás 3, v reálnej vete napr. 10), a tie prechádzajú cez `N` vrstiev (napr. `12–24`, podľa veľkosti modelu). V každej vrstve sa deje self-attention + feed-forward.
 
@@ -228,7 +228,7 @@ score(nárok, dovolenku) = 0.200·1.209 + 1.900·0.284 = 0.242 + 0.540 = 0.782
 
 ### 3c) Škálovanie /√d_k
 
-Skóre sa vydelí odmocninou z rozmeru kľúča `d_k` (aby pri veľkých dimenziách skóre neexplodovali a softmax nespadol do extrémov). V reálnom modeli je `d_k` rozmer kľúča z konfigurácie – u nás by to bolo `√4 = 2`. Naše hračkárske `W_Q`/`W_K` však dve dimenzie vynulovali, takže kľúč reálne žije v 2 rozmeroch a delíme `√2 ≈ 1.414` (v kóde vždy berte `d_k` z konfigurácie modelu, nie „na oko"):
+Skóre sa vydelí odmocninou z rozmeru kľúča `d_k` (aby pri veľkých dimenziách skóre neexplodovali a softmax nespadol do extrémov). V reálnom modeli je `d_k` rozmer kľúča z konfigurácie – u nás by to bolo `√4 = 2`. Naše miniatúrne `W_Q`/`W_K` však dve dimenzie vynulovali, takže kľúč reálne žije v 2 rozmeroch a delíme `√2 ≈ 1.414` (v kóde vždy berte `d_k` z konfigurácie modelu, nie „na oko"):
 
 ```text
 3.650 / 1.414 = 2.581
@@ -284,7 +284,7 @@ r_nárok = h_nárok + out_nárok = [0.200+0.433, 1.900+1.563, -0.100-0.024, 1.30
         = [ 0.633, 3.463, -0.124, 2.549 ]
 ```
 
-> **Poznámka k poradiu:** takto to robil pôvodný transformer – najprv sčítanie, potom normalizácia (*post-norm*). Dnešné generatívne modely normalizujú **pred** blokom (*pre-norm*), pozri [02-transformer-vnutro.md](02-transformer-vnutro.md#2-cesta-jedného-vektora-jednou-vrstvou). Na aritmetiku tohto príkladu to nemá vplyv, ale pri vlastnej implementácii si treba vybrať jedno.
+> **Poznámka k poradiu:** takto to robil pôvodný transformer – najprv sčítanie, potom normalizácia (*post-norm*). Dnešné generatívne modely normalizujú **pred** blokom (*pre-norm*), pozri [02-transformer-vnutro.md](02-transformer-vnutro.md#4-cesta-jedného-vektora-jednou-vrstvou). Na aritmetiku tohto príkladu to nemá vplyv, ale pri vlastnej implementácii si treba vybrať jedno.
 
 Reziduálne spojenie zabezpečí, že sa pôvodná informácia „nestratí" a že gradient má pri trénovaní kadiaľ tiecť aj cez desiatky vrstiev. LayerNorm potom prečísluje vektor tak, aby mal (naprieč svojimi 4 súradnicami) priemer 0 a rozptyl 1, a ešte ho preškáluje dvomi naučenými parametrami `γ, β`.
 
@@ -321,8 +321,8 @@ Toto je krok **špecifický práve pre embedding modely** (generatívne/chatovac
 | Metóda | Ako funguje | Typicky pri |
 |---|---|---|
 | **Mean pooling** | spriemeruje všetky tokenové vektory | sentence-embedding modely (najčastejšie) |
-| **CLS token pooling** | zoberie vektor špeciálneho tokenu `[CLS]` na začiatku, ktorý sa model naučil používať ako "zhrnutie" vety | BERT-style modely |
-| **Last-token pooling** | zoberie vektor posledného tokenu, ktorý v kauzálnom attention "videl" všetky predchádzajúce | novšie dekodérové/kauzálne modely |
+| **CLS token pooling** | zoberie vektor špeciálneho tokenu `[CLS]` na začiatku, ktorý sa model naučil používať ako „zhrnutie" vety | BERT-style modely |
+| **Last-token pooling** | zoberie vektor posledného tokenu, ktorý v kauzálnom attention „videl" všetky predchádzajúce | novšie dekodérové/kauzálne modely |
 
 **Výsledok:** jeden vektor s **pevnou dĺžkou** (napr. 1024 čísel) – či mal vstup 5 slov alebo 500 slov, výstup má vždy rovnaký rozmer.
 
@@ -390,7 +390,7 @@ Presne tento vektor (spolu s ID chunku a odkazom na pôvodný text) sa uloží d
 
 ## Čo tie čísla vlastne „znamenajú"
 
-Jednotlivé súradnice vektora **nemajú ľudsky čitateľný význam**. Neexistuje "dimenzia č. 5 = formálnosť textu" alebo "dimenzia č. 12 = téma financie". Sú to **naučené abstraktné smery** vo vysokorozmernom priestore, ktoré vznikli ako vedľajší produkt trénovania na obrovskom množstve textu.
+Jednotlivé súradnice vektora **nemajú ľudsky čitateľný význam**. Neexistuje „dimenzia č. 5 = formálnosť textu" alebo „dimenzia č. 12 = téma financie". Sú to **naučené abstraktné smery** vo vysokorozmernom priestore, ktoré vznikli ako vedľajší produkt trénovania na obrovskom množstve textu.
 
 Podobnosť sa neposudzuje podľa jednej súradnice, ale podľa **uhla medzi celými vektormi** – preto sa používa cosine similarity, nie napr. rozdiel jednotlivých čísel.
 
@@ -477,9 +477,9 @@ Toto je asi najdôležitejšia časť, lebo vysvetľuje aj to, **prečo sú rôz
 
 Embedding model sa netrénuje náhodne – trénuje sa metódou **kontrastívneho učenia** (*contrastive learning*, typicky s **InfoNCE** loss funkciou):
 
-1. Zoberú sa **trojice**: *anchor* (napr. otázka *"Koľko dní dovolenky mám?"*), *positive* (chunk, ktorý na ňu naozaj odpovedá – naša veta o 25 dňoch), a *negatives* (náhodné iné chunky, o niečom úplne inom).
+1. Zoberú sa **trojice**: *anchor* (napr. otázka *„Koľko dní dovolenky mám?"*), *positive* (chunk, ktorý na ňu naozaj odpovedá – naša veta o 25 dňoch), a *negatives* (náhodné iné chunky, o niečom úplne inom).
 2. Model spočíta embedding pre všetky tri texty (presne postupom vyššie: tokenizácia → embedding matica → transformer vrstvy → pooling → normalizácia).
-3. Loss funkcia model "tlačí" k tomu, aby `cosine similarity(anchor, positive)` bola **vysoká**, a `cosine similarity(anchor, negatives)` bola **nízka**.
+3. Loss funkcia model „tlačí" k tomu, aby `cosine similarity(anchor, positive)` bola **vysoká**, a `cosine similarity(anchor, negatives)` bola **nízka**.
 4. Cez milióny takýchto trojíc sa **gradient descentom** postupne upravujú všetky váhy siete – embedding matica z kroku 2, aj Q/K/V matice z kroku 3, aj feed-forward váhy.
 
 ### InfoNCE loss – vzorec a dopočítaný príklad
@@ -519,9 +519,9 @@ L = − ln(0.00490) = 5.32           ← veľká loss → veľký gradient → v
 
 Gradient tejto veľkej straty sa spätne prešíri (*backpropagation*) cez pooling, všetky transformer vrstvy aj embedding maticu a **pošťuchne** váhy tak, aby nabudúce vyšlo `sim(a,p)` vyššie a `sim(a,n)` nižšie. Kľúčový trik moderného tréningu sú **in-batch negatives**: pozitívy iných príkladov v tom istom batchi sa použijú ako negatívy „zadarmo", takže z batchu veľkosti `B` dostaneme `B−1` negatívov na každý anchor bez extra výpočtu.
 
-**Výsledok:** sémanticky súvisiace texty "vygravitujú" v priestore blízko seba, aj keď použili úplne iné slová (napr. *"dovolenka"* a *"voľno"* alebo *"PTO"* skončia blízko seba, ak to tak model videl v trénovacích dátach).
+**Výsledok:** sémanticky súvisiace texty „vygravitujú" v priestore blízko seba, aj keď použili úplne iné slová (napr. *„dovolenka"* a *„voľno"* alebo *„PTO"* skončia blízko seba, ak to tak model videl v trénovacích dátach).
 
-A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý model má inú trénovaciu inicializáciu váh, iné trénovacie dáta, možno inú architektúru/veľkosť. Výsledné "smery" v jeho vektorovom priestore sú teda úplne iné geometrické usporiadanie – aj keby dva modely riešili identickú úlohu s rovnakou dimenziou výstupu, ich súradnicové sústavy si vzájomne nič nehovoria.
+A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý model má inú trénovaciu inicializáciu váh, iné trénovacie dáta, možno inú architektúru/veľkosť. Výsledné „smery" v jeho vektorovom priestore sú teda úplne iné geometrické usporiadanie – aj keby dva modely riešili identickú úlohu s rovnakou dimenziou výstupu, ich súradnicové sústavy si vzájomne nič nehovoria.
 
 > **Praktický dôsledok:** ak preindexujete databázu jedným modelom a otázku zaembeddujete iným, vyhľadávanie vráti nezmysly. **Embedding model sa nedá „za behu" vymeniť** bez preindexovania celej databázy.
 

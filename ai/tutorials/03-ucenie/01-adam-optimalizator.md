@@ -26,7 +26,7 @@ Ako obrázok čítať:
   Zvýraznená hrana `w₁₂` je váha zo vstupu `x₁` do 2. neurónu skrytej vrstvy. Váhy sa
   nekreslia po jednej, ale zhrnú sa do **matice**: všetkých 3 × 4 = 12 hrán medzi vstupom
   a skrytou vrstvou tvorí maticu `W₁`, všetkých 4 × 2 = 8 hrán medzi skrytou a výstupnou
-  vrstvou tvorí `W₂`. Modré štítky sedia priamo na zväzku hrán, ktorý pomenúvajú.
+  vrstvou tvorí `W₂`. Modré štítky sú umiestnené priamo na zväzku hrán, ktorý pomenúvajú.
 - **Biasy sú v neurónoch, nie na hranách.** Bias nemá odkiaľ prísť — nie je to spojenie
   medzi neurónmi, ale **konštanta, ktorú si každý neurón pripočíta k svojmu váženému
   súčtu**. Preto je na obrázku nakreslený ako oranžový štítok so šípkou vstupujúcou do
@@ -117,7 +117,7 @@ Zhrnutie mapovania na algoritmus nižšie:
 | aktivačná funkcia | zelené `σ` vnútri neurónu | `σ` | nie (pevná voľba) | nie |
 
 Adam teda pracuje s gradientmi `dW` a `db` (parciálne derivácie chyby podľa `W` a `b`) —
-presne s tými, ktoré vypadnú z backpropu.
+presne s tými, ktoré vypočíta backprop.
 
 ---
 
@@ -144,7 +144,7 @@ akým sa z gradientu vypočíta krok.
 
 ![Tréningová slučka: forward → loss → backprop → update, pričom krok update je Adam](../../images/treningova-slucka.svg)
 
-Slučka beží dokola nad jednotlivými mini-batchmi. Adam sedí **iba v kroku 4 (update)** —
+Slučka beží dokola nad jednotlivými mini-batchmi. Adam sa uplatní **iba v kroku 4 (update)** —
 dostane gradienty `dW`, `db` z backpropu (krok 3) a rozhodne, ako veľmi a ktorým smerom
 posunúť `W` a `b`. Ostatné tri kroky sú od optimalizátora nezávislé.
 

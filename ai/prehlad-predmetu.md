@@ -85,7 +85,7 @@ Neurón (vážený súčet + bias + aktivácia), viacvrstvový perceptrón, pre�
 
 **Materiál:** [01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md) → [02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md)
 
-Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attention Is All You Need". Self-attention krok po kroku: Query/Key/Value, skóre, softmax, vážený súčet — každý token sa „pozrie" na všetky ostatné naraz. Multi-head, positional encoding, maskovaná attention. Encoder / decoder / decoder-only, autoregresívne generovanie a **dekódovanie** (greedy, teplota, top-p). Druhá polovica lekcie ide do vnútra: **odkiaľ sa berú rozmery** (`d_model`, hlavy, `d_ff`) a kde v modeli sedia parametre, ako každý vektor prechádza **feed-forward** vrstvou token po tokene, ako z posledného vektora vznikne cez `lm_head` a softmax **konkrétny výstupný token**, prefill vs. decode, **KV cache** a prompt caching — a prečo je **kontextové okno obmedzené**.
+Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attention Is All You Need". Self-attention krok po kroku: Query/Key/Value, skóre, softmax, vážený súčet — každý token sa „pozrie" na všetky ostatné naraz. Multi-head, positional encoding, maskovaná attention. Encoder / decoder / decoder-only, autoregresívne generovanie a **dekódovanie** (greedy, teplota, top-p). Druhá polovica lekcie ide do vnútra a má tri časti. **A — vstup:** čo je tokenizér, ako sa líšia BPE, SentencePiece a WordPiece, prečo slovenčina stojí dvojnásobok tokenov, a ako sa z ID stane vektor (embedding matica, RoPE). **B — priechod modelom:** odkiaľ sa berú rozmery (`d_model`, hlavy, `d_ff`), kde sú uložené parametre, reziduálny prúd a úlohy vrstiev, feed-forward token po tokene a **MoE** (aktívne vs. celkové parametre). **C — výstup a limity:** ako z posledného vektora vznikne cez `lm_head` **konkrétny token** — a prečo len jeden, hoci na vstupe ich boli tisíce — ako z tokenov vznikne slovo a veta, prečo „premýšľanie" znamená viac tokenov, prefill vs. decode, **KV cache** a prompt caching, čo sa deje s krátkou a dlhou správou (a kedy vzniká padding) — a prečo je **kontextové okno obmedzené**.
 
 **Po lekcii viete:**
 - vysvetliť roly Q, K, V analógiou s vyhľadávaním a opísať postup výpočtu attention,
@@ -93,7 +93,7 @@ Prečo RNN nestačili (sekvenčnosť, krátka pamäť) a čo priniesol „Attent
 - opísať, ako z „predpovedz ďalší token" vzniká generovanie celých odpovedí,
 - nastaviť dekódovanie podľa toho, či chcete faktickú alebo kreatívnu odpoveď,
 - spočítať veľkosť KV cache pre daný model a kontext a vymenovať štyri dôvody, prečo sa okno nedá len tak zväčšiť,
-- povedať, čo sa pri generovaní dá cachovať a ako skladať prompt, aby cache fungovala.
+- povedať, čo sa pri generovaní dá uložiť do cache a ako skladať prompt, aby cache fungovala.
 
 > Ručne prepočítaný príklad tej istej attention (s číslami) je v [embeddings.md, Krok 3](tutorials/04-llm/05-embeddings.md#krok-3-transformer-vrstvy--tu-sa-deje-pochopenie-kontextu). Teraz je nepovinný, v lekcii 6 sa k nemu vrátime.
 
@@ -146,11 +146,12 @@ Prečo sa celý model dotrénovať nedá (pamäťová matematika). **LoRA** — 
 
 **Materiál:** [01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) + [02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) (záver) + živé demá na hodine
 
-Čo robí z LLM **agenta**: slučka model → nástroj → výsledok → model (ReAct), ukázaná na dvadsiatich riadkoch kódu. Tool use / function calling, MCP ako štandard pripájania nástrojov. **Claude Code** ako ukážka hotového agenta: práca s repozitárom, spúšťanie príkazov, kedy mu (ne)veriť. **LangChain / LangGraph** — a kedy framework *ne*použiť. Bezpečnosť agentov: prompt injection, least-privilege, sandboxing. Context engineering a evaluácia agentov. Na záver výhľad, čo sledovať po kurze.
+Čo robí z LLM **agenta**: slučka model → nástroj → výsledok → model (ReAct), ukázaná na dvadsiatich riadkoch kódu. Tool use / function calling, MCP ako štandard pripájania nástrojov. **Claude Code** ako ukážka hotového agenta: práca s repozitárom, spúšťanie príkazov, kedy mu (ne)veriť. **LangChain / LangGraph** — kedy sa framework naozaj oplatí (graf s vetvením, uložením stavu a schválením človekom), kedy sa oplatí **viac agentov** (supervisor a špecializovaní podagenti) — a kedy framework *ne*použiť. Bezpečnosť agentov: prompt injection, least-privilege, sandboxing. Context engineering a evaluácia agentov. Na záver výhľad, čo sledovať po kurze.
 
 **Po lekcii viete:**
 - vysvetliť agentovú slučku a rozdiel medzi „chatbot" a „agent",
 - napísať jednoduchý agent s jedným-dvomi nástrojmi (bez frameworku aj v LangChaine),
+- rozhodnúť, kedy sa oplatí LangGraph a kedy architektúra s viacerými agentmi,
 - vymenovať hlavné riziká (prompt injection) a základné obrany,
 - efektívne používať Claude Code pri vlastnej práci.
 
@@ -158,7 +159,7 @@ Prečo sa celý model dotrénovať nedá (pamäťová matematika). **LoRA** — 
 
 ## Zhrnutie: dva princípy, ktoré sa oplatí odniesť
 
-1. **Typ dát a úlohy určuje model.** Tabuľky → XGBoost. Obraz → CNN. Text/sekvencie → transformer. Neťahajte LLM tam, kde jednoduchší model spraví lacnejšiu a vysvetliteľnejšiu prácu.
+1. **Typ dát a úlohy určuje model.** Tabuľky → XGBoost. Obraz → CNN. Text/sekvencie → transformer. Nenasadzujte LLM tam, kde jednoduchší model spraví lacnejšiu a vysvetliteľnejšiu prácu.
 2. **Dáta + loss určujú, čo sa model naučí.** Rovnaká sieť a rovnaká slučka (forward → loss → backprop → Adam) dá dokončovač textu, asistenta aj embedding model — podľa toho, aké dáta a akú loss jej dáte. Kto rozumie tejto mechanike, rozumie celému modernému AI stacku.
 
 ---
@@ -208,7 +209,7 @@ Materiály sú v adresári [`tutorials/`](tutorials/README.md), rozdelené do š
 | 12 | [03-ucenie/02-problemy-pri-uceni.md](tutorials/03-ucenie/02-problemy-pri-uceni.md) | miznúce/explodujúce gradienty, `NaN`, dáta, fp16, hardvér | 3 |
 | — | [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md) | **zadanie 1** — vlastná sieť + Adam + PyTorch | 3–4 |
 | 13 | [04-llm/01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md) | attention, multi-head, positional encoding, dekódovanie | 4 |
-| 14 | [04-llm/02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md) | rozmery, feed-forward, výstupný token, KV cache, limity kontextu | 4 |
+| 14 | [04-llm/02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md) | tokenizácia, text → vektory, rozmery, reziduálny prúd, feed-forward a MoE, výstupný token a slovo, KV cache, limity kontextu | 4 |
 | 15 | [04-llm/03-llm-trening.md](tutorials/04-llm/03-llm-trening.md) | pretraining → base → SFT → Instruct | 5 |
 | 16 | [04-llm/04-llm-modely.md](tutorials/04-llm/04-llm-modely.md) | proprietárne / open-weight / open-source, právo a etika | 5 |
 | 17 | [04-llm/05-embeddings.md](tutorials/04-llm/05-embeddings.md) | tokenizácia, embeddingy, pooling, normalizácia | 6 |

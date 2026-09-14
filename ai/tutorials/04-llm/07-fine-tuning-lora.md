@@ -4,7 +4,7 @@
 
 > **Cieľ dokumentu:** vysvetliť, ako sa dá veľký model prispôsobiť vlastnej úlohe na jednom GPU — čo presne je **LoRA adaptér**, prečo stačí, čo pridáva **QLoRA** — a hlavne vedieť sa **rozhodnúť**, kedy siahnuť po fine-tuningu a kedy po RAG alebo len po dlhšom prompte.
 
-Nadväzuje na [03-llm-trening.md](03-llm-trening.md): fine-tuning, ktorý tu robíme, je presne **Fáza 2 (SFT)** z tamojšej pipeline, len na malých dátach a s malým počtom trénovaných parametrov. Tréningová slučka je stále tá istá ako v [lekcii 3](../03-ucenie/01-adam-optimalizator.md).
+Nadväzuje na [03-llm-trening.md](03-llm-trening.md): fine-tuning, ktorý tu robíme, je presne **Fáza 2 (SFT)** z pipeline opísanej v ňom, len na malých dátach a s malým počtom trénovaných parametrov. Tréningová slučka je stále tá istá ako v [lekcii 3](../03-ucenie/01-adam-optimalizator.md).
 
 ---
 
@@ -97,7 +97,7 @@ Toto je najdôležitejšia časť lekcie — mechaniku vám spraví knižnica, r
 
 ### Neoplatí sa
 
-- **„Model nepozná fakt X."** Toto je najčastejší omyl. Fakty sedia vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše — model si skôr osvojí *štýl* vašich viet a fakty domieša. Na fakty patrí **RAG**.
+- **„Model nepozná fakt X."** Toto je najčastejší omyl. Fakty sú uložené vo váhach z pretrainingu a malý SFT dataset ich spoľahlivo neprepíše — model si skôr osvojí *štýl* vašich viet a fakty domieša. Na fakty patrí **RAG**.
 - **Dáta sa často menia.** Fine-tuning treba pri každej zmene zopakovať; aktualizovať retrieval korpus je otázka minút.
 - **Potrebujete citovať zdroj.** Fine-tunovaný model odpovedá „z hlavy" a nevie povedať, odkiaľ to má. RAG vracia `source` a `page` (viď metadáta v [06-rag.md](06-rag.md)).
 - **Dobrý prompt už úlohu rieši.** Netreba pridávať zložitosť, ktorú niekto musí udržiavať.

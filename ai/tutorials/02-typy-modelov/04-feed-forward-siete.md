@@ -36,10 +36,10 @@ A vyžaduje toho dosť. **XGBoost sme mohli pustiť rovno na surovú tabuľku**:
 
 | Vlastnosť dát | XGBoost | MLP |
 |---|---|---|
-| Rôzne škály stĺpcov (€ vs. počty) | **jedno** — strom hľadá prah, nie vzdialenosť | **musí sa štandardizovať**, inak veľký stĺpec prevalcuje ostatné |
+| Rôzne škály stĺpcov (€ vs. počty) | **jedno** — strom hľadá prah, nie vzdialenosť | **musí sa štandardizovať**, inak veľký stĺpec prevládne nad ostatnými |
 | Šikmé rozdelenie (pár obrích súm) | jedno — prah `> 500 €` funguje rovnako | **pomáha logaritmus** |
 | Kategórie (`e-commerce`, MCC, krajina) | vie natívne | **musia sa zakódovať na čísla** (one-hot / embedding) |
-| Chýbajúce hodnoty | vie sám (učí sa, kam ich poslať) | **musia sa doplniť** — `NaN` na vstupe otrávi celú sieť |
+| Chýbajúce hodnoty | vie sám (učí sa, kam ich poslať) | **musia sa doplniť** — `NaN` na vstupe sa rozšíri celou sieťou |
 | Cyklické veličiny (hodina, deň v týždni) | zvládne prahmi | **treba zakódovať kruhovo**, inak je polnoc „ďaleko" od 23:00 |
 | Nepotrebné stĺpce | ignoruje ich | pridávajú parametre a šum |
 
@@ -92,7 +92,7 @@ Správne je **one-hot** — jeden stĺpec na kategóriu, v ktorom je práve jedn
 MCC má stovky hodnôt, krajín sú desiatky. One-hot by z toho spravil stovky prevažne nulových stĺpcov — sieť by mala tisíce parametrov na príznak, ktorý sa v dátach objaví trikrát. Dve praktické cesty:
 
 - **Zoskupenie podľa domény** — MCC zlúčime do troch tried: `denná spotreba` (potraviny, reštaurácie, doprava, lekáreň, čerpacie stanice), `tovar / e-shop` (elektronika, klenoty, odevy), `rizikové` (stávkovanie, kryptozmenárne). Z krajiny spravíme jediný príznak **`zahraničie`** = krajina obchodníka ≠ krajina vydania karty. Tri plus jeden stĺpec namiesto stoviek.
-- **Embedding vrstva** — každej kategórii sa priradí učený vektor (napr. 8 čísel), ktorý sa trénuje spolu so sieťou. Je to presne ten mechanizmus, ktorý poháňa [embeddingy slov](../04-llm/05-embeddings.md), len nad MCC kódmi. Oplatí sa pri desaťtisícoch riadkov a viac; na náš príklad je to prestrelené.
+- **Embedding vrstva** — každej kategórii sa priradí učený vektor (napr. 8 čísel), ktorý sa trénuje spolu so sieťou. Je to presne ten mechanizmus, ktorý poháňa [embeddingy slov](../04-llm/05-embeddings.md), len nad MCC kódmi. Oplatí sa pri desaťtisícoch riadkov a viac; na náš príklad je to zbytočne veľa.
 
 #### 1e) Rýchlosť míňania (`tx/60 min`): stačí štandardizácia
 
@@ -164,7 +164,7 @@ Výstupná vrstva: `W₂ = [0,32, −0,10, −0,26, −0,55]`, `b₂ = 0`.
 
 ### Krok 3: Forward pass — riadok 3 (podvod za 890 € o 3:17)
 
-Prvý neurón skrytej vrstvy spočíta vážený súčet. Nuly z one-hot stĺpcov vypadnú samy:
+Prvý neurón skrytej vrstvy spočíta vážený súčet. Nuly z one-hot stĺpcov zo súčtu vypadnú samy:
 
 ```text
   z₁⁽¹⁾ = 1,308·(−0,24) + 0,758·0,46 + 0,653·0,59 + 1,444·0,14

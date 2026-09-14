@@ -23,15 +23,15 @@ Na rozdiel od random forestu sa používajú **plytké stromy** (bežne hĺbka 3
 
 Kontrast sa oplatí zapamätať: **bagging skladá silné (hlboké) stromy paralelne a tlmí rozptyl; boosting skladá slabé (plytké) stromy sekvenčne a tlmí skreslenie.**
 
-**XGBoost** (*eXtreme Gradient Boosting*) je najznámejšia, vysoko optimalizovaná implementácia gradient boostingu. Pridáva regularizáciu, prácu s chýbajúcimi hodnotami a efektívne paralelné budovanie stromov. Spolu s príbuznými (LightGBM, CatBoost) je to **dlhodobo najúspešnejší model na tabuľkové dáta** a takmer štandardný víťaz Kaggle súťaží mimo obrazu a textu.
+**XGBoost** (*eXtreme Gradient Boosting*) je najznámejšia, vysoko optimalizovaná implementácia gradient boostingu. Pridáva regularizáciu, prácu s chýbajúcimi hodnotami a efektívne paralelné budovanie stromov. Spolu s príbuznými (LightGBM, CatBoost) je to **dlhodobo najúspešnejší model na tabuľkové dáta** a takmer štandardný víťaz súťaží na Kaggle mimo obrazu a textu.
 
 Prečo na tabuľkách vyhrávajú stromy nad neurónovými sieťami? Tabuľkové stĺpce sú rôznorodé (eurá, roky, kategórie) a nemajú priestorovú ani sekvenčnú štruktúru, ktorú by sieť vedela využiť; riadkov bývajú tisíce až státisíce, nie milióny; a stromom neprekážajú rôzne škály ani chýbajúce hodnoty. Neurónová sieť tu nemá čo „objaviť" navyše — a zaplatíte za ňu dlhším trénovaním, náročnejším ladením a horšou vysvetliteľnosťou.
 
-**Typické použitie:** predikcia na tabuľkových dátach — riziko úveru, predikcia dopytu/predaja, detekcia podvodov, ranking, scoring zákazníkov. Tam, kde máte stĺpce a riadky, začnite XGBoostom.
+**Typické použitie:** predikcia na tabuľkových dátach — riziko úveru, predikcia dopytu/predaja, detekcia podvodov, zoraďovanie (*ranking*), skórovanie zákazníkov. Tam, kde máte stĺpce a riadky, začnite XGBoostom.
 
 | ✅ Výhody | ❌ Nevýhody |
 |---|---|
-| **Špičková presnosť na tabuľkových dátach**, často lepšia než neurónky | Viac **hyperparametrov** na ladenie (počet stromov, hĺbka, learning rate) |
+| **Špičková presnosť na tabuľkových dátach**, často lepšia než neurónové siete | Viac **hyperparametrov** na ladenie (počet stromov, hĺbka, learning rate) |
 | Robustný, zvláda chýbajúce hodnoty a rôzne škály | Menej vysvetliteľný než jeden strom (ale existuje SHAP) |
 | Random forest sa ťažko preučí a beží paralelne | Boosting je **sekvenčný** → pomalšie trénovanie na obrích dátach |
 | Netreba veľa dát ani GPU | **Nehodí sa** na obraz/zvuk/text (surové pixely či slová) |

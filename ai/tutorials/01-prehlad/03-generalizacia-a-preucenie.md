@@ -12,7 +12,7 @@ Len čo však začneme **ladiť nastavenia** (koľko vrstiev, aká hĺbka stromu
 | **validačná** | ~10–20 % | porovnávajú sa na nej nastavenia a rozhoduje sa, kedy tréning zastaviť |
 | **testovacia** | ~10–20 % | siahne sa na ňu **raz, na úplný záver** |
 
-Ak je dát málo na to, aby sa dala odkrojiť samostatná validačná časť, nahrádza ju **krížová validácia** (*k-fold*): dáta sa rozdelia na `k` dielov, model sa `k`-krát natrénuje vždy na `k−1` dieloch a overí na tom zvyšnom, a výsledky sa spriemerujú.
+Ak je dát málo na to, aby sa dala vyčleniť samostatná validačná časť, nahrádza ju **krížová validácia** (*k-fold*): dáta sa rozdelia na `k` dielov, model sa `k`-krát natrénuje vždy na `k−1` dieloch a overí na tom zvyšnom, a výsledky sa spriemerujú.
 
 Pri učení hrozia dva opačné neduhy:
 

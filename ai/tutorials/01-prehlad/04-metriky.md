@@ -15,11 +15,11 @@ Accuracy je `(TP + TN) / všetko` — a práve preto klame: pri 99 % negatívnyc
 - **Recall** (senzitivita) = `TP / (TP + FN)` — zo skutočne pozitívnych, koľko ich model našiel? (koľko prípadov prehliadol)
 - **F1** — harmonický priemer precision a recall; jedno číslo, keď záleží na oboch naraz.
 
-Ktoré z nich je dôležitejšie, určuje úloha: pri filtri spamu bolí falošný poplach (dôraz na precision), pri skríningu choroby bolí prehliadnutý prípad (dôraz na recall).
+Ktoré z nich je dôležitejšie, určuje úloha: pri filtri spamu je nákladnejší falošný poplach (dôraz na precision), pri skríningu choroby prehliadnutý prípad (dôraz na recall).
 
 ## Prah a PR-AUC
 
-Modely spravidla nevracajú „áno / nie", ale **pravdepodobnosť**. Až my z nej rozhodnutie urobíme tým, že zvolíme **prah** — napríklad „nad 0,5 to označ za podvod". Prah je otočný gombík medzi precision a recall: keď ho zdvihneme, model označí menej prípadov, tie sú istejšie (precision rastie), ale viac ich prehliadne (recall klesá). Precision, recall aj F1 teda **nie sú vlastnosti modelu, ale vlastnosti modelu pri konkrétnom prahu**.
+Modely spravidla nevracajú „áno / nie", ale **pravdepodobnosť**. Až my z nej rozhodnutie urobíme tým, že zvolíme **prah** — napríklad „nad 0,5 to označ za podvod". Prah je regulátor medzi precision a recall: keď ho zdvihneme, model označí menej prípadov, tie sú istejšie (precision rastie), ale viac ich prehliadne (recall klesá). Precision, recall aj F1 teda **nie sú vlastnosti modelu, ale vlastnosti modelu pri konkrétnom prahu**.
 
 Keď chceme porovnať dva modely bez toho, aby výsledok závisel od zvoleného prahu, prejdeme **všetky** prahy naraz a vykreslíme precision proti recallu. Plocha pod touto krivkou je **PR-AUC** (*precision-recall area under curve*, v knižniciach aj `average_precision`) — jedno číslo, ktoré hovorí „ako dobre model vie zoradiť pozitívne prípady nad negatívne". Pri veľmi nevyvážených úlohách je to hlavná metrika: bezcenný model má PR-AUC rovné podielu pozitívnych v dátach (pri 0,1 % podvodov teda 0,001), takže na rozdiel od accuracy sa nedá vylepšiť tým, že model nerobí nič.
 
