@@ -1,1 +1,8 @@
+# Python
 *.pyc
+__pycache__/
+
+# Web s tutoriálmi (MkDocs) — build artefakt a lokálne virtuálne prostredie,
+# web sa zostavuje z ai/**.md, viď mkdocs.yml a requirements-docs.txt
+site/
+.venv-docs/

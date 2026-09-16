@@ -25,9 +25,9 @@ Všetky čísla nižšie počítam na jednom **referenčnom modeli** veľkosti ~
 
 | Časť | Sekcie | Na akú otázku odpovedá |
 |---|---|---|
-| **A — Vstup** | [1. Tokenizácia](#1-tokenizácia-ako-sa-z-textu-stanú-čísla) · [2. Z ID na vektor](#2-z-token-id-na-vektor-embedding-matica-a-pozícia) | Čo presne model dostáva, keď mu pošlem vetu? |
-| **B — Priechod** | [3. Rozmery a parametre](#3-odkiaľ-sa-berie-veľkosť-vektorov) · [4. Jedna vrstva](#4-cesta-jedného-vektora-jednou-vrstvou) · [5. Feed-forward a MoE](#5-feed-forward-vrstva-každý-vektor-sám-za-seba) | Prečo 4096 a 32 vrstiev, a kde je v modeli uložená znalosť? |
-| **C — Výstup a limity** | [6. Výstupný token](#6-ako-vznikne-výstupný-token--a-prečo-len-jeden) · [7. Autoregresia a KV cache](#7-ďalší-prechod-autoregresia-a-kv-cache) · [8. Kontext](#8-kontext-krátka-správa-dlhá-správa-a-prečo-má-okno-strop) · [9. Parametre](#9-prehľad-parametrov-transformera) | Prečo vypadne len jeden token, prečo je prvý pomalý a prečo okno nie je nekonečné? |
+| **A — Vstup** | [1. Tokenizácia](#1-tokenizácia-ako-sa-z-textu-stanú-čísla) · [2. Z ID na vektor](#2-z-token-id-na-vektor-embedding-matica-a-pozícia) · [okno vs. šírka](#dve-osi-vstupnej-matice-šírka-a-kontextové-okno) | Čo presne model dostáva, keď mu pošlem vetu, čo v tom ohraničuje kontextové okno a čo kvôli tokenom vôbec nevidí? |
+| **B — Priechod** | [3. Rozmery, parametre a škálovanie](#3-odkiaľ-sa-berie-veľkosť-vektorov) · [4. Jedna vrstva](#4-cesta-jedného-vektora-jednou-vrstvou) · [5. Feed-forward a MoE](#5-feed-forward-vrstva-každý-vektor-sám-za-seba) | Prečo 4096 a 32 vrstiev, čím sa od toho líši 405B model, a kde je v modeli uložená znalosť? |
+| **C — Výstup a limity** | [6. Výstupný token](#6-ako-vznikne-výstupný-token--a-prečo-len-jeden) · [7. Autoregresia a KV cache](#7-ďalší-prechod-autoregresia-a-kv-cache) · [8. Kontext](#8-kontext-krátka-správa-dlhá-správa-a-prečo-má-okno-strop) · [9. Učenie v kontexte](#9-učenie-v-kontexte-in-context-learning) · [10. Parametre](#10-prehľad-parametrov-transformera) | Prečo vypadne len jeden token, prečo je prvý pomalý, prečo okno nie je nekonečné a ako sa model „učí" z promptu? |
 
 ---
 
@@ -110,7 +110,7 @@ tá istá veta po anglicky:
 
 1. **Medzera patrí k nasledujúcemu slovu.** `"nárok"` a `"␣nárok"` sú **dva rôzne tokeny s rôznymi ID**. Preto sa prompt nikdy nemá končiť medzerou — model potom musí vyrobiť token *bez* úvodnej medzery, čo je vzor, ktorý v tréningu videl zriedka, a kvalita spadne.
 2. **Veľké písmeno mení token.** `"Nárok"`, `"nárok"` a `"NÁROK"` sú rôzne tokeny (a `"NÁROK"` sa navyše rozpadne na viac kúskov). Model sa ich ekvivalenciu učí, nedostáva ju zadarmo.
-3. **Čísla nie sú čísla.** Novšie tokenizéry delia číslice na skupiny najviac troch (`"2025"` → `"202"` + `"5"`), Llama 2 po jednej. Model teda nevidí hodnotu, ale reťazec kúskov — odtiaľ pramenia chyby v aritmetike a preto sa na počítanie volá kalkulačka ako [nástroj](../05-prakticke/01-agenti-a-nastroje.md).
+3. **Čísla nie sú čísla.** Novšie tokenizéry delia číslice na skupiny najviac troch (`"2025"` → `"202"` + `"5"`), Llama 2 po jednej. Model teda nevidí hodnotu, ale reťazec kúskov — odtiaľ pramenia chyby v aritmetike a preto sa na počítanie volá kalkulačka ako [nástroj](../05-prakticke/02-agenti-a-nastroje.md).
 4. **Diakritika stojí bajty.** `á`, `č`, `ž` majú v UTF-8 **dva bajty**. Ak slovník nemá slovenský merge, rozpadnú sa na bajtové tokeny — v logoch to vidno ako tokeny, ktoré samy o sebe netvoria platný znak.
 5. **Kód má vlastné tokeny.** `cl100k_base` a novšie majú samostatné tokeny pre 4, 8, 12… medzier odsadenia — preto je Python v nich výrazne lacnejší než v GPT-2.
 
@@ -147,10 +147,10 @@ Okrem obsahových tokenov má slovník aj **riadiace tokeny**. Sú to bežné ri
 
 | Token (Llama 3) | Úloha |
 |---|---|
-| `<\|begin_of_text\|>` | začiatok sekvencie |
-| `<\|start_header_id\|>` … `<\|end_header_id\|>` | obal okolo názvu roly (`system`, `user`, `assistant`) |
-| `<\|eot_id\|>` | koniec repliky — **na tomto tokene sa generovanie zastaví** |
-| `<\|end_of_text\|>` | koniec dokumentu (z pretrainingu) |
+| <code>&lt;&#124;begin_of_text&#124;&gt;</code> | začiatok sekvencie |
+| <code>&lt;&#124;start_header_id&#124;&gt;</code> … <code>&lt;&#124;end_header_id&#124;&gt;</code> | obal okolo názvu roly (`system`, `user`, `assistant`) |
+| <code>&lt;&#124;eot_id&#124;&gt;</code> | koniec repliky — **na tomto tokene sa generovanie zastaví** |
+| <code>&lt;&#124;end_of_text&#124;&gt;</code> | koniec dokumentu (z pretrainingu) |
 
 Konverzácia sa do modelu nikdy nedostane ako štruktúra — **serializuje sa do jedného plochého reťazca tokenov** pomocou *chat šablóny*:
 
@@ -173,6 +173,30 @@ Preto sa pri streamovaní odpovede občas objaví „prázdny" kus streamu: toke
 
 ---
 
+#### Čo model kvôli tokenom nevidí
+
+Tokenizácia nie je len technický medzikrok — určuje, čo je pre model vôbec **viditeľné**.
+Model nikdy nevidí písmená; vidí ID celých kusov textu. Odtiaľ pochádza väčšina „hlúpych"
+zlyhaní, ktoré u inak schopného modelu prekvapia:
+
+| Úloha | Prečo zlyháva |
+|---|---|
+| *„Koľko `r` je v slove strawberry?"* | model vidí `["str", "aw", "berry"]` — tri ID, nie desať písmen. Počítať písmená v niečom, čo nevidí po písmenách, je ako počítať slabiky v telefónnom čísle. |
+| *„Napíš to slovo odzadu"* | to isté: poradie znakov vnútri tokenu nie je v reprezentácii priamo prítomné |
+| Dlhé násobenie, sčítanie veľkých čísel | čísla sa krájajú na kusy (`1234` môže byť `12`+`34`), takže „jednotky pod jednotky" model nemá z čoho poskladať. Novšie tokenizéry preto číslice delia po jednej. |
+| Rýmy a počítanie slabík v slovenčine | tá istá príčina plus málo slovenčiny v dátach |
+
+Dôležité je, že to **nie sú chyby uvažovania, ale chyby vstupu** — a preto sa dajú obísť
+troma spôsobmi: dať modelu **nástroj** (kalkulačka, Python — [lekcia 8](../05-prakticke/02-agenti-a-nastroje.md)),
+prinútiť ho **rozpísať si to po znakoch** v odpovedi (`s-t-r-a-w-b-e-r-r-y`), čím sa písmená
+stanú samostatnými tokenmi, alebo úlohu vôbec nezadávať v takej podobe.
+
+Druhá polovica toho istého obmedzenia je časová: na **jeden token** má model **pevne daný
+výpočet** (32 vrstiev, nič viac), takže „ťažšiu" otázku nevie premyslieť dlhšie — iba napísať
+viac tokenov ([prečo premýšľanie znamená viac tokenov](#prečo-premýšľanie-znamená-viac-tokenov)).
+
+---
+
 ### 2. Z token ID na vektor: embedding matica a pozícia
 
 Prvá vrstva modelu nie je nič inteligentné — je to **tabuľka**. Embedding matica `E` má tvar `[vocab, d_model]`, u referenčného modelu `[128 256, 4096]`, a token ID je **index riadku**:
@@ -188,6 +212,52 @@ n tokenov  →  X = [n, 4096]     riadok = jeden token
 ```
 
 a **tento tvar sa nezmení až po poslednú vrstvu** (sekcia 4). Vektor v tomto momente ešte nevie nič o kontexte: `"banka"` má rovnaký riadok vo vete o financiách aj o rieke. Kontext doň dostane až attention.
+
+#### Dve osi vstupnej matice: šírka a kontextové okno
+
+Matica `X` má dva rozmery a každý z nich znamená niečo úplne iné. Kto si ich raz oddelí,
+prestane mať zmätok v tom, čo je `d_model`, čo je kontextové okno a prečo sa jedno s druhým
+nedá vymeniť:
+
+```text
+                      ← šírka: d_model = 4096 stĺpcov →       (pevná, daná váhami)
+                    ┌───────────────────────────────────┐
+   token 1  "Aké"   │  0.03  -0.12   0.44   …    0.09   │   ↑
+   token 2  "je"    │ -0.51   0.08  -0.17   …    0.33   │   │  kontext: n riadkov
+   token 3  "hlavné"│  0.22   0.61   0.05   …   -0.44   │   │  (iný pri každej požiadavke,
+      ⋮             │   ⋮                               │   │   strop = n_ctx = 8192)
+   token n  "?"     │  0.14  -0.09   0.28   …    0.71   │   ↓
+                    └───────────────────────────────────┘
+```
+
+| Os matice `X` | Čo znamená | Čo ju určuje | Mení sa počas behu? |
+|---|---|---|---|
+| **stĺpce — `d_model`** (*šírka*) | koľko informácie unesie **jeden token** | architektúra; je zapečená vo váhach | **nie** — konštanta modelu |
+| **riadky — `n`** (*kontext*) | koľko tokenov model **vidí naraz** | vaša požiadavka | **áno** — pri každom volaní, strop je `n_ctx` |
+
+Z tohto rozdelenia plynú štyri veci:
+
+1. **Kontextové okno nie je „vstupná vrstva".** V žiadnej matici váh sa číslo `n`
+   nevyskytuje — váhy majú tvar `[4096, …]`, teda rozmer **jedného tokenu**. Model je funkcia,
+   ktorá sa aplikuje buď na každý riadok zvlášť (FFN, normalizácie), alebo na dvojice riadkov
+   (attention). Preto nemá zmysel otázka „kde je v modeli uložených 8192 pozícií" — nikde.
+   Tie isté váhy spracujú 5 riadkov aj 5000 ([sekcia 8](#8-kontext-krátka-správa-dlhá-správa-a-prečo-má-okno-strop)).
+2. **Šírka a okno sú dve nezávislé páky.** `d_model` je vlastnosť *modelu* — zmeniť ju
+   znamená natrénovať iný model. `n` je vlastnosť *požiadavky* a jeho strop `n_ctx` nevyplýva
+   z tvaru váh, ale z toho, po akú dĺžku bol model trénovaný a koľko pamäte spotrebuje KV
+   cache ([prečo sa okno nedá len tak zväčšiť](#prečo-sa-okno-nedá-len-tak-zväčšiť)).
+3. **Každá os sa platí inou menou.** Stĺpce stoja **parametre** (`N ≈ 12 · n_layers · d_model²`
+   — [sekcia 3](#ako-model-rastie-šírka-vs-hĺbka)), teda VRAM a cenu tréningu. Riadky stoja
+   **výpočet a pamäť pri inferencii** (attention je `n²`, KV cache rastie lineárne s `n`).
+   Široký model je *drahý model*; dlhý kontext je *drahá otázka*.
+4. **Do okna sa počíta aj to, čo model práve píše.** Každý vygenerovaný token pridá do `X`
+   ďalší riadok, takže `n_ctx` zdieľa prompt aj odpoveď. Preto pri okne 8192 a prompte s
+   7000 tokenov nedostanete odpoveď dlhú 4000 tokenov.
+
+> **Častý omyl:** „model má okno 128k, takže má 128 000 vstupných neurónov". Nemá žiadne.
+> Má 4096 stĺpcov a ľubovoľný počet riadkov až po strop — a práve táto vlastnosť odlišuje
+> transformer od [feed-forward siete](../02-typy-modelov/04-feed-forward-siete.md) či
+> [CNN](../02-typy-modelov/05-konvolucne-siete.md), ktoré majú vstup pevnej veľkosti.
 
 #### Kde je informácia o poradí
 
@@ -255,16 +325,38 @@ Vektor tokenu má vo vnútri modelu **stále rovnakú dĺžku `d_model`** — od
 
 A `d_ff` (šírka feed-forward vrstvy) je tradične **4 × `d_model`**. Pri modernej aktivácii SwiGLU sú v FFN **tri** matice namiesto dvoch, takže sa `d_ff` znižuje na ≈ `8/3 × d_model`, aby počet parametrov ostal rovnaký (Llama 2 7B: 11008 pri `d_model` 4096). Novšie modely idú aj nad toto pravidlo — Llama 3 8B má `d_ff = 14336`, teda zámerne širšie FFN na úkor iných rozmerov.
 
-| Model | `d_model` | `n_layers` | `n_heads` | `d_ff` | `vocab` | parametre |
-|---|---|---|---|---|---|---|
-| GPT-2 small | 768 | 12 | 12 | 3072 | 50 257 | 124 M |
-| GPT-2 XL | 1600 | 48 | 25 | 6400 | 50 257 | 1,5 B |
-| Llama 3 8B | 4096 | 32 | 32 | 14336 | 128 256 | 8 B |
-| Llama 3 70B | 8192 | 80 | 64 | 28672 | 128 256 | 70 B |
+| Model | `d_model` | `n_layers` | `n_heads` | `d_ff` | `vocab` | parametre | `d_model / n_layers` |
+|---|---|---|---|---|---|---|---|
+| GPT-2 small | 768 | 12 | 12 | 3072 | 50 257 | 124 M | 64 |
+| GPT-2 XL | 1600 | 48 | 25 | 6400 | 50 257 | 1,5 B | 33 |
+| GPT-3 | 12288 | 96 | 96 | 49152 | 50 257 | 175 B | 128 |
+| Llama 3 8B | 4096 | 32 | 32 | 14336 | 128 256 | 8 B | 128 |
+| Llama 3 70B | 8192 | 80 | 64 | 28672 | 128 256 | 70 B | 102 |
+| Llama 3.1 405B | 16384 | 126 | 128 | 53248 | 128 256 | 405 B | 130 |
+
+Z tabuľky vypadne jedno prekvapivé číslo. Medzi Llama 3 8B a Llama 3.1 405B je **50× viac
+parametrov**, ale vrstiev pribudlo len **3,9×** (32 → 126). Väčšina rastu išla do **šírky**:
+`d_model` 4×, `d_ff` 3,7×, `n_heads` 4×. Veľký model teda nie je „ten istý model, len oveľa
+hlbší" — je to predovšetkým **oveľa širší** model, ktorý je *zároveň* o kus hlbší. Pomer
+`d_model / n_layers` (*aspect ratio*) pritom ostáva v pásme ~100–130, čo nie je náhoda
+(vysvetlenie je v [Ako model rastie: šírka vs. hĺbka](#ako-model-rastie-šírka-vs-hĺbka)).
+
+Ešte výraznejšie to vidno pri **MoE** modeloch, kde šírka „odteká" do paralelných expertov
+(mechanizmus je v [sekcii 5](#keď-je-ffn-priveľká-mixture-of-experts-moe), tu sú len ich rozmery):
+
+| Model (MoE) | `d_model` | `n_layers` | `d_ff` jedného experta | expertov (aktívnych) | parametre (aktívne) |
+|---|---|---|---|---|---|
+| Mixtral 8×7B | 4096 | 32 | 14336 | 8 (2) | 46,7 B (12,9 B) |
+| Qwen3 235B-A22B | 4096 | 94 | 1536 | 128 (8) | 235 B (22 B) |
+| DeepSeek V3 | 7168 | 61 | 2048 | 256 smerovaných + 1 zdieľaný (8) | 671 B (37 B) |
+
+Všimnite si Qwen3 235B: má **rovnaké `d_model` 4096 ako 8B model** a jeho FFN sú dokonca
+9× užšie než v Llame 3 8B. Tridsaťkrát viac parametrov nie je ani v hĺbke, ani v šírke jednej
+matice — je **vedľa seba**, v 128 nezávislých expertoch.
 
 #### Rozloženie parametrov v modeli
 
-Spočítajme referenčný model — je to obyčajné sčítanie veľkostí matíc a a hneď z neho vidieť, kde sa kapacita modelu spotrebúva:
+Spočítajme referenčný model — je to obyčajné sčítanie veľkostí matíc a hneď z neho vidieť, kde sa kapacita modelu spotrebúva:
 
 ```text
 JEDNA VRSTVA
@@ -291,6 +383,122 @@ Dve veci, ktoré z toho stoja za zapamätanie:
 - **Feed-forward vrstvy zaberajú ~80 % parametrov jednej vrstvy** (176 M z 218 M) a **~70 % celého modelu** (zvyšok pripadá na embeddingy) — nie attention. Attention je koncepčne zaujímavejšia, objemom však dominuje FFN.
 - **Embedding matice sú netriviálne** — pri malých modeloch dokonca dominujú (GPT-2 small: 39 M zo 124 M). Preto sa často **zdieľajú** (*weight tying*): tá istá matica sa použije na vstupe aj na výstupe.
 - **Toto je rozpočet *dense* modelu**, kde každý token prejde cez všetky váhy. Modely typu **MoE** ho lámu na polovicu: parametrov majú násobne viac, ale na jeden token ich použijú len zlomok — [sekcia 5](#keď-je-ffn-priveľká-mixture-of-experts-moe).
+
+#### Ako model rastie: šírka vs. hĺbka
+
+Z rozpočtu vyššie sa dá vytiahnuť jednoduchý vzorec. Na jednu vrstvu pripadá ~4 `d_model²`
+v attention (pri GQA menej) a ~8 `d_model²` vo feed-forward, teda dokopy zhruba:
+
+```text
+N ≈ 12 · n_layers · d_model²          (parametre dense modelu, bez embeddingov)
+```
+
+Overenie na dvoch modeloch z tabuľky:
+
+- Llama 3.1 405B: `12 · 126 · 16384² = 406 mld.` ✓
+- Llama 3 8B: `12 · 32 · 4096² = 6,4 mld.` + 1,05 mld. embeddingov ≈ 7,5 mld. (skutočnosť
+  8,0 mld. — model má FFN mierne širšie, než pravidlo predpokladá)
+
+A práve tu je celá pointa: **`n_layers` vystupuje vo vzorci lineárne, `d_model` kvadraticky.**
+Z toho plynie asymetria, ktorá rozhoduje o tvare veľkých modelov:
+
+| Zdvojnásobím… | parametre | FLOPs na token | **sériových krokov na token** | veľkosť jednej matice | ako to rozdelím na 8 GPU |
+|---|---|---|---|---|---|
+| `n_layers` (hĺbka) | 2× | 2× | **2×** | rovnaká | pipeline — GPU sa striedajú |
+| `d_model` (šírka) | **4×** | 4× | **rovnako** | 4× | tensor parallel — GPU pracujú naraz |
+
+Zdvojnásobenie šírky teda dá **štyrikrát viac parametrov za rovnaký počet sériových krokov**,
+zatiaľ čo zdvojnásobenie hĺbky dá dvakrát viac parametrov a *dvakrát predĺži reťaz*, ktorou
+musí prejsť každý jeden token. Pri rovnakom počte parametrov je preto širší a plytší model
+**lepšie paralelizovateľný** — a to je dôvod, prečo 405B model má 126 vrstiev a nie 500.
+
+#### Prečo sa oplatí ísť skôr do šírky: problém s paralelizáciou
+
+Porovnajme dva hypotetické modely s **rovnakým počtom parametrov** (25,8 mld.):
+
+| | **A — široký a plytký** | **B — úzky a hlboký** |
+|---|---|---|
+| `n_layers` | 32 | 128 |
+| `d_model` | 8192 | 4096 |
+| parametre (`12·n·d²`) | 25,8 B | 25,8 B |
+| FLOPs na token | rovnaké | rovnaké |
+| bajtov váh na token (decode) | rovnako | rovnako |
+| **sériových krokov na token** | **32** | **128** |
+| kolektívnych synchronizácií na token pri tensor parallel na 8 GPU | **64** | **256** |
+| veľkosť typického maticového násobenia | 8192 × 8192 | 4096 × 4096 |
+
+Papierovo sú rovnaké. V reálnom nasadení je A citeľne rýchlejší, a to z troch nezávislých
+dôvodov.
+
+**1. Šírka sa paralelizuje *vnútri* vrstvy (tensor parallelism).** Široké matice sa dajú
+rozrezať po stĺpcoch a rozdať GPU: každá si spočíta svoj kus `W_Q`, svoje hlavy, svoj výsek
+FFN — všetky naraz. Zladiť sa treba len dvakrát za vrstvu (po attention a po FFN), a to
+sčítaním jedného vektora dĺžky `d_model`.
+
+```text
+ŠÍRKA — tensor parallelism (vrstva rozrezaná pozdĺžne)
+   GPU0 │ GPU1 │ GPU2 │ GPU3      všetky štyri počítajú súčasne
+   ─────┴──────┴──────┴──────
+              ↓ all-reduce (vektor d_model)   ← 1 synchronizácia
+
+HĹBKA — pipeline parallelism (vrstvy rozdelené medzi GPU)
+   GPU0: vrstvy 1–32  ──►  GPU1: 33–64  ──►  GPU2: 65–96  ──►  GPU3: 97–128
+         počíta              čaká             čaká             čaká
+```
+
+Dôležitý pomer: **výpočet vo vrstve rastie s `d_model²`, ale komunikácia len s `d_model`.**
+Dvojnásobná šírka znamená dvakrát viac výpočtu na každý prenesený bajt — širší model teda
+GPU klaster využíva **lepšie**. Šírku si viete „kúpiť" ďalšími GPU.
+
+**2. Hĺbka sa vnútri jedného tokenu paralelizovať *nedá*.** Vrstva 33 potrebuje výstup
+vrstvy 32 — je to reťaz, nie množina nezávislých úloh. Keď vrstvy rozdelíte medzi GPU
+(*pipeline parallelism*), GPU na seba čakajú. Podiel času, keď GPU stojí naprázdno, je pri
+`P` stupňoch a `M` mikro-dávkach:
+
+```
+bublina = (P − 1) / (M + P − 1)
+```
+
+- Pri **tréningu** sa dá bublina zaplátať: pustíte veľa mikro-dávok naraz (`M = 64`,
+  `P = 8` → bublina ~10 %).
+- Pri **generovaní** ale beží token po tokene, takže `M = 1` a bublina je `(P−1)/P` —
+  na 8 GPU **87 % času nečinnosti**. Preto sa pipeline pri interaktívnej inferencii
+  prakticky nepoužíva a hĺbka sa premieta **priamo do latencie** odpovede.
+
+**3. Každá vrstva má fixnú réžiu, ktorá sa platí za každý token.** Spustenie kernelov,
+načítanie váh z HBM, dve kolektívne synchronizácie pri tensor parallel — každá s vlastnou
+latenciou. Model B ich má 256 na token, model A 64. Táto réžia sa **nedá kúpiť ďalšími GPU**:
+pridaním GPU sa jedna vrstva zrýchli, ale počet vrstiev ostane. Navyše menšie matice horšie
+sýtia tensor cores — násobenie `4096 × 4096` využije GPU slabšie než `8192 × 8192`.
+
+**A ešte tréning.** Hlboký model má dlhšiu reťaz, ktorou musí prejsť gradient — viac
+sériových krokov backpropu, viac príležitostí na miznúci či explodujúci gradient a citlivejšie
+ladenie (viď [02-problemy-pri-uceni.md](../03-ucenie/02-problemy-pri-uceni.md)). Široký model
+robí to isté ako jedno väčšie maticové násobenie — presne to, v čom je GPU najsilnejšia.
+
+**MoE je táto logika dotiahnutá do konca.** Experti sú **nezávislé** matice vedľa seba, takže
+sa dajú rozložiť na rôzne GPU (*expert parallelism*) a počítať súčasne; komunikuje sa len
+smerovanie tokenov, nie váhy. Preto má Qwen3 235B `d_model` stále 4096 a nafukuje sa „do
+strán" na 128 expertov namiesto toho, aby išiel na 300 vrstiev.
+
+**Prečo teda nie model s 8 vrstvami a `d_model = 100 000`?** Lebo hĺbka nie je len spôsob,
+ako pridať parametre — je to **počet za sebou idúcich krokov spracovania**. Otázka typu
+„v ktorom meste sa narodil autor knihy X" vyžaduje najprv nájsť autora a až potom jeho mesto;
+jedna vrstva na to nestačí a niekoľko vrstiev musí ísť *po sebe*. Extrémne plytký model tieto
+zložené úlohy nezvládne, nech je akokoľvek široký — deľba práce medzi vrstvami je rozpísaná
+v [Čo robia jednotlivé vrstvy](#čo-robia-jednotlivé-vrstvy). Okrem toho `d_head` nad 128 už kvalitu
+nedvíha a embedding s `lm_head` rastú s `d_model` lineárne, takže v plytkom širokom modeli
+by zožrali neúmernú časť rozpočtu.
+
+Empiricky sa preto kvalita drží skoro rovnaká v pomerne širokom pásme `d_model / n_layers`
+≈ 60–130 a mimo neho klesá. **Praktické pravidlo:** vyberte pomer z tohto pásma — a keď sa
+v ňom dá voliť, choďte do **šírky**, lebo tú vám paralelizmus zaplatí, kým hĺbku platíte
+latenciou pri každom jednom tokene.
+
+> **Ako sa to prejaví na vás:** ak si vyberáte medzi dvoma modelmi rovnakej veľkosti, ten
+> plytší a širší bude generovať rýchlejšie (nižšia latencia na token) a ľahšie sa rozloží na
+> viac GPU. Pri lokálnom behu na jednej karte je rozdiel malý — tam rozhoduje hlavne to, či
+> sa váhy vojdú do VRAM.
 
 ---
 
@@ -366,7 +574,7 @@ Interpretačné práce naznačujú hrubú deľbu práce, ktorá sa opakuje napri
 | **stredné** (9–24) | význam v kontexte, rozlíšenie entít, **faktické vybavovanie** („hlavné mesto Slovenska" → Bratislava); sem cielia aj metódy editácie znalostí |
 | **neskoré** (25–32) | prevod zámeru na konkrétny **ďalší token** — formát, gramatický tvar, interpunkcia |
 
-Toto je hrubá mapa, nie ostrý predel; presné roly sa medzi modelmi líšia a jedna vrstva robí viac vecí naraz. Užitočné je z toho jedno: **hĺbka nie je opakovanie toho istého**, preto sa `n_layers` nedá voľne vymeniť za `d_model`.
+Toto je hrubá mapa, nie ostrý predel; presné roly sa medzi modelmi líšia a jedna vrstva robí viac vecí naraz. Užitočné je z toho jedno: **hĺbka nie je opakovanie toho istého**, preto sa `n_layers` nedá voľne vymeniť za `d_model` — hoci [paralelizácia](#prečo-sa-oplatí-ísť-skôr-do-šírky-problém-s-paralelizáciou) by si to priala.
 
 #### Čo presne robí RMSNorm
 
@@ -569,7 +777,7 @@ Model sám od seba neprestane — cyklus beží, kým ho niečo nezastaví:
 
 | Zastavovač | Ako funguje | Kde sa vyhodnocuje |
 |---|---|---|
-| **EOS token** (`<\|eot_id\|>`, `</s>`) | model ho **vybral samplovaním** ako hociktorý iný token; je to bežný riadok logitov, ktorého pravdepodobnosť sa naučil v SFT | v samplovacej slučke |
+| **EOS token** (<code>&lt;&#124;eot_id&#124;&gt;</code>, `</s>`) | model ho **vybral samplovaním** ako hociktorý iný token; je to bežný riadok logitov, ktorého pravdepodobnosť sa naučil v SFT | v samplovacej slučke |
 | `max_new_tokens` | tvrdý strop počtu prechodov | server / knižnica |
 | `stop` sekvencie | hľadanie reťazca v detokenizovanom výstupe | server, nad textom |
 | kontextové okno | `n` dosiahlo `n_ctx` → nemá kam pridať ďalší token | server (typicky chyba alebo orezanie) |
@@ -689,6 +897,8 @@ Podmienka je jediná, ale nekompromisná: **prefix sa musí zhodovať bajt na ba
 
 Model má okno 8192 tokenov, ale používateľ napísal *„Ahoj"* — aj s chat šablónou je to okolo piatich tokenov. Čo robí zvyšných 8187 pozícií? Sú neaktívne? Vyplnené nulami? Odpoveď je prekvapivo jednoduchá: **neexistujú**.
 
+Táto sekcia dopovedá to, čo začali [dve osi vstupnej matice](#dve-osi-vstupnej-matice-šírka-a-kontextové-okno): kontextové okno je **strop na počet riadkov** matice `X`, nie rozmer akejkoľvek vrstvy. Tu sa pozrieme, čo z toho plynie pre pamäť, čas a cenu.
+
 #### Kontextové okno je strop, nie nádoba
 
 Toto je hlavný rozdiel oproti sieťam, ktoré ste videli predtým. [Feed-forward sieť](../02-typy-modelov/04-feed-forward-siete.md) má vstupnú vrstvu s pevným počtom neurónov; [CNN](../02-typy-modelov/05-konvolucne-siete.md) čaká obrázok pevného rozmeru — a keď dáte menší vstup, musíte ho doplniť alebo preškálovať. **Transformer takú vrstvu nemá.**
@@ -793,7 +1003,72 @@ A keď `n` aj tak narazí na strop? Model nemá ako „pretiecť" — riešenie 
 
 ---
 
-### 9. Prehľad parametrov transformera
+### 9. Učenie v kontexte (in-context learning)
+
+Toto je vlastnosť, ktorá LLM najviac odlišuje od všetkého, čo bolo v [lekcii 2](../02-typy-modelov/README.md):
+**model vyrieši úlohu, na ktorú nebol trénovaný, len preto, že mu dáte pár príkladov v prompte
+— a neupraví sa pritom ani jediná váha.**
+
+```text
+Prompt:
+  zlá kvalita zvuku → HARDVÉR
+  nesedí faktúra    → FAKTURÁCIA
+  appka padá po štarte → ???
+
+Model: SOFTVÉR
+```
+
+Žiadny tréning neprebehol. Po odoslaní odpovede model o tejto úlohe **nevie nič** — pri ďalšom
+volaní začína od nuly. Napriek tomu sa správa, akoby sa práve niečo naučil. Odtiaľ názov
+*in-context learning* (ICL) a jeho praktická podoba, ktorú poznáte z promptovania: **few-shot**
+(pár príkladov), **zero-shot** (len inštrukcia).
+
+#### Prečo to funguje
+
+Nie je to záhada, ale priamy dôsledok mechanizmov z predošlých sekcií:
+
+1. **Váhy sú fixné, ale aktivácie nie.** Váhy kódujú „ako spracovať kontext"; obsah kontextu
+   je vstup. Keď do okna pridáte príklady, zmení sa **matica `X`**, nie váhy `W` — a s ňou aj
+   všetko, čo z nej attention vypočíta. Preto je [dvojica osí `X`](#dve-osi-vstupnej-matice-šírka-a-kontextové-okno)
+   tak dôležitá: kontext je jediný vstup, ktorým sa dá správanie modelu meniť za behu.
+2. **Attention vie kopírovať a párovať vzory.** Interpretačné práce našli v modeloch
+   **indukčné hlavy**: dvojicu attention hláv, ktorá implementuje pravidlo *„ak si niekde
+   vyššie videl `[A][B]` a práve teraz vidíš `[A]`, predpovedz `[B]`"*. Prvá hlava sa pozrie
+   o token späť, druhá nájde v kontexte predošlý výskyt toho istého tokenu a skopíruje, čo po
+   ňom nasledovalo. Na tom stojí celé dopĺňanie vzorov z promptu.
+3. **Vzniklo to samo počas pretrainingu.** Nikto ICL netrénoval. Predikcia ďalšieho tokenu
+   nad internetom je plná úloh typu „tu je vzor, pokračuj v ňom" (zoznamy, tabuľky, preklady,
+   opakujúce sa formáty), takže sa schopnosť dopĺňať vzor oplatí. Objavenie sa indukčných hláv
+   vidno v tréningu ako **náhly zlom** na krivke loss.
+
+#### Čo z toho plynie pre prax
+
+- **Príklady sú najsilnejšia páka v prompte.** Ukázať tri príklady požadovaného výstupu je
+  spoľahlivejšie než ten istý formát opísať vetami ([3.3 v lekcii 8](../05-prakticke/01-ako-pouzivat-llm.md#33-príklady--najsilnejší-signál-v-celom-prompte)).
+- **Formát príkladov nesie viac než ich správnosť.** Experimenty ukázali, že aj keď sa
+  v príkladoch **zámerne pomiešajú labely**, väčšina zisku ostane: model si z nich berie hlavne
+  *tvar úlohy* a *množinu možných odpovedí*, nie ich vecný obsah. Preto majte príklady
+  konzistentné vo formáte a pokrývajúce všetky triedy — a preto samotné „pridám príklady" ešte
+  neznamená „naučil som ho fakty".
+- **Kontext prebíja naučené.** Model dá pri konflikte väčšinou prednosť tomu, čo má v okne,
+  pred tým, čo má vo váhach. **Na tom stojí RAG** ([06-rag.md](06-rag.md)) — a z toho istého
+  dôvodu funguje prompt injection ([7. v lekcii 8](../05-prakticke/01-ako-pouzivat-llm.md#7-bezpečnosť-text-zvonku-nie-je-inštrukcia)):
+  vložený text je pre model rovnocenný vstup ako vaša inštrukcia.
+- **Platí sa za to pri každom volaní.** ICL nič trvalo neuloží: tie isté príklady sa posielajú
+  a prefillujú znova a znova. Fine-tuning je opačný obchod — zaplatí sa raz v tréningu a prompt
+  je potom krátky. Preto je [rozhodnutie prompt vs. fine-tuning](07-fine-tuning-lora.md#4-kedy-fine-tuning-áno-a-kedy-nie)
+  hlavne ekonomické. ([Prompt caching](#cache-o-úroveň-vyššie-prompt-caching) ten rozdiel
+  výrazne zmenšuje.)
+
+> **Časté nedorozumenie:** „model sa z našich konverzácií učí". Pri jednom volaní API sa neučí
+> nič — po skončení požiadavky sa aktivácie zahodia a váhy sú tie isté. To, čo vyzerá ako
+> pamäť medzi kolami, je [história posielaná znova](#konverzácia-prečo-n-rastie-aj-pri-krátkych-otázkach)
+> (prípadne pamäť, ktorú si aplikácia sama ukladá a vkladá do promptu). Model sa zmení až
+> vtedy, keď niekto spustí **tréning**.
+
+---
+
+### 10. Prehľad parametrov transformera
 
 Slovo „parameter" znamená v kontexte LLM tri rôzne veci — oplatí sa ich nemiešať.
 
@@ -833,6 +1108,55 @@ Embedding matica, `W_Q/W_K/W_V/W_O` v každej vrstve, tri FFN matice v každej v
 
 Do tejto skupiny patria aj [dekódovacie stratégie](01-transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie) — a stojí za zopakovanie, že **žiadny z týchto parametrov nemení váhy modelu**. Menia len to, ako sa z logitov vyberá token.
 
+#### d) Presnosť čísel a kvantizácia
+
+Všetky doterajšie počty parametrov hovoria, **koľko čísel** model má. Koľko zaberú v pamäti,
+určuje až **presnosť**, v ktorej sú uložené:
+
+| Formát | Bajtov na parameter | Kde sa používa |
+|---|---|---|
+| `fp32` | 4 | master kópia váh pri tréningu; dnes sa v nej neinferuje |
+| `bf16` / `fp16` | 2 | **štandard pre inferenciu aj tréning** (`bf16` má väčší rozsah, znáša outliery) |
+| `fp8` | 1 | natívne na H100/H200; serverová inferencia s minimálnou stratou |
+| `int8` | 1 | kvantizácia váh, kvalita prakticky nerozoznateľná |
+| `int4` | 0,5 | lokálny beh na bežnej karte — najčastejší kompromis |
+
+Odtiaľ vzorec, ktorý sa oplatí vedieť naspamäť:
+
+```text
+VRAM na váhy ≈ počet parametrov × bajtov na parameter
+celková VRAM ≈ váhy × ~1,2  +  KV cache (podľa dĺžky kontextu a počtu používateľov)
+```
+
+| Model | `fp16` | `int8` | `int4` | Kam sa vojde v `int4` |
+|---|---|---|---|---|
+| 8 B | 16 GB | 8 GB | ~5 GB | notebook s 8GB GPU |
+| 70 B | 140 GB | 70 GB | ~40 GB | 2× 24GB karta |
+| 405 B | 810 GB | 405 GB | ~230 GB | stále serverový klaster |
+
+**Ako sa kvantizuje.** Nie je to obyčajné zaokrúhlenie: váhy sa delia na malé bloky a každý
+dostane vlastnú mierku (škálu), takže sa zachová rozsah aj pri outlieroch. Podľa nástroja
+narazíte na:
+
+| Metóda | Kde |
+|---|---|
+| **GGUF** (`Q4_K_M`, `Q5_K_M`…) | `llama.cpp`, Ollama, LM Studio — beh na CPU aj GPU, najbežnejší formát na lokálny beh |
+| **GPTQ**, **AWQ** | kvantizácia váh pre GPU inferenciu (vLLM, TGI); AWQ chráni „dôležité" váhy podľa aktivácií |
+| **bitsandbytes NF4** | 4-bit základ pod LoRA adaptérmi = [QLoRA](07-fine-tuning-lora.md#3-qlora--lora-na-kvantizovanom-modeli) |
+
+**Čo sa tým stráca.** Pri 8 bitoch prakticky nič; pri dobrej 4-bitovej metóde stúpne
+[perplexita](03-llm-trening.md#ako-sa-meria-pokrok-loss-a-perplexita) len mierne, ale strata sa
+neprejaví rovnomerne — najskôr ju vidno na **dlhom kontexte, reasoningu a menej zastúpených
+jazykoch** (teda aj na slovenčine), nie na krátkych anglických otázkach, na ktorých sa to
+zvyčajne testuje. Pod 4 bity už kvalita padá citeľne.
+
+Praktické pravidlo: **väčší model v `int4` býva lepší než menší model v `fp16`** pri rovnakej
+pamäti (14B v 4 bitoch zvyčajne prekoná 7B v 16 bitoch). A dve veci, ktoré kvantizácia
+**nerieši**: KV cache (tá sa kvantizuje zvlášť — [sekcia 8](#čo-s-tým-robia-moderné-modely))
+a tréning (ten potrebuje vyššiu presnosť, preto QLoRA drží zamrznuté váhy v 4 bitoch, ale
+adaptéry trénuje v `bf16`).
+
+
 ---
 
 ## Zhrnutie
@@ -843,8 +1167,10 @@ Do tejto skupiny patria aj [dekódovacie stratégie](01-transformer-siete.md#ako
 |---|---|
 | Čo model dostáva na vstupe? | Postupnosť ID tokenov z tokenizéra (byte-level BPE) — nie písmená a nie slová; tokenizér je bez váh a patrí k modelu napevno. |
 | Ako sa z ID stane vektor? | Lookup riadku v embedding matici `[128 256, 4096]`; pozíciu pridá až RoPE rotáciou `Q` a `K` v každej vrstve. |
+| Ako súvisí okno so vstupnou maticou? | `X = [n, d_model]`: **riadky = kontext** (mení sa, strop `n_ctx`), **stĺpce = šírka** (konštanta zapečená vo váhach). Okno nie je vstupná vrstva — v žiadnej matici váh `n` nie je. |
 | Prečo je slovenčina drahšia? | Rozreže sa na ~2× viac tokenov než angličtina → 2× cena, 2× kontext, 2× čas generovania. |
 | Ako sa do toho zmestí obrázok? | Ako patche prevedené projekciou na `d_model` — od vstupu do vrstiev je to len ďalší riadok matice `X`. |
+| Prečo model nespočíta písmená? | Nevidí písmená, ale ID tokenov (`str` + `aw` + `berry`) — je to chyba vstupu, nie uvažovania; rieši sa nástrojom alebo rozpísaním po znakoch. |
 
 **Časť B — priechod modelom**
 
@@ -852,6 +1178,8 @@ Do tejto skupiny patria aj [dekódovacie stratégie](01-transformer-siete.md#ako
 |---|---|
 | Odkiaľ je veľkosť vektorov? | `d_model` je voľba návrhára: `n_heads × d_head` (64/128), násobok 128 kvôli GPU, `d_ff ≈ 4× d_model`. |
 | Kde sú v modeli parametre? | ~80 % vrstvy (a ~70 % modelu) vo feed-forward, zvyšok v attention a embeddingoch. |
+| Čím sa líši 8B a 405B model? | 50× viac parametrov, ale len 3,9× viac vrstiev — veľký model je hlavne **širší** (`N ≈ 12 · n_layers · d_model²`). |
+| Prečo sa rastie do šírky, nie do hĺbky? | Šírka sa paralelizuje vnútri vrstvy (tensor parallel), hĺbka je sériová reťaz: pri generovaní ju nezrýchli žiadny počet GPU, len predlžuje latenciu na token. |
 | Kde sa tokeny miešajú? | **Iba v attention.** Norm, FFN aj reziduá bežia per token. |
 | Čo drží model pokope? | Reziduálny prúd: vrstvy do spoločného vektora `[4096]` len pripočítavajú — preto je `d_model` konštantné a preto orezanie vrstvy model nezabije. |
 | Čo je MoE? | FFN rozdelená na expertov s routerom: celkové parametre určujú VRAM, aktívne parametre rýchlosť (`235B-A22B` = 235 mld. v pamäti, 22 mld. na token). |
@@ -869,6 +1197,8 @@ Do tejto skupiny patria aj [dekódovacie stratégie](01-transformer-siete.md#ako
 | Čo sa ukladá do cache? | `K` a `V` každého tokenu v každej vrstve; `Q` a aktivácie FFN nie. |
 | Čo s nevyužitým kontextom? | Nič — `n_ctx` je strop, nie nádoba. Nepoužité pozície neexistujú; padding vzniká len pri dávkovaní a je maskovaný na nulu. |
 | Prečo je kontext obmedzený? | Kvadratická attention + veľkosť KV cache + tréningová dĺžka RoPE + pokles kvality uprostred. |
+| Ako sa model „učí" z promptu? | Nijako trvalo — príklady menia vstup `X`, nie váhy; attention z nich cez indukčné hlavy skopíruje vzor. Po skončení volania nezostane nič. |
+| Koľko pamäte model zaberie? | `parametre × bajty na parameter` (fp16 = 2, int4 = 0,5) × ~1,2 + KV cache; väčší model v `int4` býva lepší než menší v `fp16`. |
 
 ---
 
@@ -879,28 +1209,41 @@ Do tejto skupiny patria aj [dekódovacie stratégie](01-transformer-siete.md#ako
 1. Prečo nemôžete použiť tokenizér od GPT-4 s modelom Llama 3, hoci obidva sú byte-level BPE?
 2. Ten istý text máte po anglicky aj po slovensky. Ktorá verzia sa bude generovať dlhšie a prečo — vysvetlite cez počet prechodov modelom.
 3. Čím sa líši RoPE od pôvodného sínusového kódovania a prečo práve vďaka tomu ide okno modelu rozšíriť dotrénovaním?
+4. Kolega tvrdí: „model s oknom 128k má 128 000 vstupných neurónov". Opravte ho cez tvar matice `X` a povedzte, ktorá os matice zodpovedá oknu a ktorá šírke modelu. Ktorá z nich sa platí parametrami a ktorá výpočtom pri inferencii?
+5. Model spoľahlivo napíše esej, ale tvrdí, že v slove „strawberry" sú dve `r`. Vysvetlite príčinu cez tokenizáciu a navrhnite dve rôzne riešenia.
 
 **K časti B**
 
-4. Model má `d_model = 4096` a `n_heads = 32`. Aký je rozmer jednej hlavy a prečo nemôže byť `n_heads = 30`?
-5. Prečo sa v modeli s 8 miliardami parametrov nachádza väčšina váh vo feed-forward vrstvách a nie v attention? Spočítajte to pre jednu vrstvu.
-6. Vysvetlite, prečo musí mať `d_model` vo všetkých vrstvách rovnakú hodnotu. Použite pojem reziduálneho prúdu.
-7. Model je označený ako `A22B` pri celkovej veľkosti 235 mld. parametrov. Koľko VRAM budete zhruba potrebovať v fp16 a akú rýchlosť generovania očakávate — a prečo to nie sú dve strany tej istej mince?
-8. Prečo RMSNorm neporušuje tvrdenie, že tokeny sa miešajú iba v attention?
+5. Model má `d_model = 4096` a `n_heads = 32`. Aký je rozmer jednej hlavy a prečo nemôže byť `n_heads = 30`?
+6. Prečo sa v modeli s 8 miliardami parametrov nachádza väčšina váh vo feed-forward vrstvách a nie v attention? Spočítajte to pre jednu vrstvu.
+7. Vysvetlite, prečo musí mať `d_model` vo všetkých vrstvách rovnakú hodnotu. Použite pojem reziduálneho prúdu.
+8. Model je označený ako `A22B` pri celkovej veľkosti 235 mld. parametrov. Koľko VRAM budete zhruba potrebovať v fp16 a akú rýchlosť generovania očakávate — a prečo to nie sú dve strany tej istej mince?
+9. Prečo RMSNorm neporušuje tvrdenie, že tokeny sa miešajú iba v attention?
+10. Model A má `n_layers = 32`, `d_model = 8192`, model B `n_layers = 128`, `d_model = 4096`. Ukážte, že majú približne rovnaký počet parametrov, a vysvetlite, ktorý z nich bude generovať rýchlejšie a prečo.
+11. Prečo sa šírka vrstvy dá rozdeliť medzi 8 GPU tak, že počítajú súčasne, kým vrstvy medzi sebou takto rozdeliť nejde?
+12. Pipeline má `P = 8` stupňov. Aký podiel času GPU stoja pri tréningu so 64 mikro-dávkami a aký pri generovaní token po tokene? Čo z toho plynie pre hlboké modely v interaktívnej prevádzke?
+13. Výpočet vo vrstve rastie s `d_model²`, komunikácia pri tensor parallel len s `d_model`. Prečo z toho vyplýva, že širší model lepšie využije GPU klaster?
+14. Qwen3 235B-A22B má rovnaké `d_model` ako Llama 3 8B a užšie FFN. Kde je teda tých zvyšných 227 miliárd parametrov a prečo je taký tvar výhodný pre poskytovateľa služby?
+15. Prečo nemá zmysel postaviť model s 8 vrstvami a `d_model = 100 000`, hoci by mal parametrov dosť? Uveďte dva nezávislé dôvody.
 
 **K časti C**
 
-9. Do modelu vojde 2000 tokenov a z poslednej vrstvy vyjde 2000 vektorov. Prečo sa 1999 z nich pri inferencii zahodí a kedy sa naopak použijú všetky?
-10. Prečo model nevyrobí päť tokenov na jeden prechod, keď by tým generoval päťkrát rýchlejšie? Vysvetlite to cez rozklad `P(t₁…tₘ)` a povedzte, čo na tom mení špekulatívne dekódovanie.
-11. Používateľ pošle prompt s piatimi tokenmi do modelu s oknom 8192. Čo sa deje so zvyšnými 8187 pozíciami? Odpovedzte cez tvary tenzorov.
-12. Kedy v LLM reálne vzniknú `[PAD]` tokeny a ako sa zabezpečí, že neovplyvnia výsledok? Prečo sa pri generovaní paduje zľava?
-13. Vysvetlite, prečo sa `K` a `V` dajú uložiť do cache, ale `Q` nie. Čo konkrétne to umožňuje — ktorá vlastnosť decoder-only modelu?
-14. Spočítajte KV cache pre model s `n_layers = 40`, `n_kv_heads = 8`, `d_head = 128`, fp16, pri kontexte 32 000 tokenov.
-15. Aplikácia posiela do modelu na začiatok promptu aktuálny čas. Prečo je to drahé a ako to opraviť?
-16. Prečo generovanie 500-tokenovej odpovede trvá skoro rovnako dlho bez ohľadu na to, či mal prompt 200 alebo 2000 tokenov — a čo sa zmení, keď má 100 000?
-17. Prečo je generovanie tokenov limitované priepustnosťou pamäte a nie výkonom GPU? Odvoďte z toho, prečo funguje špekulatívne dekódovanie aj prečo je dávkovanie „zadarmo".
-18. Model deklaruje okno 200k tokenov, ale pri 150k odpovedá horšie. Vymenujte dve nezávislé príčiny.
-19. Reasoning model dostal `max_tokens = 500` a vrátil prázdnu odpoveď. Čo sa stalo?
+16. Do modelu vojde 2000 tokenov a z poslednej vrstvy vyjde 2000 vektorov. Prečo sa 1999 z nich pri inferencii zahodí a kedy sa naopak použijú všetky?
+17. Prečo model nevyrobí päť tokenov na jeden prechod, keď by tým generoval päťkrát rýchlejšie? Vysvetlite to cez rozklad `P(t₁…tₘ)` a povedzte, čo na tom mení špekulatívne dekódovanie.
+18. Používateľ pošle prompt s piatimi tokenmi do modelu s oknom 8192. Čo sa deje so zvyšnými 8187 pozíciami? Odpovedzte cez tvary tenzorov.
+19. Kedy v LLM reálne vzniknú `[PAD]` tokeny a ako sa zabezpečí, že neovplyvnia výsledok? Prečo sa pri generovaní paduje zľava?
+20. Vysvetlite, prečo sa `K` a `V` dajú uložiť do cache, ale `Q` nie. Čo konkrétne to umožňuje — ktorá vlastnosť decoder-only modelu?
+21. Spočítajte KV cache pre model s `n_layers = 40`, `n_kv_heads = 8`, `d_head = 128`, fp16, pri kontexte 32 000 tokenov.
+22. Aplikácia posiela do modelu na začiatok promptu aktuálny čas. Prečo je to drahé a ako to opraviť?
+23. Prečo generovanie 500-tokenovej odpovede trvá skoro rovnako dlho bez ohľadu na to, či mal prompt 200 alebo 2000 tokenov — a čo sa zmení, keď má 100 000?
+24. Prečo je generovanie tokenov limitované priepustnosťou pamäte a nie výkonom GPU? Odvoďte z toho, prečo funguje špekulatívne dekódovanie aj prečo je dávkovanie „zadarmo".
+25. Model deklaruje okno 200k tokenov, ale pri 150k odpovedá horšie. Vymenujte dve nezávislé príčiny.
+26. Reasoning model dostal `max_tokens = 500` a vrátil prázdnu odpoveď. Čo sa stalo?
+27. Do promptu vložíte tri príklady „vstup → kategória" a model začne kategorizovať správne. Zmenila sa tým čo i len jedna váha modelu? Čo sa teda zmenilo a kde to po skončení volania skončí?
+28. Čo je indukčná hlava a ako vysvetľuje, prečo few-shot príklady fungujú?
+29. Používateľ tvrdí: „náš chatbot si pamätá, čo sme mu povedali minulý týždeň — takže sa učí." Vysvetlite, čo sa v skutočnosti deje.
+30. Model má 14 miliárd parametrov. Koľko VRAM potrebujú jeho váhy v `fp16` a koľko v `int4`? Prečo môže byť takýto kvantizovaný model lepšou voľbou než 7B model v `fp16` na tej istej karte?
+31. Kolega otestoval 4-bitovú kvantizáciu na desiatich krátkych anglických otázkach a nenašiel rozdiel. Prečo to nestačí a kde by sa strata prejavila skôr?
 
 ---
 
@@ -912,5 +1255,5 @@ Do tejto skupiny patria aj [dekódovacie stratégie](01-transformer-siete.md#ako
 - [06-rag.md](06-rag.md) — ako sa obmedzenému kontextu vyhnúť vyhľadávaním (lekcia 6)
 - [04-llm-modely.md](04-llm-modely.md) — konkrétne modely, ktorých čísla (`A22B`, kontext, cena) teraz viete čítať (lekcia 5)
 - [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md) — koľko GPU pamäte to celé potrebuje
-- [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md) — kam sa posúva hranica dlhého kontextu
-- [01-agenti-a-nastroje.md](../05-prakticke/01-agenti-a-nastroje.md) — prečo agent na počítanie volá kalkulačku a ako mu história zväčšuje `n`
+- [05-llm-trendy.md](../05-prakticke/05-llm-trendy.md) — kam sa posúva hranica dlhého kontextu
+- [02-agenti-a-nastroje.md](../05-prakticke/02-agenti-a-nastroje.md) — prečo agent na počítanie volá kalkulačku a ako mu história zväčšuje `n`

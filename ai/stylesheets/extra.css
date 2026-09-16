@@ -1,0 +1,76 @@
+/* ---------------------------------------------------------------
+   Doplnkové štýly k téme Material.
+   Cieľ: uniesť široké ASCII diagramy a husté tabuľky, ktoré tvoria
+   podstatnú časť týchto materiálov.
+   --------------------------------------------------------------- */
+
+/* o niečo širšia sadzba — dokumenty majú veľa širokých tabuliek */
+.md-grid {
+  max-width: 64rem;
+}
+
+/* ASCII diagramy v ```text blokoch: menšie písmo, tesnejší riadok,
+   aby sa ~100-znakové obrázky zmestili bez vodorovného scrollu */
+.md-typeset .language-text code {
+  font-size: 0.70rem;
+  line-height: 1.45;
+}
+
+/* tabuliek je v textoch veľa — zvýraznená hlavička uľahčuje čítanie */
+.md-typeset table:not([class]) th {
+  background-color: var(--md-default-fg-color--lightest);
+}
+
+/* SVG schémy majú pevné biele pozadie; v tmavom režime im dáme
+   jemný rám, nech neplávajú v tmavej ploche */
+[data-md-color-scheme="slate"] .md-typeset img[src$=".svg"] {
+  border-radius: 0.3rem;
+  box-shadow: 0 0 0 1px var(--md-default-fg-color--lighter);
+}
+
+/* citácie (> **Poznámka:** ...) sú tu nosičom dôležitých poznámok */
+.md-typeset blockquote {
+  border-left-width: 0.2rem;
+  color: var(--md-default-fg-color);
+}
+
+/* nadpisy: Material ich dáva svetlosivé a tenké — pri dlhých odborných
+   textoch je čitateľnejšia sýtejšia a o stupeň hrubšia varianta */
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* dlaždice na úvodnej stránke: rovnaká výška a zvýraznenie pri prejdení myšou */
+.md-typeset .grid.cards > ul > li {
+  display: flex;
+  flex-direction: column;
+  transition: border-color 125ms, box-shadow 125ms;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 0 0.2rem rgba(0, 0, 0, 0.1);
+}
+.md-typeset .grid.cards > ul > li > :last-child {
+  margin-top: auto;
+  padding-top: 0.4rem;
+}
+
+/* Stránky bez bočných panelov (úvodná má skryté navigation aj toc) by inak
+   roztiahli text cez celú šírku okna — na 1440 px to je ~150 znakov na riadok.
+   Na stránkach s panelmi je obsah užší než tento strop, takže ich to nemení. */
+.md-content {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+/* názvy tokenov (<|assistant|>) sa v úzkych stĺpcoch tabuliek lámali uprostred;
+   tabuľka má vlastný vodorovný scroll, tak radšej nelámať */
+.md-typeset table:not([class]) code {
+  white-space: nowrap;
+}

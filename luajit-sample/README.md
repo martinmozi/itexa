@@ -75,7 +75,7 @@ skriptoch zaberú hneď pri prvom volaní. Viď **Debugovanie** nižšie.
 
 ### Hot reload (transakčný)
 
-`reload` zahodí zacachované chunky skriptov (`package.loaded[name] = nil`) a znova
+`reload` zahodí chunky skriptov uložené v cache (`package.loaded[name] = nil`) a znova
 ich `require`-ne, takže editovaný `mod_a.lua` / `mod_b.lua` sa prejaví bez
 reštartu. V produkcii by si ho zavolal, keď file watcher nahlási zmenu.
 (`host_ffi` ani C ABI sa **nereloaduje** — len spracovacie skripty.)
@@ -110,9 +110,9 @@ Skripty sú dôveryhodné (FFI dáva plný natívny prístup — skript, ktorý 
 k `ffi`, ber ako ekvivalent natívneho kódu; toto **nie je** sandbox pre
 nedôveryhodný kód). Cieľom je, aby poctivý preklep nezhodil host:
 
-- **C++ shimy sú defenzívne.** Každý shim v `HostFFI.cpp` null-checkne svoje
+- **C++ shimy sú defenzívne.** Každý shim v `HostFFI.cpp` kontroluje na `NULL` svoje
   pointre (aj string argumenty — FFI premení `nil` na `NULL`) a obalí telo do
-  `try/catch`, takže žiadny zlý dereferencing ani žiadna C++ výnimka nikdy
+  `try/catch`, takže žiadne chybné dereferencovanie ani žiadna C++ výnimka nikdy
   neprejde cez FFI hranicu (to druhé je v LuaJIT undefined behavior). Pri zásahu
   guardu sa volanie zvrhne na bezpečný default (no-op / 0 / "").
 - **Neznáme id vráti `nil`.** `world:inventory(id)` vráti Lua `nil` (nie `NULL`

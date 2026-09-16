@@ -163,7 +163,7 @@ nízka teplota (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p 
 > Zapamätajte si to pred zadaním 2: ak RAG odpovedá zakaždým inak alebo si vymýšľa aj so správnym
 > kontextom, prvá vec na kontrolu nie je retrieval, ale **teplota**.
 
-> Praktické dôsledky (dĺžka kontextu je drahá, lebo attention rastie kvadraticky s počtom tokenov; kvalita závisí od tréningových dát; halucinácie…) a aktuálne trendy rozoberá [02-llm-trendy.md](../05-prakticke/02-llm-trendy.md).
+> Praktické dôsledky (dĺžka kontextu je drahá, lebo attention rastie kvadraticky s počtom tokenov; kvalita závisí od tréningových dát; halucinácie…) a aktuálne trendy rozoberá [05-llm-trendy.md](../05-prakticke/05-llm-trendy.md).
 
 ---
 

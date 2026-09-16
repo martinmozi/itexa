@@ -1,0 +1,153 @@
+site_name: Umelá inteligencia — kurz
+site_description: Ako moderná AI funguje zvnútra — od klasického strojového učenia cez neurónové siete a transformery po prácu s dnešnými LLM (RAG, fine-tuning, agenti).
+site_author: Martin Mozi
+site_url: https://martinmozi.github.io/itexa/
+
+repo_url: https://github.com/martinmozi/itexa
+repo_name: martinmozi/itexa
+edit_uri: edit/main/ai/
+
+docs_dir: ai
+site_dir: site
+
+theme:
+  name: material
+  language: sk
+  font:
+    text: Inter
+    code: JetBrains Mono
+  favicon: assets/favicon.svg
+  icon:
+    logo: material/school-outline
+    repo: fontawesome/brands/github
+    edit: material/pencil
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Prepnúť na tmavý režim
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Prepnúť na svetlý režim
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/martinmozi/itexa
+      name: Repozitár kurzu na GitHube
+
+copyright: Učebné materiály predmetu Umelá inteligencia
+
+plugins:
+  - search:
+      lang: en          # lunr slovenčinu nemá; anglický tokenizér nad slovenským textom funguje ako presné hľadanie
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Odkaz na túto sekciu
+      toc_depth: 4
+      # zachová diakritiku v kotvách tak, ako ich generuje GitHub
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+exclude_docs: |
+  zadania/image-recognition/
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Úvod: index.md
+  - Prehľad predmetu: prehlad-predmetu.md
+  - Tutoriály:
+      - tutorials/README.md
+      - 00 — Prostredie:
+          - tutorials/00-prostredie/README.md
+          - Vývojové prostredie: tutorials/00-prostredie/01-vyvojove-prostredie.md
+      - 01 — Prehľad AI a ML:
+          - tutorials/01-prehlad/README.md
+          - Čo je umelá inteligencia: tutorials/01-prehlad/01-co-je-ai.md
+          - Režimy strojového učenia: tutorials/01-prehlad/02-rezimy-strojoveho-ucenia.md
+          - Zovšeobecnenie a preučenie: tutorials/01-prehlad/03-generalizacia-a-preucenie.md
+          - Metriky: tutorials/01-prehlad/04-metriky.md
+      - 02 — Typy modelov:
+          - tutorials/02-typy-modelov/README.md
+          - Rozhodovacie stromy: tutorials/02-typy-modelov/01-rozhodovacie-stromy.md
+          - Random Forest a XGBoost: tutorials/02-typy-modelov/02-random-forest-a-xgboost.md
+          - XGBoost na ISO 8583: tutorials/02-typy-modelov/03-xgboost-priklad-iso8583.md
+          - Feed-forward siete (MLP): tutorials/02-typy-modelov/04-feed-forward-siete.md
+          - Konvolučné siete (CNN): tutorials/02-typy-modelov/05-konvolucne-siete.md
+          - Ktorý model kedy: tutorials/02-typy-modelov/06-ktory-model-kedy.md
+      - 03 — Učenie:
+          - tutorials/03-ucenie/README.md
+          - Adam — optimalizátor: tutorials/03-ucenie/01-adam-optimalizator.md
+          - Čo sa pri učení pokazí: tutorials/03-ucenie/02-problemy-pri-uceni.md
+      - 04 — Veľké jazykové modely:
+          - tutorials/04-llm/README.md
+          - Transformery a attention: tutorials/04-llm/01-transformer-siete.md
+          - Vnútro transformera: tutorials/04-llm/02-transformer-vnutro.md
+          - Ako sa trénuje LLM: tutorials/04-llm/03-llm-trening.md
+          - Prehľad súčasných modelov: tutorials/04-llm/04-llm-modely.md
+          - Embeddingy: tutorials/04-llm/05-embeddings.md
+          - RAG: tutorials/04-llm/06-rag.md
+          - Fine-tuning (LoRA, QLoRA): tutorials/04-llm/07-fine-tuning-lora.md
+      - 05 — Praktické:
+          - tutorials/05-prakticke/README.md
+          - Ako používať LLM: tutorials/05-prakticke/01-ako-pouzivat-llm.md
+          - Agenti, nástroje a MCP: tutorials/05-prakticke/02-agenti-a-nastroje.md
+          - AI pri programovaní: tutorials/05-prakticke/03-ai-programovanie.md
+          - Vnútro agenta nad kódom: tutorials/05-prakticke/04-vnutro-claude-code.md
+          - Trendy: tutorials/05-prakticke/05-llm-trendy.md
+  - Zadania:
+      - RAG alebo fine-tuning: zadania/RAG_Fine_tunning.md
+      - Rozpoznávanie obrázkov: zadania/rozpoznavanie-obrazkov.md

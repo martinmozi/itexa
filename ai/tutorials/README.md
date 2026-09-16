@@ -8,12 +8,12 @@ Rozdelenie podľa lekcií (kedy sa čo preberá) je v [prehlad-predmetu.md](../p
 
 | Oblasť | O čom je | Lekcie |
 |---|---|---|
-| [00 — Prostredie](00-prostredie/) | Python, PyTorch, GPU, lokálna inferencia, hardvér | 0 |
-| [01 — Prehľad](01-prehlad/) | čo je AI, taxonómia, režimy učenia, preučenie, metriky | 1 |
-| [02 — Typy modelov](02-typy-modelov/) | stromy, XGBoost, MLP, CNN — a ktorý model kedy | 2–3 |
-| [03 — Učenie](03-ucenie/) | tréningová slučka, Adam, čo sa pri učení pokazí | 3 |
-| [04 — LLM](04-llm/) | transformery a ich vnútro, tréning LLM, výber modelu, embeddingy, RAG, fine-tuning | 4–7 |
-| [05 — Praktické](05-prakticke/) | agenti, nástroje, MCP, Claude Code, trendy | 8 |
+| [00 — Prostredie](00-prostredie/README.md) | Python, PyTorch, GPU, lokálna inferencia, hardvér | 0 |
+| [01 — Prehľad](01-prehlad/README.md) | čo je AI, taxonómia, režimy učenia, preučenie, metriky | 1 |
+| [02 — Typy modelov](02-typy-modelov/README.md) | stromy, XGBoost, MLP, CNN — a ktorý model kedy | 2–3 |
+| [03 — Učenie](03-ucenie/README.md) | tréningová slučka, Adam, čo sa pri učení pokazí | 3 |
+| [04 — LLM](04-llm/README.md) | transformery a ich vnútro, tréning LLM, výber modelu, embeddingy, RAG, fine-tuning | 4–7 |
+| [05 — Praktické](05-prakticke/README.md) | prompting a API, agenti, MCP, AI pri programovaní, vnútro Claude Code, trendy | 8 |
 
 ---
 
@@ -39,8 +39,11 @@ Rozdelenie podľa lekcií (kedy sa čo preberá) je v [prehlad-predmetu.md](../p
 18. [Embeddingy](04-llm/05-embeddings.md)
 19. [RAG](04-llm/06-rag.md)
 20. [Fine-tuning: LoRA a QLoRA](04-llm/07-fine-tuning-lora.md)
-21. [Agenti, nástroje a Claude Code](05-prakticke/01-agenti-a-nastroje.md)
-22. [Trendy — kam sa to hýbe](05-prakticke/02-llm-trendy.md)
+21. [Ako používať LLM — API, prompting a šetrenie tokenov](05-prakticke/01-ako-pouzivat-llm.md)
+22. [Agenti, nástroje a MCP](05-prakticke/02-agenti-a-nastroje.md)
+23. [AI pri programovaní](05-prakticke/03-ai-programovanie.md)
+24. [Vnútro agenta nad kódom](05-prakticke/04-vnutro-claude-code.md)
+25. [Trendy — kam sa to hýbe](05-prakticke/05-llm-trendy.md)
 
 ### Zadania
 

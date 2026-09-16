@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-size="14">
+  <style>
+    .bg{ fill:#ffffff; }
+    .txt{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .muted{ fill:#6b7280; font-family:'Segoe UI',Helvetica,Arial,sans-serif; }
+    .panel{ fill:none; stroke:#e5e7eb; stroke-width:1.5; }
+    .head{ fill:#1f2937; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:700; }
+    .cell{ fill:#eff6ff; stroke:#93c5fd; stroke-width:1.5; }
+    .flat{ fill:#eff6ff; stroke:#93c5fd; stroke-width:1; }
+    .node{ fill:#eff6ff; stroke:#3b82f6; stroke-width:2.5; }
+    .edge{ stroke:#93c5fd; stroke-width:0.8; fill:none; opacity:0.55; }
+    .kern{ fill:#fef3c7; stroke:#d97706; stroke-width:1.8; }
+    .out{ fill:#dcfce7; stroke:#059669; stroke-width:1.8; }
+    .winA{ fill:none; stroke:#d97706; stroke-width:3.5; }
+    .winB{ fill:none; stroke:#7c3aed; stroke-width:3.5; }
+    .lblA{ fill:#b45309; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .lblB{ fill:#6d28d9; font-family:'Segoe UI',Helvetica,Arial,sans-serif; font-weight:600; }
+    .arrA{ stroke:#d97706; stroke-width:2.5; fill:none; }
+    .arrB{ stroke:#7c3aed; stroke-width:2.5; fill:none; }
+    .arr{ stroke:#6b7280; stroke-width:2.5; fill:none; }
+    .keyb{ fill:#eff6ff; stroke:#3b82f6; stroke-width:1.5; }
+    .keyc{ fill:#fef3c7; stroke:#d97706; stroke-width:1.5; }
+    @media (prefers-color-scheme: dark){
+      .bg{ fill:#0d1117; } .txt{ fill:#e6edf3; } .muted{ fill:#9ca3af; } .head{ fill:#e6edf3; }
+      .panel{ stroke:#30363d; }
+      .cell{ fill:#16233b; stroke:#3b6091; } .flat{ fill:#16233b; stroke:#3b6091; }
+      .node{ fill:#16233b; stroke:#60a5fa; } .edge{ stroke:#2b4a6f; opacity:0.85; }
+      .kern{ fill:#3a2a0d; stroke:#fbbf24; } .out{ fill:#0f2e1e; stroke:#34d399; }
+      .winA{ stroke:#fbbf24; } .winB{ stroke:#a78bfa; }
+      .lblA{ fill:#fbbf24; } .lblB{ fill:#c4b5fd; }
+      .arrA{ stroke:#fbbf24; } .arrB{ stroke:#a78bfa; } .arr{ stroke:#9ca3af; }
+      .keyb{ fill:#16233b; stroke:#60a5fa; } .keyc{ fill:#3a2a0d; stroke:#fbbf24; }
+    }
+  </style>
+  <defs>
+    <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+    <marker id="aa" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#d97706"/>
+    </marker>
+    <marker id="ab" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="920" height="560" rx="10"/>
+  <text class="muted" x="460" y="30" text-anchor="middle" font-size="15">Ten istý vstup 5 × 5 pixelov — celý rozdiel je v tom, kto je s kým prepojený</text>
+  <rect class="panel" x="20" y="46" width="430" height="474" rx="10"/>
+  <rect class="panel" x="470" y="46" width="430" height="474" rx="10"/>
+  <text class="head" x="235" y="70" text-anchor="middle" font-size="16">Feed-forward (MLP): každý s každým</text>
+  <g>
+    <rect class="cell" x="42" y="96" width="26" height="26"/>
+    <rect class="cell" x="68" y="96" width="26" height="26"/>
+    <rect class="cell" x="94" y="96" width="26" height="26"/>
+    <rect class="cell" x="120" y="96" width="26" height="26"/>
+    <rect class="cell" x="146" y="96" width="26" height="26"/>
+    <rect class="cell" x="42" y="122" width="26" height="26"/>
+    <rect class="cell" x="68" y="122" width="26" height="26"/>
+    <rect class="cell" x="94" y="122" width="26" height="26"/>
+    <rect class="cell" x="120" y="122" width="26" height="26"/>
+    <rect class="cell" x="146" y="122" width="26" height="26"/>
+    <rect class="cell" x="42" y="148" width="26" height="26"/>
+    <rect class="cell" x="68" y="148" width="26" height="26"/>
+    <rect class="cell" x="94" y="148" width="26" height="26"/>
+    <rect class="cell" x="120" y="148" width="26" height="26"/>
+    <rect class="cell" x="146" y="148" width="26" height="26"/>
+    <rect class="cell" x="42" y="174" width="26" height="26"/>
+    <rect class="cell" x="68" y="174" width="26" height="26"/>
+    <rect class="cell" x="94" y="174" width="26" height="26"/>
+    <rect class="cell" x="120" y="174" width="26" height="26"/>
+    <rect class="cell" x="146" y="174" width="26" height="26"/>
+    <rect class="cell" x="42" y="200" width="26" height="26"/>
+    <rect class="cell" x="68" y="200" width="26" height="26"/>
+    <rect class="cell" x="94" y="200" width="26" height="26"/>
+    <rect class="cell" x="120" y="200" width="26" height="26"/>
+    <rect class="cell" x="146" y="200" width="26" height="26"/>
+  </g>
+  <text class="muted" x="107.0" y="248" text-anchor="middle" font-size="12">obrázok 5 × 5</text>
+  <text class="muted" x="194" y="150" text-anchor="middle" font-size="11">flatten</text>
+  <path class="arr" d="M178,161 L210,161" marker-end="url(#ag)"/>
+  <g>
+    <rect class="flat" x="218" y="86.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="96.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="106.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="116.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="126.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="136.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="146.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="156.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="166.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="176.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="186.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="196.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="206.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="216.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="226.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="236.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="246.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="256.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="266.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="276.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="286.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="296.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="306.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="316.0" width="20" height="10.0"/>
+    <rect class="flat" x="218" y="326.0" width="20" height="10.0"/>
+  </g>
+  <text class="muted" x="228" y="354" text-anchor="middle" font-size="12">vektor 25 čísel</text>
+  <text class="muted" x="228" y="370" text-anchor="middle" font-size="11">2D susednosť je preč</text>
+  <g>
+    <line class="edge" x1="238" y1="91.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="91.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="91.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="101.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="101.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="101.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="111.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="111.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="111.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="121.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="121.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="121.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="131.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="131.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="131.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="141.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="141.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="141.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="151.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="151.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="151.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="161.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="161.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="161.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="171.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="171.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="171.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="181.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="181.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="181.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="191.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="191.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="191.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="201.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="201.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="201.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="211.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="211.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="211.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="221.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="221.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="221.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="231.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="231.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="231.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="241.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="241.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="241.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="251.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="251.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="251.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="261.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="261.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="261.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="271.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="271.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="271.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="281.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="281.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="281.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="291.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="291.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="291.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="301.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="301.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="301.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="311.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="311.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="311.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="321.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="321.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="321.0" x2="377" y2="276"/>
+    <line class="edge" x1="238" y1="331.0" x2="377" y2="146"/>
+    <line class="edge" x1="238" y1="331.0" x2="377" y2="211"/>
+    <line class="edge" x1="238" y1="331.0" x2="377" y2="276"/>
+  </g>
+  <circle class="node" cx="392" cy="146" r="15"/>
+  <circle class="node" cx="392" cy="211" r="15"/>
+  <circle class="node" cx="392" cy="276" r="15"/>
+  <text class="muted" x="392" y="312" text-anchor="middle" font-size="12">3 neuróny</text>
+  <text class="txt" x="235" y="400" text-anchor="middle" font-size="13">Každý neurón je napojený na <tspan font-weight="700">všetkých 25 pixelov</tspan>.</text>
+  <text class="txt" x="235" y="422" text-anchor="middle" font-size="13">Každá čiara = vlastná váha → 25 × 3 = <tspan font-weight="700">75 váh</tspan>.</text>
+  <text class="txt" x="235" y="444" text-anchor="middle" font-size="13">Posunutý vzor = úplne iný vstupný vektor —</text>
+  <text class="txt" x="235" y="464" text-anchor="middle" font-size="13">sieť sa ho musí učiť pre každú polohu znova.</text>
+  <text class="head" x="685" y="70" text-anchor="middle" font-size="16">Konvolučná (CNN): okienko a zdieľané váhy</text>
+  <g>
+    <rect class="cell" x="492" y="96" width="26" height="26"/>
+    <rect class="cell" x="518" y="96" width="26" height="26"/>
+    <rect class="cell" x="544" y="96" width="26" height="26"/>
+    <rect class="cell" x="570" y="96" width="26" height="26"/>
+    <rect class="cell" x="596" y="96" width="26" height="26"/>
+    <rect class="cell" x="492" y="122" width="26" height="26"/>
+    <rect class="cell" x="518" y="122" width="26" height="26"/>
+    <rect class="cell" x="544" y="122" width="26" height="26"/>
+    <rect class="cell" x="570" y="122" width="26" height="26"/>
+    <rect class="cell" x="596" y="122" width="26" height="26"/>
+    <rect class="cell" x="492" y="148" width="26" height="26"/>
+    <rect class="cell" x="518" y="148" width="26" height="26"/>
+    <rect class="cell" x="544" y="148" width="26" height="26"/>
+    <rect class="cell" x="570" y="148" width="26" height="26"/>
+    <rect class="cell" x="596" y="148" width="26" height="26"/>
+    <rect class="cell" x="492" y="174" width="26" height="26"/>
+    <rect class="cell" x="518" y="174" width="26" height="26"/>
+    <rect class="cell" x="544" y="174" width="26" height="26"/>
+    <rect class="cell" x="570" y="174" width="26" height="26"/>
+    <rect class="cell" x="596" y="174" width="26" height="26"/>
+    <rect class="cell" x="492" y="200" width="26" height="26"/>
+    <rect class="cell" x="518" y="200" width="26" height="26"/>
+    <rect class="cell" x="544" y="200" width="26" height="26"/>
+    <rect class="cell" x="570" y="200" width="26" height="26"/>
+    <rect class="cell" x="596" y="200" width="26" height="26"/>
+  </g>
+  <rect class="winA" x="492" y="96" width="78" height="78" rx="3"/>
+  <rect class="winB" x="544" y="148" width="78" height="78" rx="3"/>
+  <text class="muted" x="557.0" y="248" text-anchor="middle" font-size="12">ten istý obrázok 5 × 5</text>
+  <text class="lblA" x="500" y="90" font-size="11">poloha 1</text>
+  <text class="lblB" x="628" y="240" font-size="11">poloha 2</text>
+  <path class="arrA" d="M572,112 C630,104 662,104 694,112" marker-end="url(#aa)"/>
+  <path class="arrB" d="M624,206 C660,206 676,180 694,152" marker-end="url(#ab)"/>
+  <g>
+    <rect class="kern" x="700" y="96" width="24" height="24"/>
+    <rect class="kern" x="724" y="96" width="24" height="24"/>
+    <rect class="kern" x="748" y="96" width="24" height="24"/>
+    <rect class="kern" x="700" y="120" width="24" height="24"/>
+    <rect class="kern" x="724" y="120" width="24" height="24"/>
+    <rect class="kern" x="748" y="120" width="24" height="24"/>
+    <rect class="kern" x="700" y="144" width="24" height="24"/>
+    <rect class="kern" x="724" y="144" width="24" height="24"/>
+    <rect class="kern" x="748" y="144" width="24" height="24"/>
+  </g>
+  <text class="muted" x="736.0" y="90" text-anchor="middle" font-size="12">jadro 3 × 3</text>
+  <text class="txt" x="736.0" y="190" text-anchor="middle" font-size="12.5" font-weight="700">9 váh</text>
+  <text class="muted" x="736.0" y="208" text-anchor="middle" font-size="11.5">to isté pre obe polohy</text>
+  <path class="arr" d="M736.0,216 L736.0,248" marker-end="url(#ag)"/>
+  <g>
+    <rect class="out" x="700" y="254" width="24" height="24"/>
+    <rect class="out" x="724" y="254" width="24" height="24"/>
+    <rect class="out" x="748" y="254" width="24" height="24"/>
+    <rect class="out" x="700" y="278" width="24" height="24"/>
+    <rect class="out" x="724" y="278" width="24" height="24"/>
+    <rect class="out" x="748" y="278" width="24" height="24"/>
+    <rect class="out" x="700" y="302" width="24" height="24"/>
+    <rect class="out" x="724" y="302" width="24" height="24"/>
+    <rect class="out" x="748" y="302" width="24" height="24"/>
+  </g>
+  <rect class="winA" x="700" y="254" width="24" height="24" stroke-width="3"/>
+  <rect class="winB" x="748" y="302" width="24" height="24" stroke-width="3"/>
+  <text class="muted" x="736.0" y="346" text-anchor="middle" font-size="12">mapa príznakov 3 × 3</text>
+  <text class="muted" x="736.0" y="362" text-anchor="middle" font-size="11">1 číslo za každú polohu okna</text>
+  <text class="txt" x="685" y="400" text-anchor="middle" font-size="13">Neurón vidí len <tspan font-weight="700">okienko 3 × 3</tspan> (lokálnosť).</text>
+  <text class="txt" x="685" y="422" text-anchor="middle" font-size="13">Tých istých <tspan font-weight="700">9 váh</tspan> sa použije na všetky polohy</text>
+  <text class="txt" x="685" y="442" text-anchor="middle" font-size="13">(weight sharing) — namiesto 75 ich stačí 9.</text>
+  <text class="txt" x="685" y="464" text-anchor="middle" font-size="13">Posunutý vzor nájde <tspan font-weight="700">ten istý filter</tspan>.</text>
+  <text class="muted" x="460" y="542" text-anchor="middle" font-size="13">Rozdiel nie je v počte vrstiev, ale v prepojení: MLP = každý s každým, CNN = malé okno a tie isté váhy všade.</text>
+</svg>

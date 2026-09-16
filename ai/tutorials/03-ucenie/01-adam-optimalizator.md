@@ -339,7 +339,8 @@ Tieto hodnoty sú štandardné a fungujú takmer vždy — začnite s nimi.
 
 ### Dva dodatky, ktoré uvidíte v praxi
 
-Vo vlastnej implementácii ich netreba, ale v cudzom kóde na ne narazíte hneď:
+Vo vlastnej implementácii ich netreba, ale v cudzom kóde na ne narazíte hneď (podrobne aj
+s kódom sú, spolu s ďalšími variantmi Adama, v [sekcii 8](#8-modifikácie-adama-pre-lepšiu-konvergenciu)):
 
 - **AdamW** — variant, ktorý pridáva **weight decay** (pokutu za veľké váhy, viď regularizácia
   v [03-generalizacia-a-preucenie.md](../01-prehlad/03-generalizacia-a-preucenie.md)) tak, že ju odpočíta priamo od parametra
@@ -460,7 +461,388 @@ for epoch in range(num_epochs):
 
 ---
 
-## 8. Kontrola správnosti
+## 8. Modifikácie Adama pre lepšiu konvergenciu
+
+Adam z roku 2014 je dodnes rozumná predvoľba, ale desať rokov praxe odhalilo niekoľko jeho
+slabín. Odpoveďou je celá rodina variantov — a dobrá správa je, že **takmer každý z nich mení
+iba jeden–dva riadky** algoritmu zo sekcie 6. Ak máte funkčného Adama, máte aj kostru pre
+všetky nasledujúce úpravy.
+
+Rozdeľme si ich do troch skupín:
+
+- **A. Varianty jadra** — menia samotný vzorec updatu (8.1 – 8.6).
+- **B. Obaly okolo optimalizátora** — Adam nechajú tak, ako je, a pridajú niečo navyše
+  (8.7 – 8.10). V praxi prinášajú väčší úžitok než výmena variantu.
+- **C. Úsporné varianty pre veľké modely** — obetujú kúsok kvality za dramaticky menšiu
+  pamäť (8.11).
+
+Značenie ostáva zo sekcie 6: `P` je parameter, `g` jeho gradient, `m`, `v` momenty,
+`m̂`, `v̂` momenty po bias correction, `α` (`lr`) rýchlosť učenia.
+
+---
+
+### 8.1 AdamW — oddelený weight decay (*decoupled weight decay*)
+
+**Problém.** Klasická L2 regularizácia sa pridáva do gradientu: `g ← g + λ·P`. V Adame
+ale celý gradient následne prejde delením `√v̂`. Pokuta za veľké váhy sa tak pre parameter
+s veľkými gradientmi **zoslabí** a pre parameter s malými gradientmi **zosilní** — presne
+naopak, než by regularizácia mala fungovať. V praxi to znamená, že `λ` v Adame účinkuje
+nepredvídateľne a treba ho ladiť spolu s `lr`.
+
+**Riešenie (Loshchilov & Hutter, 2017).** Decay sa neposiela cez gradient, ale odpočíta sa
+**priamo od parametra**, mimo adaptívnej časti:
+
+```
+P ← P − lr · m̂ / (√v̂ + ε)   −   lr · λ · P
+                                  └── weight decay, neprechádza delením √v̂
+```
+
+```python
+# v step(), na konci cyklu cez parametre
+p -= self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
+if self.weight_decay:
+    p -= self.lr * self.weight_decay * p     # oddelený decay
+```
+
+**Kedy použiť:** prakticky vždy, keď chcete regularizovať. `torch.optim.AdamW` je dnes
+predvolený optimalizátor pre transformery a `λ` (`weight_decay`) sa typicky volí `0.01`
+až `0.1`. Dôležitá konvencia: **decay sa neaplikuje na biasy a na parametre normalizačných
+vrstiev** (LayerNorm) — tie majú byť voľné, inak sa škáluje aktivácia a tréning sa zhorší.
+
+> Pozor na detail: v `torch.optim.AdamW` je decay násobený `lr` (ako vo vzorci vyššie),
+> takže keď zmeníte `lr`, mení sa aj efektívna sila regularizácie. Pri prechode z Adamu
+> na AdamW preto `λ` vždy preladíte nanovo.
+
+---
+
+### 8.2 AMSGrad — poistka proti „zabudnutému" veľkému gradientu
+
+**Problém.** `v` je *kĺzavý* priemer, takže **zabúda**. Ak sa raz za čas objaví batch
+s veľkým informatívnym gradientom, `v` sa síce nadvihne, ale po pár stovkách krokov klesne
+naspäť. Efektívny krok `α/√v̂` sa tak môže **zväčšovať** a Adam v takom prípade nemusí
+konvergovať ani na jednoduchej konvexnej úlohe (Reddi et al., 2018 — to je ten článok,
+ktorý našiel chybu v pôvodnom dôkaze konvergencie Adama).
+
+**Riešenie.** Pamätať si **maximum** doteraz videného `v` a deliť ním:
+
+```
+v_max ← max(v_max, v̂)          (po prvkoch)
+P ← P − lr · m̂ / (√v_max + ε)
+```
+
+```python
+self.v_max[i] = np.maximum(self.v_max[i], v_hat)
+p -= self.lr * m_hat / (np.sqrt(self.v_max[i]) + self.eps)
+```
+
+Efektívny learning rate je tým pádom **monotónne neklesajúci menovateľ**, čiže krok sa nikdy
+sám od seba nezväčší.
+
+**Kedy použiť:** keď loss počas tréningu občas „vyskočí" alebo tréning nekonverguje
+a podozrievate nestabilitu adaptívneho kroku. V `torch.optim.Adam(..., amsgrad=True)` je to
+jeden prepínač. Cena: **o polovicu väčší stav optimalizátora** (tri polia na parameter
+namiesto dvoch) a v praxi je zlepšenie na reálnych úlohách zmiešané — teoretická poistka,
+nie univerzálne zrýchlenie.
+
+---
+
+### 8.3 Nadam — Adam s Nesterovovým momentom
+
+**Myšlienka.** Klasické momentum sa pozerá **dozadu** (kam som šiel doteraz). Nesterovovo
+momentum sa pozerá **dopredu**: gradient vyhodnotí až v bode, kam ma zotrvačnosť aj tak
+odnesie, takže vie skôr „zabrzdiť" pred stenou. Nadam (Dozat, 2016) túto myšlienku dostane
+do Adama bez nutnosti počítať gradient dvakrát — stačí do updatu primiešať aktuálny gradient:
+
+```
+m̂ ← β1 · m / (1 − β1^(t+1))  +  (1 − β1) · g / (1 − β1^t)
+P ← P − lr · m̂ / (√v̂ + ε)
+```
+
+Prvý člen je „momentum posunuté o krok dopredu", druhý dopĺňa príspevok práve spočítaného
+gradientu.
+
+**Kedy použiť:** ak hľadáte lacné zrýchlenie prvých epôch. Býva o niečo rýchlejší než Adam na
+začiatku tréningu, rozdiel na konci je zvyčajne malý. V PyTorchi `torch.optim.NAdam`.
+
+---
+
+### 8.4 RAdam — rektifikovaný Adam (warmup „zadarmo")
+
+**Problém.** V prvých krokoch je `v̂` odhadnuté z hŕstky vzoriek, takže má **obrovský
+rozptyl**. Náhodne malé `√v̂` znamená obrovský krok — a jediný taký krok vie hodiť model do
+zlej oblasti, z ktorej sa už nespamätá. Presne preto sa v praxi používa *warmup* (8.9).
+
+**Riešenie (Liu et al., 2019).** RAdam rozptyl adaptívneho člena **spočíta** a krok ním
+vynásobí. Pokiaľ je odhad ešte nedôveryhodný, adaptívnu časť úplne vypne a spraví obyčajný
+krok s momentom:
+
+```
+ρ∞ = 2/(1 − β2) − 1                                  # dĺžka pamäte 2. momentu (pre β2=0.999 ≈ 1999)
+ρₜ = ρ∞ − 2t·β2^t / (1 − β2^t)                       # "koľko vzoriek už v̂ reálne videlo"
+
+ak ρₜ > 4:                                            # odhad je dôveryhodný
+    rₜ = sqrt( ((ρₜ−4)(ρₜ−2)·ρ∞) / ((ρ∞−4)(ρ∞−2)·ρₜ) )   # rektifikačný faktor, rastie k 1
+    P ← P − lr · rₜ · m̂ / (√v̂ + ε)
+inak:                                                 # prvých ~5 krokov
+    P ← P − lr · m̂                                    # SGD s momentom, bez delenia
+```
+
+**Kedy použiť:** ak nechcete ladiť dĺžku warmupu alebo ak vám tréning padá práve v prvých
+stovkách krokov. V praxi RAdam warmup **nenahrádza úplne** — pri veľkých modeloch sa aj tak
+zvykne kombinovať s krátkym warmupom. V PyTorchi `torch.optim.RAdam`.
+
+---
+
+### 8.5 AdaBelief — druhý moment z **odchýlky**, nie z veľkosti
+
+**Myšlienka.** Adam delí typickou veľkosťou gradientu. AdaBelief (Zhuang et al., 2020) delí
+tým, **ako veľmi sa gradient líši od toho, čo sme čakali** — teda od `m`:
+
+```
+s ← β2 · s + (1 − β2) · (g − m)²  + ε
+P ← P − lr · m̂ / (√ŝ + ε)
+```
+
+Interpretácia je pekná: `s` je odhad **rozptylu** gradientu, čiže „nedôvery" v smer.
+
+- Gradient sedí s predikciou (`g ≈ m`) → `s` malé → **veľký krok**. V dlhej rovnej dolinke
+  sa tak Adam plazí (lebo `g²` je veľké), zatiaľ čo AdaBelief zrýchli.
+- Gradient skáče okolo `m` → `s` veľké → **malý, opatrný krok**.
+
+**Kedy použiť:** keď má úloha dlhé úzke „rokliny" a Adam v nich spomaľuje. Nie je súčasťou
+PyTorchu, inštaluje sa ako balík `adabelief-pytorch`.
+
+---
+
+### 8.6 Adamax — ∞-norma namiesto druhej mocniny
+
+Namiesto EMA druhých mocnín sa sleduje **kĺzavé maximum absolútnej hodnoty** gradientu:
+
+```
+u ← max(β2 · u, |g|)
+P ← P − (lr / (1 − β1^t)) · m / (u + ε)
+```
+
+`u` je stabilnejšie než `√v̂` — jediný extrémny gradient sa neumocní na druhú, takže menovateľ
+nevystrelí. Bias correction pre `u` netreba (maximum nie je skreslené nulovou inicializáciou).
+
+**Kedy použiť:** pri riedkych gradientoch a embedding vrstvách, alebo keď tréning zhadzujú
+ojedinelé obrovské gradienty. V PyTorchi `torch.optim.Adamax`.
+
+---
+
+### 8.7 Lookahead — „k krokov dopredu, jeden krok naspäť"
+
+Lookahead (Zhang et al., 2019) nie je optimalizátor, ale **obal okolo ľubovoľného
+optimalizátora** (teda aj Adama). Drží dve sady váh:
+
+- **rýchle váhy `θ`** — tie posúva Adam ako obvykle,
+- **pomalé váhy `φ`** — aktualizujú sa až **raz za `k` krokov**, a to interpoláciou:
+
+```
+každých k krokov (typicky k = 5 alebo 6):
+    φ ← φ + β · (θ − φ)        # β typicky 0.5
+    θ ← φ                      # rýchle váhy sa vrátia na pomalé
+```
+
+Pomalé váhy sa tak posúvajú v smere, ktorý Adam držal **konzistentne počas `k` krokov**,
+a jednorazové výkyvy sa vyhladia. Efekt: menší rozptyl tréningu, menšia citlivosť na `lr`,
+cena je jedna kópia váh navyše a pár riadkov kódu.
+
+---
+
+### 8.8 Orezávanie gradientu (*gradient clipping*)
+
+Nie je to modifikácia Adama, ale v praxi **najúčinnejšia poistka konvergencie vôbec** —
+a robí sa medzi krokom 3 (backprop) a krokom 4 (update). Ak celková norma gradientov
+prekročí prah, celý vektor sa preškáluje:
+
+```python
+def clip_grad_norm(grads, max_norm=1.0):
+    total = np.sqrt(sum(np.sum(g * g) for g in grads))   # globálna L2 norma
+    if total > max_norm:
+        scale = max_norm / (total + 1e-6)
+        grads = [g * scale for g in grads]               # smer ostáva, dĺžka sa oreže
+    return grads
+```
+
+Podstatné je, že sa škáluje **globálna norma cez všetky parametre naraz** (nie každý
+parameter zvlášť) — tým sa zachová *smer* celkového gradientu. Typický prah je `1.0`.
+Bez clippingu jeden zlý batch (napr. s outlierom) vygeneruje obrovský gradient, ktorý sa
+cez `m` a `v` vlečie ďalších niekoľko sto krokov. Pri trénovaní LLM je clipping štandardom.
+
+---
+
+### 8.9 Rozvrh learning rate: warmup + kosínusový pokles
+
+Druhý „obal", ktorý v praxi rozhodne o konvergencii viac než výber variantu Adama. `lr` sa
+nedrží konštantný:
+
+1. **Warmup** — prvých `T_w` krokov (typicky 1–5 % tréningu) lineárny rast z nuly. Dôvod je
+   ten istý ako pri RAdame (8.4): na štarte sú `m` a `v` nespoľahlivé.
+2. **Pokles (decay)** — potom kosínusový pokles k nule (alebo k `0.1·lr`). Veľké kroky
+   na začiatku hľadajú správnu oblasť, malé na konci v nej doladia detail.
+
+```python
+import math
+
+def lr_at(step, base_lr=1e-3, warmup=500, total=20000, min_lr=0.0):
+    if step < warmup:                                     # 1. lineárny nábeh
+        return base_lr * step / warmup
+    progress = (step - warmup) / max(1, total - warmup)   # 0 → 1
+    cos = 0.5 * (1 + math.cos(math.pi * progress))        # 1 → 0
+    return min_lr + (base_lr - min_lr) * cos              # 2. kosínusový pokles
+
+# v tréningovej slučke, pred opt.step(...):
+opt.lr = lr_at(global_step)
+```
+
+Alternatívy: lineárny pokles (jednoduchší, takmer rovnako dobrý), *step decay* (vydelenie
+desiatimi po pevných epochách, klasika z CNN sveta) alebo `ReduceLROnPlateau` (zníženie `lr`,
+keď sa validačný loss prestane zlepšovať).
+
+---
+
+### 8.10 EMA váh (Polyak averaging) — zadarmo hladší model
+
+Popri trénovaných váhach sa udržiava ich **kĺzavý priemer**, a na validáciu aj nasadenie
+sa použije **on**, nie posledné váhy:
+
+```python
+ema = [p.copy() for p in params]
+# po každom opt.step():
+for e, p in zip(ema, params):
+    e *= 0.999
+    e += 0.001 * p          # e ← 0.999·e + 0.001·p
+```
+
+Posledné váhy neustále „poskakujú" okolo optima kvôli šumu mini-batchov; priemer cez posledných
+~1000 krokov sedí bližšie v strede minima a takmer vždy validuje o niečo lepšie. Stojí to jednu
+kópiu váh a nula výpočtu navyše. Používa sa štandardne pri difúznych modeloch a pri fine-tuningu.
+
+---
+
+### 8.11 Úsporné varianty pre veľké modely
+
+Adam si pre **každý** parameter drží `m` aj `v`. Pri fp32 to znamená 4 B (parameter) + 4 B
+(gradient) + 8 B (stav optimalizátora) = **16 bajtov na parameter**, teda pre model so 7 mld.
+parametrov ~112 GB (ten istý rozpočet v zmiešanej presnosti, tak ako ho vidí fine-tuning, je
+rozpísaný v [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md#1-prečo-sa-celý-model-dotrénovať-nedá)).
+Preto pri LLM vznikli varianty, ktoré stav zmenšujú:
+
+| Variant | Ako šetrí | Stav na parameter | Poznámka |
+|---|---|---|---|
+| **Adafactor** | `v` pre maticu `n × m` neukladá celé, ale ako **súčin riadkových a stĺpcových priemerov** (`n + m` čísel namiesto `n·m`) | ~0 (`m` sa štandardne vôbec nedrží) | použitý pri trénovaní T5; kvalita mierne pod AdamW |
+| **8-bit Adam** | `m` a `v` **kvantizuje** do 8 bitov (blokovo, s vlastnou mierkou) | 2 B | `bitsandbytes`; kvalita prakticky nerozoznateľná od AdamW |
+| **Lion** | drží **len `m`**, update je iba `sign(...)` — bez delenia | 4 B | `lr` treba 3–10× menší a `λ` väčší než pri AdamW |
+
+Lion (Chen et al., 2023) stojí za rozpísanie, lebo ukazuje, že adaptívny menovateľ nie je
+posvätný — krok má vždy rovnakú veľkosť a mení sa len jeho znamienko:
+
+```
+update ← sign(β1 · m + (1 − β1) · g)      # ±lr pre každý parameter
+P ← P − lr · (update + λ · P)
+m ← β2 · m + (1 − β2) · g                 # moment sa aktualizuje až po update
+```
+
+---
+
+### 8.12 Referenčná implementácia: AdamW s prepínačmi
+
+Rozšírenie triedy zo sekcie 7 o oddelený weight decay a AMSGrad. Obe úpravy sú doslova po
+jednom riadku navyše:
+
+```python
+import numpy as np
+
+class AdamW:
+    def __init__(self, params, lr=1e-3, beta1=0.9, beta2=0.999, eps=1e-8,
+                 weight_decay=0.0, amsgrad=False):
+        self.lr, self.beta1, self.beta2, self.eps = lr, beta1, beta2, eps
+        self.weight_decay = weight_decay
+        self.amsgrad = amsgrad
+        self.t = 0
+        self.m = [np.zeros_like(p) for p in params]
+        self.v = [np.zeros_like(p) for p in params]
+        self.v_max = [np.zeros_like(p) for p in params] if amsgrad else None
+
+    def step(self, params, grads, decay_mask=None):
+        """decay_mask: zoznam True/False — na ktoré parametre aplikovať weight decay
+        (typicky False pre biasy a parametre LayerNormu)."""
+        self.t += 1
+        for i, (p, g) in enumerate(zip(params, grads)):
+            self.m[i] = self.beta1 * self.m[i] + (1 - self.beta1) * g
+            self.v[i] = self.beta2 * self.v[i] + (1 - self.beta2) * (g * g)
+
+            m_hat = self.m[i] / (1 - self.beta1 ** self.t)
+            v_hat = self.v[i] / (1 - self.beta2 ** self.t)
+
+            if self.amsgrad:                                     # 8.2
+                self.v_max[i] = np.maximum(self.v_max[i], v_hat)
+                v_hat = self.v_max[i]
+
+            p -= self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
+
+            if self.weight_decay:                                # 8.1
+                if decay_mask is None or decay_mask[i]:
+                    p -= self.lr * self.weight_decay * p
+```
+
+Použitie so všetkými doplnkami z tejto sekcie:
+
+```python
+opt = AdamW(params, lr=1e-3, weight_decay=0.01, amsgrad=False)
+step = 0
+
+for epoch in range(num_epochs):
+    for X_batch, y_batch in batches(X_train, y_train, batch_size=64):
+        y_hat = forward(X_batch)
+        loss  = cross_entropy(y_hat, y_batch)
+        grads = backward(...)
+
+        grads = clip_grad_norm(grads, max_norm=1.0)   # 8.8
+        opt.lr = lr_at(step)                          # 8.9
+        opt.step(params, grads, decay_mask=mask)      # mask: False pre biasy
+        step += 1
+```
+
+---
+
+### 8.13 Čo z toho naozaj použiť
+
+| Úprava | Čo mení | Kedy po nej siahnuť | Cena |
+|---|---|---|---|
+| **AdamW** (8.1) | decay mimo adaptívnej časti | vždy, keď regularizujete | žiadna |
+| **Clipping** (8.8) | oreže veľký gradient pred updatom | vždy pri hlbokých sieťach a LLM | zanedbateľná |
+| **Warmup + decay** (8.9) | `lr` v čase | vždy pri väčších modeloch | žiadna |
+| **EMA váh** (8.10) | model na vyhodnotenie | keď validačná krivka „poskakuje" | 1 kópia váh |
+| **AMSGrad** (8.2) | delí maximom `v̂` | loss občas vyskočí, tréning nekonverguje | +1 pole na parameter |
+| **Nadam** (8.3) | moment sa pozerá dopredu | chcete rýchlejší štart | žiadna |
+| **RAdam** (8.4) | vypne adaptivitu, kým je neistá | nechcete ladiť warmup | žiadna |
+| **AdaBelief** (8.5) | `v` z odchýlky `(g − m)²` | Adam sa plazí v úzkej dolinke | žiadna |
+| **Adamax** (8.6) | ∞-norma namiesto `g²` | riedke gradienty, embeddingy | žiadna |
+| **Lookahead** (8.7) | pomalé + rýchle váhy | veľký rozptyl medzi behmi | 1 kópia váh |
+| **Adafactor / 8-bit / Lion** (8.11) | menší stav optimalizátora | nevojdete sa do pamäte GPU | mierna strata kvality |
+
+**Poradie, v akom to riešiť.** Keď tréning nekonverguje, **nezačínajte výmenou variantu
+Adama** — zisk býva rádovo menší než zisk zo správneho `lr`, rozvrhu a clippingu:
+
+1. Over `lr` (rádový sweep: `1e-2`, `1e-3`, `1e-4`).
+2. Pridaj **clipping** (8.8) a **warmup + cosine** (8.9).
+3. Prepni Adam → **AdamW** (8.1) a nalaď `λ`, biasy a LayerNorm vynechaj.
+4. Až potom skús iný variant jadra (AMSGrad, RAdam, AdaBelief) — a vždy meraj na validačnej
+   množine, nie na trénovacej.
+
+Ak vám tréning nekonverguje z úplne iného dôvodu (zlá inicializácia, mŕtve neuróny, nevhodná
+normalizácia dát), tieto úpravy nepomôžu — katalóg takých porúch je v
+[02-problemy-pri-uceni.md](02-problemy-pri-uceni.md).
+
+> **K zadaniu 1:** stačí čistý Adam zo sekcie 6. Táto sekcia je na to, aby ste vedeli, čo
+> znamenajú prepínače v cudzom kóde a čo skúsiť, keď tréning „nejde".
+
+---
+
+## 9. Kontrola správnosti
 
 Ako si overiť, že je Adam implementovaný dobre:
 
@@ -477,7 +859,7 @@ Ako si overiť, že je Adam implementovaný dobre:
 
 ---
 
-## 9. Zhrnutie v jednej vete
+## 10. Zhrnutie v jednej vete
 
 Adam = SGD, v ktorom namiesto surového gradientu použijete jeho **vyhladený priemer** (`m`),
 podelený **typickou veľkosťou gradientu** daného parametra (`sqrt(v)`), s **korekciou
@@ -485,7 +867,7 @@ rozbehu** (`m̂`, `v̂`) — čím každý parameter dostane vlastnú adaptívnu
 
 ---
 
-## 10. Kontrolné otázky
+## 11. Kontrolné otázky
 
 1. Ktoré z týchto vecí Adam mení a ktoré nie: forward pass, výpočet loss, backprop, update parametrov?
 2. Čo sa stane, keď `m` a `v` inicializujeme na nuly a bias correction vynecháme? Prečo je efekt najsilnejší v prvých krokoch?
@@ -495,6 +877,14 @@ rozbehu** (`m̂`, `v̂`) — čím každý parameter dostane vlastnú adaptívnu
 6. Loss pri tréningu „vybuchne" do NaN. Vymenujte tri miesta v implementácii Adama, kde budete hľadať chybu ako prvé.
 7. Čím sa líši lokálne minimum od sedlového bodu a prečo sú v sieti s miliónmi parametrov sedlá oveľa častejšie?
 8. Ako pomáhajú šum mini-batchov, momentum a adaptívny krok dostať tréning z plochého miesta?
+9. Prečo L2 regularizácia pridaná do gradientu účinkuje v Adame na každý parameter inak silno a ako to AdamW rieši?
+10. Na ktoré parametre sa weight decay zvyčajne **neaplikuje** a prečo?
+11. Ako môže v Adame efektívny krok `α/√v̂` časom **narásť** a čím tomu AMSGrad zabráni?
+12. RAdam a warmup riešia ten istý problém. Aký a ako sa ich prístup líši?
+13. AdaBelief delí odchýlkou `(g − m)²` namiesto `g²`. Ako sa obe metódy zachovajú v dlhej rovnej dolinke, kde je gradient veľký, ale stabilný?
+14. Prečo sa pri clippingu škáluje **globálna** norma cez všetky parametre naraz, a nie každý parameter zvlášť?
+15. Model má 7 miliárd parametrov. Koľko pamäte v fp32 zaberú samotné parametre, gradienty a stav Adama? Ktorá z úsporných variantov v 8.11 tú stopu zmenší najviac a čo za to platíte?
+16. Tréning nekonverguje. V akom poradí budete skúšať zásahy z tabuľky v 8.13 a prečo práve v tomto?
 
 ---
 

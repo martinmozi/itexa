@@ -291,7 +291,7 @@ Hotové implementácie: `ParentDocumentRetriever` v LangChain, `AutoMergingRetri
 
 Doteraz bol retrieval **pevný**: vyhľadaj raz, vlož do promptu, generuj. Agentický RAG necháva rozhodovanie na modeli – **či** vôbec hľadať, **čo** hľadať, **koľkokrát** (nájde niečo, zistí, že to nestačí, hľadá znova inak), **kde** (vektorová DB / SQL / web) a **kedy má dosť** informácií. Príbuzný vzor **self-check**: model si navrhnutú odpoveď spätne overí voči zdrojom a pri nezhode hľadá znova.
 
-Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, cenou a podstatne ťažším ladením. Oplatí sa pri komplexných otázkach cez viacero zdrojov. Samotná agentová slučka, ktorá to poháňa, je témou [lekcie 8](../05-prakticke/01-agenti-a-nastroje.md).
+Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, cenou a podstatne ťažším ladením. Oplatí sa pri komplexných otázkach cez viacero zdrojov. Samotná agentová slučka, ktorá to poháňa, je témou [lekcie 8](../05-prakticke/02-agenti-a-nastroje.md).
 
 ---
 
@@ -324,5 +324,5 @@ Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, 
 - [01-transformer-siete.md](01-transformer-siete.md) — attention mechanika, ktorá beží vo vnútri
 - [03-llm-trening.md](03-llm-trening.md) — ako sa trénuje generatívny LLM na konci pipeline
 - [07-fine-tuning-lora.md](07-fine-tuning-lora.md) — **nasleduje**: druhá cesta k tomu istému cieľu
-- [01-agenti-a-nastroje.md](../05-prakticke/01-agenti-a-nastroje.md) — agentová slučka za agentickým RAG
+- [02-agenti-a-nastroje.md](../05-prakticke/02-agenti-a-nastroje.md) — agentová slučka za agentickým RAG
 - [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — **zadanie 2A**: postaviť túto pipeline

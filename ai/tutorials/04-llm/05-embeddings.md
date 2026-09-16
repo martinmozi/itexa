@@ -28,6 +28,12 @@ Predstavme si vetu z firemného dokumentu:
 
 ## Krok 1: Tokenizácia
 
+> **Čo je kde:** praktickú stránku tokenizácie — rodiny tokenizérov, byte-level BPE, riadiace
+> a chat tokeny, cena slovenčiny, detokenizácia a streamovanie — rozoberá
+> [02-transformer-vnutro.md, sekcia 1](02-transformer-vnutro.md#1-tokenizácia-ako-sa-z-textu-stanú-čísla).
+> Tu ide o to, čo tam nie je: **ako sa slovník naučí** a ako z toho vyjdú čísla, s ktorými
+> budeme ďalej ručne počítať.
+
 Model nepracuje priamo so slovami, ale s **tokenmi** – časťami textu, ktoré nemusia byť celé slová. Tokenizér (napr. BPE, WordPiece, SentencePiece) má svoj naučený slovník (*vocabulary*), typicky `30 000 – 100 000+` položiek, a vetu podľa neho rozdelí:
 
 ```text
@@ -78,7 +84,7 @@ Pri reálnom použití sa merge pravidlá aplikujú **v tom istom poradí**, v a
   výsledok: ["dovolen", "ky"]
 ```
 
-> **Dôležitý postreh:** slovenčina/čeština sa pri mnohých (najmä anglicky trénovaných) modeloch rozdelí na **viac** tokenov ako ekvivalentná anglická veta, lebo slovník bol trénovaný hlavne na angličtine – teda časté anglické kmene majú svoj token, kým slovenské sa musia poskladať z drobných častí. Napr. anglické „vacation" môže byť 1 token, kým „dovolenka" pokojne 3–4. To má priamy dopad na to, koľko textu sa zmestí do jedného chunku.
+> **Dôsledok pre RAG:** slovenčina sa pri anglicky trénovaných slovníkoch rozdelí zhruba na **dvojnásobok** tokenov oproti angličtine (prečo a s meraním v [02, sekcia 1](02-transformer-vnutro.md#najvýraznejší-dôsledok-slovenčina-spotrebuje-viac-tokenov)). Pre nás je podstatné len jedno číslo: do chunku s limitom `512 tokenov` sa zmestí **zhruba polovica** textu, než by ste čakali podľa anglických príkladov z dokumentácie.
 
 ### Špeciálne tokeny
 
@@ -97,15 +103,9 @@ Po tokenizácii teda reálne do modelu nevchádza `[4521, 892, ...]`, ale napr. 
 
 ## Krok 2: Token embeddings – obyčajná lookup tabuľka
 
-Prvá „vrstva" modelu vôbec nie je nič inteligentné – je to **embedding matica**, obyčajná tabuľka rozmerov `[vocab_size × hidden_dim]`, napr. `[50 000 × 1024]`. Token ID je index riadku:
+Prvá „vrstva" modelu nie je nič inteligentné – je to **embedding matica** `[vocab_size × hidden_dim]` (napr. `[50 000 × 1024]`) a token ID je index riadku; mechanika je rozpísaná v [02, sekcia 2](02-transformer-vnutro.md#2-z-token-id-na-vektor-embedding-matica-a-pozícia). Na začiatku tréningu sú tie čísla náhodné, tréningom sa „naučia" byť užitočné — a tu si ich konečne dosadíme.
 
-```text
-token ID 4521 ("Zamest") → riadok 4521 v matici → vektor [0.03, -0.12, 0.44, ..., 0.09]  (1024 čísel)
-```
-
-Toto je čisté **vyhľadanie v tabuľke**, žiadny výpočet. Na začiatku trénovania sú tieto čísla náhodné; trénovaním sa postupne „naučia" byť užitočné.
-
-> **Dôležité:** toto ešte **NIE JE** finálny embedding vety, ani len embedding slova v kontexte. Slovo *„banka"* by v tomto kroku malo úplne rovnaký vektor, či ide o vetu o financiách alebo o rieke – model ešte nevidel žiadny kontext.
+> **Dôležité:** toto ešte **NIE JE** finálny embedding vety, ani embedding slova v kontexte. *„Banka"* má v tomto kroku rovnaký vektor vo vete o financiách aj o rieke — kontext doň dostane až attention.
 
 ### Náš bežecký príklad (potiahneme ho cez celý zvyšok dokumentu)
 
@@ -304,13 +304,13 @@ Po attention nasleduje ešte **feed-forward sieť** – dve lineárne vrstvy s n
 FFN(x) = W_2 · aktivácia(W_1 · x + b_1) + b_2
 ```
 
-Typicky prvá vrstva dimenziu **zväčší** (napr. 1024 → 4096), aplikuje sa nelinearita (ReLU/GELU) a druhá vrstva ju vráti späť (4096 → 1024). Malá ukážka s jednou vstupnou súradnicou cez ReLU (`ReLU(z)=max(0,z)`): ak `W_1·x = [2.0, -0.5]`, tak `ReLU → [2.0, 0.0]` – záporná zložka sa „vypne". Práve táto nelinearita dáva modelu schopnosť reprezentovať zložité, nie len lineárne vzťahy. Aj tu je opäť reziduálne spojenie a LayerNorm.
+Typicky prvá vrstva dimenziu **zväčší** (napr. 1024 → 4096), aplikuje sa nelinearita (ReLU/GELU) a druhá vrstva ju vráti späť (4096 → 1024). Prečo práve rozšíriť-a-zúžiť, čo sa v FFN reálne ukladá a ako vyzerá modernejší SwiGLU variant, rozoberá [02, sekcia 5](02-transformer-vnutro.md#5-feed-forward-vrstva-každý-vektor-sám-za-seba). Malá ukážka s jednou vstupnou súradnicou cez ReLU (`ReLU(z)=max(0,z)`): ak `W_1·x = [2.0, -0.5]`, tak `ReLU → [2.0, 0.0]` – záporná zložka sa „vypne". Práve táto nelinearita dáva modelu schopnosť reprezentovať zložité, nie len lineárne vzťahy. Aj tu je opäť reziduálne spojenie a LayerNorm.
 
 ### Zhrnutie jednej vrstvy a opakovanie
 
 Jedna transformer vrstva teda je: `attention → +residual → LayerNorm → FFN → +residual → LayerNorm`. Toto sa opakuje cez všetky vrstvy (`N`-krát) – vektory sa vrstvu po vrstve stávajú čoraz „abstraktnejšími" a kontextovo bohatšími. Po prejdení celého modelu máme stále `n` vektorov (jeden na token), len teraz každý z nich odzrkadľuje aj zvyšok vety.
 
-> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Čo z toho plynie pre plánovanie hardvéru, je v [06-rag.md, sekcia 5](06-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
+> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Čo z toho plynie pre dĺžku vstupu a kontextové okno, je v [02, sekcia 8](02-transformer-vnutro.md#8-kontext-krátka-správa-dlhá-správa-a-prečo-má-okno-strop); čo z toho plynie pre plánovanie hardvéru, v [06-rag.md, sekcia 5](06-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
 
 ---
 

@@ -4,7 +4,7 @@ Tréningová slučka do detailu a čo robiť, keď nefunguje.
 
 | Dokument | O čom je |
 |---|---|
-| [01-adam-optimalizator.md](01-adam-optimalizator.md) | anatómia siete, aktivačné funkcie, momentum a adaptívny krok, bias correction, referenčná implementácia v NumPy, sedlové body |
+| [01-adam-optimalizator.md](01-adam-optimalizator.md) | anatómia siete, aktivačné funkcie, momentum a adaptívny krok, bias correction, referenčná implementácia v NumPy, sedlové body, varianty pre lepšiu konvergenciu (AdamW, AMSGrad, Nadam, RAdam, AdaBelief, clipping, lr rozvrh) |
 | [02-problemy-pri-uceni.md](02-problemy-pri-uceni.md) | **katalóg porúch**: miznúce a explodujúce gradienty, mŕtve ReLU, inicializácia, learning rate, normalizácia, `NaN`, chyby v dátach, fp16/bf16, nedeterminizmus, hardvér a ECC |
 
 Prvý dokument je špecifikácia, podľa ktorej sa dá Adam naprogramovať (zadanie 1).

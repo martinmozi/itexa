@@ -1,6 +1,6 @@
 # Fine-tuning v malom: LoRA, QLoRA a rozhodnutie RAG vs. fine-tuning
 
-> **Poradie čítania:** ← [RAG](06-rag.md) · **lekcia 7** · [Agenti, nástroje a Claude Code](../05-prakticke/01-agenti-a-nastroje.md) →
+> **Poradie čítania:** ← [RAG](06-rag.md) · **lekcia 7** · [Ako používať LLM](../05-prakticke/01-ako-pouzivat-llm.md) →
 
 > **Cieľ dokumentu:** vysvetliť, ako sa dá veľký model prispôsobiť vlastnej úlohe na jednom GPU — čo presne je **LoRA adaptér**, prečo stačí, čo pridáva **QLoRA** — a hlavne vedieť sa **rozhodnúť**, kedy siahnuť po fine-tuningu a kedy po RAG alebo len po dlhšom prompte.
 
@@ -20,7 +20,7 @@ Plný fine-tuning znamená upravovať **všetky** váhy. Pri modeli so 7 miliard
 | kópia váh vo fp32 | 4 B | 28 GB |
 | **spolu** | **~16 B** | **~112 GB** |
 
-K tomu ešte aktivácie. Čiže niekoľko A100/H100 — pre bežnú firmu aj študenta nedostupné. A to všetko preto, aby sme model naučili napríklad odpovedať v našom firemnom tóne.
+K tomu ešte aktivácie. Čiže niekoľko A100/H100 — pre bežnú firmu aj študenta nedostupné. (Riadok „stav Adamu" sú presne tie dve polia `m` a `v` z [lekcie 3](../03-ucenie/01-adam-optimalizator.md#5-stavové-premenné); ako ho zmenšiť bez LoRA — Adafactor, 8-bit Adam, Lion — je v [8.11](../03-ucenie/01-adam-optimalizator.md#811-úsporné-varianty-pre-veľké-modely).) A to všetko preto, aby sme model naučili napríklad odpovedať v našom firemnom tóne.
 
 Kľúčové pozorovanie, z ktorého vychádza LoRA: **prispôsobenie modelu na úzku úlohu je „malá" zmena.** Nemeníme, čo model vie o svete — meníme, ako to podáva. Taká zmena sa nemusí dať zapísať do všetkých miliárd čísel; stačí jej oveľa menší priestor.
 
@@ -117,7 +117,7 @@ Je dokumentov málo a zmestia sa do kontextu?     ──► len dlhý kontext + 
 Treba oboje?                                      ──► fine-tuning na štýl + RAG na fakty
 ```
 
-Tretia možnosť sa často prehliada: dnešné modely majú kontext v státisícoch tokenov, takže pri malej znalostnej báze môže stačiť vložiť **celý dokument do promptu**. Je to najjednoduchšie riešenie; naráža až na cenu za tokeny, latenciu a na to, že kvalita klesá, keď je podstatná informácia utopená v dlhom kontexte.
+Tretia možnosť sa často prehliada: dnešné modely majú kontext v státisícoch tokenov, takže pri malej znalostnej báze môže stačiť vložiť **celý dokument do promptu** — model si z neho vezme, čo potrebuje, bez akejkoľvek zmeny váh ([in-context learning](02-transformer-vnutro.md#9-učenie-v-kontexte-in-context-learning)). Je to najjednoduchšie riešenie; naráža až na cenu za tokeny, latenciu a na to, že kvalita klesá, keď je podstatná informácia utopená v dlhom kontexte.
 
 ---
 
@@ -153,4 +153,5 @@ Fine-tuning aj RAG sa dajú „urobiť" a pritom nič nezlepšiť. Preto sa vyho
 - [06-rag.md](06-rag.md) — **predchádzajúci dokument**: RAG ako druhá cesta k tomu istému cieľu
 - [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — **zadanie 2**: RAG alebo LoRA na vlastnom dokumente
 - [01-vyvojove-prostredie.md](../00-prostredie/01-vyvojove-prostredie.md) — koľko VRAM na to treba a kde to spustiť
-- [01-agenti-a-nastroje.md](../05-prakticke/01-agenti-a-nastroje.md) — **nasledujúca lekcia**: agenti a nástroje
+- [01-ako-pouzivat-llm.md](../05-prakticke/01-ako-pouzivat-llm.md) — **nasledujúca lekcia**: API, prompting a šetrenie tokenov
+- [02-agenti-a-nastroje.md](../05-prakticke/02-agenti-a-nastroje.md) — agenti a nástroje

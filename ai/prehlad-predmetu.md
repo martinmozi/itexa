@@ -142,18 +142,26 @@ Prečo sa celý model dotrénovať nedá (pamäťová matematika). **LoRA** — 
 
 ---
 
-## Lekcia 8 — Agenti, nástroje a Claude Code
+## Lekcia 8 — Praktické použitie LLM: prompting, agenti a AI pri programovaní
 
-**Materiál:** [01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) + [02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) (záver) + živé demá na hodine
+**Materiál:** [01-ako-pouzivat-llm.md](tutorials/05-prakticke/01-ako-pouzivat-llm.md) + [02-agenti-a-nastroje.md](tutorials/05-prakticke/02-agenti-a-nastroje.md) + [03-ai-programovanie.md](tutorials/05-prakticke/03-ai-programovanie.md) + [04-vnutro-claude-code.md](tutorials/05-prakticke/04-vnutro-claude-code.md) + [05-llm-trendy.md](tutorials/05-prakticke/05-llm-trendy.md) (záver) + živé demá na hodine
 
-Čo robí z LLM **agenta**: slučka model → nástroj → výsledok → model (ReAct), ukázaná na dvadsiatich riadkoch kódu. Tool use / function calling, MCP ako štandard pripájania nástrojov. **Claude Code** ako ukážka hotového agenta: práca s repozitárom, spúšťanie príkazov, kedy mu (ne)veriť. **LangChain / LangGraph** — kedy sa framework naozaj oplatí (graf s vetvením, uložením stavu a schválením človekom), kedy sa oplatí **viac agentov** (supervisor a špecializovaní podagenti) — a kedy framework *ne*použiť. Bezpečnosť agentov: prompt injection, least-privilege, sandboxing. Context engineering a evaluácia agentov. Na záver výhľad, čo sledovať po kurze.
+Najpraktickejšia lekcia predmetu, rozdelená do piatich dokumentov.
+
+**Ako sa z modelu dostane dobrý výsledok:** anatómia volania API (roly, `stop_reason`, `usage`, model bez pamäte), čo v prompte naozaj funguje (kontext, rola a pohľad, príklady, vynútená schéma, rozdelenie úlohy, kontrola s kritériami) — a **čo sa už nepoužíva**: „rozmýšľaj krok po kroku", zaklínadlá o expertovi, `KRITICKÉ:` veľkými písmenami, vynucovanie JSON regulárnym výrazom, ladenie `temperature`. Šetrenie tokenov: prompt caching, dávkové spracovanie, výber modelu a `effort`, prečo `max_tokens` nie je regulátor dĺžky. Mini-eval ako jediný spôsob, ako zistiť, či zmena pomohla.
+
+**Agenti:** slučka model → nástroj → výsledok → model (ReAct) na dvadsiatich riadkoch kódu, function calling, MCP ako štandard pripájania nástrojov. **LangChain / LangGraph** — kedy sa framework naozaj oplatí (graf s vetvením, uložením stavu a schválením človekom), kedy sa oplatí **viac agentov** (supervisor a špecializovaní podagenti) a kedy framework *ne*použiť. Bezpečnosť agentov: prompt injection, least-privilege, sandboxing, evaluácia.
+
+**AI pri programovaní:** Claude Code, Codex, GitHub Copilot a spol.; ako sa agentovi dáva kontext (`CLAUDE.md` / `AGENTS.md`, skills, MCP, hooks), pracovné postupy a prehľadná tabuľka **čo je trend a čo sa už nepoužíva**. Nakoniec pohľad dovnútra: čo presne agent posiela modelu, prečo obaľuje súbory číslami riadkov, prečo upravuje zámenou úseku a ako funguje **kompakcia konverzácie**. Na záver výhľad, čo sledovať po kurze.
 
 **Po lekcii viete:**
-- vysvetliť agentovú slučku a rozdiel medzi „chatbot" a „agent",
-- napísať jednoduchý agent s jedným-dvomi nástrojmi (bez frameworku aj v LangChaine),
+- napísať volanie API a vedieť, za čo presne platíte,
+- napísať prompt, ktorý stojí na kontexte a príkladoch — a rozpoznať v cudzom prompte zastarané barličky,
+- znížiť účet za LLM aplikáciu (caching, dávky, výber modelu) a overiť to meraním,
+- vysvetliť agentovú slučku a napísať jednoduchý agent s jedným-dvomi nástrojmi (bez frameworku aj v LangChaine),
 - rozhodnúť, kedy sa oplatí LangGraph a kedy architektúra s viacerými agentmi,
 - vymenovať hlavné riziká (prompt injection) a základné obrany,
-- efektívne používať Claude Code pri vlastnej práci.
+- efektívne používať Claude Code pri vlastnej práci a vysvetliť, čo sa pritom deje pod kapotou.
 
 ---
 
@@ -209,12 +217,15 @@ Materiály sú v adresári [`tutorials/`](tutorials/README.md), rozdelené do š
 | 12 | [03-ucenie/02-problemy-pri-uceni.md](tutorials/03-ucenie/02-problemy-pri-uceni.md) | miznúce/explodujúce gradienty, `NaN`, dáta, fp16, hardvér | 3 |
 | — | [zadania/rozpoznavanie-obrazkov.md](zadania/rozpoznavanie-obrazkov.md) | **zadanie 1** — vlastná sieť + Adam + PyTorch | 3–4 |
 | 13 | [04-llm/01-transformer-siete.md](tutorials/04-llm/01-transformer-siete.md) | attention, multi-head, positional encoding, dekódovanie | 4 |
-| 14 | [04-llm/02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md) | tokenizácia, text → vektory, rozmery, reziduálny prúd, feed-forward a MoE, výstupný token a slovo, KV cache, limity kontextu | 4 |
-| 15 | [04-llm/03-llm-trening.md](tutorials/04-llm/03-llm-trening.md) | pretraining → base → SFT → Instruct | 5 |
+| 14 | [04-llm/02-transformer-vnutro.md](tutorials/04-llm/02-transformer-vnutro.md) | tokenizácia, text → vektory, rozmery a škálovanie (šírka vs. hĺbka), reziduálny prúd, feed-forward a MoE, výstupný token a slovo, KV cache, limity kontextu, in-context learning, kvantizácia | 4 |
+| 15 | [04-llm/03-llm-trening.md](tutorials/04-llm/03-llm-trening.md) | pretraining → base → SFT → Instruct → RLHF/DPO, perplexita, scaling laws | 5 |
 | 16 | [04-llm/04-llm-modely.md](tutorials/04-llm/04-llm-modely.md) | proprietárne / open-weight / open-source, právo a etika | 5 |
 | 17 | [04-llm/05-embeddings.md](tutorials/04-llm/05-embeddings.md) | tokenizácia, embeddingy, pooling, normalizácia | 6 |
 | 18 | [04-llm/06-rag.md](tutorials/04-llm/06-rag.md) | chunking, index, retrieval, reranking, pokročilý RAG | 6 |
 | — | [zadania/RAG_Fine_tunning.md](zadania/RAG_Fine_tunning.md) | **zadanie 2** — RAG alebo LoRA fine-tuning | 6–7 |
 | 19 | [04-llm/07-fine-tuning-lora.md](tutorials/04-llm/07-fine-tuning-lora.md) | LoRA/QLoRA, RAG vs. fine-tuning, halucinácie | 7 |
-| 20 | [05-prakticke/01-agenti-a-nastroje.md](tutorials/05-prakticke/01-agenti-a-nastroje.md) | agentová slučka, tool use, MCP, Claude Code, bezpečnosť | 8 |
-| 21 | [05-prakticke/02-llm-trendy.md](tutorials/05-prakticke/02-llm-trendy.md) | trendy a čo sledovať po kurze | 8 (záver) |
+| 20 | [05-prakticke/01-ako-pouzivat-llm.md](tutorials/05-prakticke/01-ako-pouzivat-llm.md) | API, prompting, čo sa už nepoužíva, šetrenie tokenov, mini-eval | 8 |
+| 21 | [05-prakticke/02-agenti-a-nastroje.md](tutorials/05-prakticke/02-agenti-a-nastroje.md) | agentová slučka, tool use, MCP, LangGraph, viac agentov, bezpečnosť | 8 |
+| 22 | [05-prakticke/03-ai-programovanie.md](tutorials/05-prakticke/03-ai-programovanie.md) | Claude Code / Codex / Copilot, CLAUDE.md, skills, hooks, čo je trend a čo nie | 8 |
+| 23 | [05-prakticke/04-vnutro-claude-code.md](tutorials/05-prakticke/04-vnutro-claude-code.md) | čo agent posiela modelu, obaľovanie kontextu, kompakcia konverzácie | 8 |
+| 24 | [05-prakticke/05-llm-trendy.md](tutorials/05-prakticke/05-llm-trendy.md) | trendy a čo sledovať po kurze | 8 (záver) |

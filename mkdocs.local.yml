@@ -1,0 +1,11 @@
+# Konfigurácia pre lokálne bežiaci server (systemd služba itexa-docs),
+# ktorý je cez nginx vystavený na https://vyplnto.org/ai/.
+#
+# Dedí všetko z mkdocs.yml a mení len site_url — mkdocs server totiž
+# obsluhuje web presne na tej ceste, ktorú má site_url. Musí sa zhodovať
+# s "location /ai/" v nginxe, inak vracia 404.
+#
+# mkdocs.yml ostáva nastavený na GitHub Pages (https://martinmozi.github.io/itexa/).
+
+INHERIT: mkdocs.yml
+site_url: https://vyplnto.org/ai/

@@ -8,7 +8,27 @@
 
 Ten istý filter má **rovnaké váhy pre celý obrázok** (*weight sharing*), takže detektor hrany funguje rovnako v ľavom hornom aj pravom dolnom rohu. To dramaticky znižuje počet parametrov a dáva sieti **invarianciu voči posunu** — mačka je mačka, nech je kdekoľvek v zábere.
 
+## Prečo sa volajú „konvolučné"
+
+Názov nie je marketing, ale meno matematickej operácie, ktorú vrstva vykonáva — **konvolúcie**. Tá je oveľa staršia než neurónové siete; pozná ju spracovanie signálov aj klasické spracovanie obrazu. Konvolúcia berie dva vstupy — **signál** (u nás obrázok) a **jadro/kernel** (malá matica čísel) — a vyrobí tretí signál, ktorý hovorí, *nakoľko sa signál v okolí danej pozície podobá na jadro*. Robí to presne tak, ako ukazuje obrázok vyššie: jadro sa priloží na výrez signálu, vynásobia sa zodpovedajúce dvojice čísel, sčítajú sa a jadro sa posunie ďalej. Pre 2D obrázok `I` a jadro `K` veľkosti 3 × 3 je to jeden vzorec:
+
+```text
+S[i, j] = Σ(m=0..2) Σ(n=0..2)  I[i+m, j+n] · K[m, n]
+```
+
+Historicky sa presne takto robilo spracovanie obrazu **ručne**: rozmazanie (jadro samých jednotiek podelené deviatimi), doostrenie, detekcia hrán Sobelovým jadrom — inžinier tých deväť čísel navrhol podľa toho, čo chcel nájsť. Prelom CNN spočíva v tom, že tie čísla **nikto nenavrhuje, sieť si ich nájde sama** gradientným zostupom. „Konvolučná vrstva" teda znamená: *konvolúcia, ktorej jadro je učený parameter*. Odtiaľ názov celej architektúry — zaviedol ho Yann LeCun (siete LeNet, 1989 a 1998), predchodcovia dnešných modelov na rozpoznávanie obrazu.
+
+Malá poznámka pre puntičkárov: to, čo počítajú PyTorch aj TensorFlow, je z matematického hľadiska **krížová korelácia** — pravá konvolúcia jadro pred priložením otočí o 180°. Keďže sú však hodnoty jadra učené, sieť sa jednoducho naučí otočenú verziu a výsledok je ten istý. Preto sa v strojovom učení názov „konvolúcia" používa pre obe.
+
+## Koľko to stojí parametrov — CNN verzus MLP
+
 Rozdiel oproti MLP vidno na číslach. Obrázok 200 × 200 pixelov v odtieňoch sivej má 40 000 vstupov. Keby sme naň pustili plne prepojenú vrstvu s 1 000 neurónmi, potrebovala by 40 000 × 1 000 = **40 miliónov váh** — a čo je horšie, každý vzor by sa naučila len pre presnú polohu, v ktorej sa v tréningových dátach vyskytol. Konvolučná vrstva s 32 filtrami veľkosti 3 × 3 si vystačí s 32 × (9 + 1) = **320 parametrami**, pretože tých deväť váh každého filtra sa opakovane použije na každú pozíciu obrázka. Dve kľúčové slová, ktoré za tým stoja: **lokálnosť** (neurón sa pozerá len na malé okienko, nie na celý obraz) a **weight sharing** (to isté okienko váh sa použije všade).
+
+![Porovnanie MLP a CNN na tom istom vstupe 5×5: vľavo feed-forward sieť, ktorá obrázok sploští na vektor 25 čísel a každý neurón napojí na všetkých 25 vstupov (75 vlastných váh); vpravo konvolučná sieť, ktorá na dve rôzne polohy okna 3×3 použije to isté jadro s deviatimi zdieľanými váhami](../../images/mlp-vs-cnn.svg)
+
+Obrázok ukazuje oba rozdiely naraz. Vľavo je **plné prepojenie**: každá čiara je samostatná váha a po sploštení už sieť nevie, že dva susedné pixely spolu súvisia. Vpravo sa tá istá deviatka váh priloží raz na ľavý horný roh a raz na pravý dolný — a keďže je to *to isté* jadro, vzor rozpoznaný v jednej polohe sieť rozpozná aj v druhej.
+
+## Architektúra: konvolúcia, pooling, klasifikačná hlava
 
 Celá sieť potom **strieda konvolúciu a pooling** (zmenšovanie), čím postupne extrahuje čoraz abstraktnejšie príznaky, a na konci pripojí feed-forward vrstvy na samotné rozhodnutie:
 
@@ -90,6 +110,7 @@ Zhrnutie rozdielu v jednej tabuľke:
 1. Prečo CNN potrebuje rádovo menej parametrov než MLP na ten istý obrázok? (Kľúčové slová: weight sharing, lokálnosť.)
 2. Opíšte cestu obrázka 28 × 28 sieťou: čo je vstup, čo výstup a v čom sa líši spracovanie v MLP a v CNN? Prečo MLP splošťovaním obrázka stráca informáciu?
 3. Čo robí pooling a prečo sa hlbšie vrstvy „pozerajú" na väčšiu časť obrázka?
+4. Odkiaľ má architektúra meno — čo je konvolúcia a čím sa konvolučná vrstva líši od ručne navrhnutého filtra v klasickom spracovaní obrazu?
 
 ---
 

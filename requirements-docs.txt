@@ -1,0 +1,4 @@
+# Závislosti na zostavenie webu s tutoriálmi (mkdocs.yml v koreni repozitára).
+#   python3 -m venv .venv-docs && .venv-docs/bin/pip install -r requirements-docs.txt
+#   .venv-docs/bin/mkdocs serve
+mkdocs-material==9.7.7

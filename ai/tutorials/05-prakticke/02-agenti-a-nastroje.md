@@ -1,8 +1,8 @@
-# Agenti, nástroje a Claude Code
+# Agenti, nástroje a MCP
 
-> **Poradie čítania:** ← [Fine-tuning: LoRA a QLoRA](../04-llm/07-fine-tuning-lora.md) · **lekcia 8** · [Trendy — čo sledovať ďalej](02-llm-trendy.md) →
+> **Poradie čítania:** ← [Ako používať LLM](01-ako-pouzivat-llm.md) · **lekcia 8** · [AI pri programovaní](03-ai-programovanie.md) →
 
-> **Cieľ dokumentu:** vysvetliť, čo presne robí z jazykového modelu **agenta** — slučku model → nástroj → výsledok → model — a ukázať ju na najkratšom možnom kóde. Potom: ako sa nástroje pripájajú (function calling, MCP), ako vyzerá hotový agent v praxi (Claude Code), kedy siahnuť po frameworku (LangChain/LangGraph) a kedy nie, a aké riziká agent prináša.
+> **Cieľ dokumentu:** vysvetliť, čo presne robí z jazykového modelu **agenta** — slučku model → nástroj → výsledok → model — a ukázať ju na najkratšom možnom kóde. Potom: ako sa nástroje pripájajú (function calling, MCP), kedy siahnuť po frameworku (LangChain/LangGraph) a kedy nie, a aké riziká agent prináša.
 
 Nadväzuje na [01-transformer-siete.md](../04-llm/01-transformer-siete.md) (model generuje token po tokene) a [06-rag.md](../04-llm/06-rag.md) (agentický RAG je jeden z prípadov použitia tejto slučky).
 
@@ -132,21 +132,16 @@ Prakticky to znamená, že integráciu napíšete **raz** a použije ju ktorýko
 
 ---
 
-## 4. Claude Code — hotový agent na prácu s repozitárom
+## 4. Hotový agent v praxi: nástroje nad kódom
 
-**Claude Code** je agent špecializovaný na softvérovú prácu. Nástroje, ktoré má k dispozícii, sú presne tie, čo potrebuje vývojár: čítanie a zápis súborov, hľadanie v projekte, spúšťanie príkazov v termináli, práca s gitom, prehliadanie webu — a čokoľvek doplníte cez MCP.
+Najrozšírenejší a najlepšie odpozorovateľný príklad tejto slučky je **agent nad repozitárom** — Claude Code, Codex, GitHub Copilot v agentovom režime. Nástroje, ktoré má k dispozícii, sú presne tie, čo potrebuje vývojár: čítanie a zápis súborov, hľadanie v projekte, spúšťanie príkazov v termináli, práca s gitom, prehliadanie webu — a čokoľvek doplníte cez MCP.
 
-Slučka je pritom **presne tá z bodu 2**, len s väčším počtom nástrojov a s prepracovaným kontextom. Preto sa oplatí naň pozerať ako na živú ukážku, nie ako na čiernu skrinku.
+Slučka je pritom **presne tá z bodu 2**, len s väčším počtom nástrojov a s prepracovaným hospodárením s kontextom. Preto sa na tieto nástroje oplatí pozerať ako na živú ukážku, nie ako na čiernu skrinku.
 
-Kde reálne pomáha:
+Keďže je to zároveň najčastejšie praktické použitie AI, majú tieto nástroje v tomto kurze dva vlastné dokumenty:
 
-- zorientovať sa v cudzom repozitári („kde sa spracúva prihlásenie?"),
-- mechanická, ale rozsiahla práca — premenovanie naprieč projektom, doplnenie testov, migrácia knižnice,
-- prvý návrh riešenia, ktorý potom upravíte.
-
-**Kedy mu neveriť:** agent má tendenciu tvrdiť, že je hotový. Overujte tri veci — či testy naozaj prešli (pozrite výstup, nie zhrnutie), či nezmenil viac, než mal (`git diff`), a či navrhnuté API/knižnica existuje. Platí to isté, čo v [lekcii 7](../04-llm/07-fine-tuning-lora.md) pri halucináciách: model generuje najpravdepodobnejšie pokračovanie, nie overený fakt.
-
-A jedna vec z pohľadu tohto predmetu: pri zadaniach je cieľom pochopiť mechaniku vlastnými rukami. Agentom si dajte vysvetľovať, nie riešiť.
+- **[03-ai-programovanie.md](03-ai-programovanie.md)** — prehľad nástrojov, ako sa agentovi dáva kontext (`CLAUDE.md`, skills, MCP, hooks), pracovné postupy a to, čo je dnes trend a čo už nie;
+- **[04-vnutro-claude-code.md](04-vnutro-claude-code.md)** — čo taký agent reálne posiela modelu, ako obaľuje súbory a výstupy a ako funguje kompakcia konverzácie, keď sa kontext zaplní.
 
 ---
 
@@ -431,8 +426,11 @@ Agent je nedeterministický: ten istý vstup môže dať iný priebeh (viď [tep
 ### Súvisiace dokumenty
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
+- [01-ako-pouzivat-llm.md](01-ako-pouzivat-llm.md) — **predchádzajúci dokument**: API, prompting a šetrenie tokenov
+- [03-ai-programovanie.md](03-ai-programovanie.md) — **nasledujúci dokument**: tá istá slučka nad kódom, nástroje a trendy
+- [04-vnutro-claude-code.md](04-vnutro-claude-code.md) — čo agent nad kódom posiela modelu a ako rieši preplnený kontext
+- [05-llm-trendy.md](05-llm-trendy.md) — kam sa to celé hýbe a čo sledovať ďalej
 - [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — model, ktorý v tejto slučke beží (lekcia 4)
 - [06-rag.md](../04-llm/06-rag.md) — agentický RAG ako typický prípad použitia (lekcia 6)
-- [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md) — **predchádzajúca lekcia**: LoRA a rozhodovanie RAG vs. fine-tuning
-- [02-llm-trendy.md](02-llm-trendy.md) — kam sa to celé hýbe a čo sledovať ďalej
+- [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md) — LoRA a rozhodovanie RAG vs. fine-tuning (lekcia 7)
 - [04-llm-modely.md](../04-llm/04-llm-modely.md) — výber modelu pre agenta (a právne mantinely)
