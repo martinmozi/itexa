@@ -12,7 +12,7 @@ Každý neurón spočíta vážený súčet svojich vstupov, pripočíta **bias*
 
 ## Prečo sú nelineárne aktivácie nevyhnutné
 
-Predstavme si na chvíľu sieť **bez** aktivačných funkcií — každá vrstva by počítala len vážený súčet, teda lineárne zobrazenie y = W·x + b. Čo spraví druhá vrstva s výstupom prvej?
+Predstavme si na chvíľu sieť **bez** aktivačných funkcií — každá vrstva by počítala len vážený súčet, teda lineárne zobrazenie y = W·x + b. Čo urobí druhá vrstva s výstupom prvej?
 
 ```text
   y = W₂ · (W₁ · x + b₁) + b₂  =  (W₂ · W₁) · x + (W₂ · b₁ + b₂)
@@ -30,14 +30,14 @@ Ako sa váhy a biasy ladia tréningom (forward pass → loss → backpropagation
 
 Zoberme **presne tie isté dáta**, na ktorých sme si ukázali [XGBoost](03-xgboost-priklad-iso8583.md) — desať kartových transakcií a príznak, či išlo o podvod. Tým istým datasetom cez dva rôzne modely sa najlepšie ukáže, čo neurónová sieť vyžaduje navyše.
 
-A vyžaduje toho dosť. **XGBoost sme mohli pustiť rovno na surovú tabuľku**: stromu je jedno, či je stĺpec v eurách alebo v desatinách, kategórie vie spracovať natívne a chýbajúca hodnota je pre neho len ďalšia vetva. **MLP nič z toho nevie.** Vstupom siete je vektor reálnych čísel — a na tom, ako ten vektor zostavíme, závisí viac než na počte vrstiev.
+A vyžaduje toho dosť. **XGBoost sme mohli pustiť rovno na surovú tabuľku**: stromu nezáleží na tom, či je stĺpec v eurách alebo v desatinách, kategórie vie spracovať natívne a chýbajúca hodnota je pre neho len ďalšia vetva. **MLP nič z toho nevie.** Vstupom siete je vektor reálnych čísel — a na tom, ako ten vektor zostavíme, závisí viac než na počte vrstiev.
 
 ### Krok 1: Príprava dát — čo MLP vyžaduje a strom nie
 
 | Vlastnosť dát | XGBoost | MLP |
 |---|---|---|
-| Rôzne škály stĺpcov (€ vs. počty) | **jedno** — strom hľadá prah, nie vzdialenosť | **musí sa štandardizovať**, inak veľký stĺpec prevládne nad ostatnými |
-| Šikmé rozdelenie (pár obrích súm) | jedno — prah `> 500 €` funguje rovnako | **pomáha logaritmus** |
+| Rôzne škály stĺpcov (€ vs. počty) | **nevadia** — strom hľadá prah, nie vzdialenosť | **musí sa štandardizovať**, inak veľký stĺpec prevládne nad ostatnými |
+| Šikmé rozdelenie (pár obrích súm) | nevadí — prah `> 500 €` funguje rovnako | **pomáha logaritmus** |
 | Kategórie (`e-commerce`, MCC, krajina) | vie natívne | **musia sa zakódovať na čísla** (one-hot / embedding) |
 | Chýbajúce hodnoty | vie sám (učí sa, kam ich poslať) | **musia sa doplniť** — `NaN` na vstupe sa rozšíri celou sieťou |
 | Cyklické veličiny (hodina, deň v týždni) | zvládne prahmi | **treba zakódovať kruhovo**, inak je polnoc „ďaleko" od 23:00 |
@@ -89,14 +89,14 @@ Správne je **one-hot** — jeden stĺpec na kategóriu, v ktorom je práve jedn
 
 #### 1d) Vysoká kardinalita (MCC, krajina): zoskupiť alebo vnoriť
 
-MCC má stovky hodnôt, krajín sú desiatky. One-hot by z toho spravil stovky prevažne nulových stĺpcov — sieť by mala tisíce parametrov na príznak, ktorý sa v dátach objaví trikrát. Dve praktické cesty:
+MCC má stovky hodnôt, krajín sú desiatky. One-hot by z toho urobil stovky prevažne nulových stĺpcov — sieť by mala tisíce parametrov na príznak, ktorý sa v dátach objaví trikrát. Dve praktické cesty:
 
-- **Zoskupenie podľa domény** — MCC zlúčime do troch tried: `denná spotreba` (potraviny, reštaurácie, doprava, lekáreň, čerpacie stanice), `tovar / e-shop` (elektronika, klenoty, odevy), `rizikové` (stávkovanie, kryptozmenárne). Z krajiny spravíme jediný príznak **`zahraničie`** = krajina obchodníka ≠ krajina vydania karty. Tri plus jeden stĺpec namiesto stoviek.
+- **Zoskupenie podľa domény** — MCC zlúčime do troch tried: `denná spotreba` (potraviny, reštaurácie, doprava, lekáreň, čerpacie stanice), `tovar / e-shop` (elektronika, klenoty, odevy), `rizikové` (stávkovanie, kryptozmenárne). Z krajiny odvodíme jediný príznak **`zahraničie`** = krajina obchodníka ≠ krajina vydania karty. Tri plus jeden stĺpec namiesto stoviek.
 - **Embedding vrstva** — každej kategórii sa priradí učený vektor (napr. 8 čísel), ktorý sa trénuje spolu so sieťou. Je to presne ten mechanizmus, ktorý poháňa [embeddingy slov](../04-llm/05-embeddings.md), len nad MCC kódmi. Oplatí sa pri desaťtisícoch riadkov a viac; na náš príklad je to zbytočne veľa.
 
 #### 1e) Rýchlosť míňania (`tx/60 min`): stačí štandardizácia
 
-Odvodený príznak „koľko transakcií spravila karta za poslednú hodinu" je obyčajný počet — nie je šikmý ani cyklický, takže mu stačí **štandardizácia** rovnako ako sume, len bez logaritmu. Pre naše dáta je priemer 2,4 a smerodajná odchýlka 1,8, takže riadok s piatimi transakciami dostane `z_vel = (5 − 2,4) / 1,8 = 1,444`. V matici nižšie je to stĺpec `z_vel`.
+Odvodený príznak „koľko transakcií karta vykonala za poslednú hodinu" je obyčajný počet — nie je šikmý ani cyklický, takže mu stačí **štandardizácia** rovnako ako sume, len bez logaritmu. Pre naše dáta je priemer 2,4 a smerodajná odchýlka 1,8, takže riadok s piatimi transakciami dostane `z_vel = (5 − 2,4) / 1,8 = 1,444`. V matici nižšie je to stĺpec `z_vel`.
 
 #### 1f) Chýbajúce hodnoty
 
@@ -123,7 +123,7 @@ Tri veci, na ktoré sa pri príprave dát najčastejšie zabudne:
 
 1. **Priemer a odchýlku počítajte len z trénovacej množiny** a tie isté hodnoty použite na validačnú aj testovaciu. Ak scaler „uvidí" testovacie dáta, unikne doň informácia o budúcnosti a výsledok bude optimistickejší než realita.
 2. **Deľte podľa času, nie náhodne.** Trénujte na januári až marci, testujte na apríli. Náhodné delenie transakčných dát dáva model, ktorý sa učí z budúcnosti.
-3. **Nevyváženosť tried** ošetrite váhami v loss funkcii (`pos_weight`), nie prevzorkovaním na začiatok. A nesledujte accuracy — pri 0,1 % podvodov je 99,9 % výsledok modelu, ktorý nerobí nič.
+3. **Nevyváženosť tried** ošetrite v prvom rade váhami v loss funkcii (`pos_weight`); k prevzorkovaniu dát siahajte až potom. A nesledujte accuracy — pri 0,1 % podvodov je 99,9 % výsledok modelu, ktorý nerobí nič.
 
 ### Krok 2: Architektúra
 
@@ -164,7 +164,7 @@ Výstupná vrstva: `W₂ = [0,32, −0,10, −0,26, −0,55]`, `b₂ = 0`.
 
 ### Krok 3: Forward pass — riadok 3 (podvod za 890 € o 3:17)
 
-Prvý neurón skrytej vrstvy spočíta vážený súčet. Nuly z one-hot stĺpcov zo súčtu vypadnú samy:
+Prvý neurón skrytej vrstvy spočíta vážený súčet. Nuly z one-hot stĺpcov sa v súčte neprejavia:
 
 ```text
   z₁⁽¹⁾ = 1,308·(−0,24) + 0,758·0,46 + 0,653·0,59 + 1,444·0,14
@@ -193,7 +193,7 @@ Výstupná vrstva:
   p  = sigmoid(−0,996) = 1 / (1 + e^0,996) = 0,270
 ```
 
-Sieť teda hovorí **27 % pravdepodobnosť podvodu** — a pritom to podvod bol. Nečudo: váhy sú zatiaľ náhodné.
+Sieť teda hovorí **27 % pravdepodobnosť podvodu** — a pritom to podvod bol. Nie je to prekvapivé — váhy sú zatiaľ náhodné.
 
 ### Krok 4: Loss
 
@@ -205,7 +205,7 @@ Pre porovnanie: keby sieť hádala 50 : 50, loss by bol `−ln(0,5) = 0,693`. N�
 
 ### Krok 5: Backpropagation — jeden krok
 
-Chyba sa šíri sieťou odzadu. Na výstupe má krížová entropia so sigmoidom nádherne jednoduchý gradient — **rovnaký výraz, aký sme videli pri XGBooste**:
+Chyba sa šíri sieťou odzadu. Na výstupe má krížová entropia so sigmoidom mimoriadne jednoduchý gradient — **rovnaký výraz, aký sme videli pri XGBooste**:
 
 ```text
   δ₂ = ∂L/∂z₂ = p − y = 0,270 − 1 = −0,730
@@ -251,7 +251,7 @@ A ten istý riadok znovu cez sieť:
   loss: 1,310  →  0,927
 ```
 
-Jeden krok, jedna transakcia — a model je bližšie k pravde. Toto sa opakuje pre každý riadok v batchi, každý batch v epoche a každú epochu, kým sa chyba na validačnej množine prestane zlepšovať. Váhy sa v praxi neposúvajú obyčajným SGD, ale **Adamom** — ten istý gradient, len s momentom a adaptívnym krokom pre každý parameter zvlášť ([01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md)).
+Jeden krok, jedna transakcia — a model je bližšie k pravde. Toto sa opakuje pre každý riadok v batchi, každý batch v epoche a každú epochu, kým chyba na validačnej množine prestane klesať. Váhy sa v praxi neposúvajú obyčajným SGD, ale **Adamom** — ten istý gradient, len s momentom a adaptívnym krokom pre každý parameter zvlášť ([01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md)).
 
 ### Ako to dopadne oproti XGBoostu
 
@@ -316,7 +316,7 @@ Dve veci v kóde, ktoré sa oplatí zapamätať: `BCEWithLogitsLoss` berie **log
 |---|---|
 | **Univerzálny aproximátor** — teoreticky zvládne ľubovoľný vzťah | Ignoruje štruktúru dát (pri obraze nevie, že susedné pixely spolu súvisia) |
 | Základný stavebný blok všetkých hlbokých sietí | Veľa parametrov → **potrebuje veľa dát**, ľahko sa preučí |
-| Zvláda nelineárne vzťahy, ktoré strom ťažko | Na tabuľkových dátach ho **XGBoost často predbehne** |
+| Zvláda nelineárne vzťahy, ktoré strom zachytáva len ťažko | Na tabuľkových dátach ho **XGBoost často predbehne** |
 | Beží dobre na GPU | Menej vysvetliteľný — „čierna skrinka" |
 
 ---
@@ -326,11 +326,11 @@ Dve veci v kóde, ktoré sa oplatí zapamätať: `BCEWithLogitsLoss` berie **log
 1. Čo by sa stalo, keby mala MLP sieť len lineárne aktivácie (žiadne ReLU/sigmoid)? Prečo by potom nepomáhalo pridávať vrstvy?
 2. Ručne prepočítajte výstup neurónu s dvoma vstupmi, danými váhami, biasom a ReLU aktiváciou.
 3. Prečo sa MLP na tabuľkových dátach zvyčajne neoplatí, hoci je univerzálnym aproximátorom?
-4. Vymenujte štyri veci, ktoré musíte s tabuľkou spraviť pre MLP a nemusíte pre XGBoost. Pri každej povedzte, čo sa pokazí, ak na ňu zabudnete.
+4. Vymenujte štyri veci, ktoré musíte s tabuľkou urobiť pre MLP a nemusíte pre XGBoost. Pri každej povedzte, čo sa pokazí, ak na ňu zabudnete.
 5. Prečo sa spôsob vstupu (čip / bezkontakt / e-commerce) nesmie zakódovať ako `0, 1, 2`? Kedy je naopak číselné kódovanie kategórie správne?
 6. Prečo sa hodina kóduje ako dvojica `sin`, `cos` a nie ako číslo 0–23? Aký konkrétny problém to rieši?
 7. Na riadku 3 mal neurón h2 zápornú aktiváciu, a preto nulový gradient. Vysvetlite, prečo je to v poriadku — a kedy sa z toho stáva problém.
-8. Prečo sa priemer a smerodajná odchýlka pre štandardizáciu smú počítať len z trénovacej množiny? Čo presne unikne do modelu, ak to spravíte z celých dát?
+8. Prečo sa priemer a smerodajná odchýlka pre štandardizáciu smú počítať len z trénovacej množiny? Čo presne unikne do modelu, ak ich vypočítate z celých dát?
 9. Prečo `BCEWithLogitsLoss` očakáva logity a nie výstup zo sigmoidu? Čo sa stane, ak sigmoid dáte aj do modelu, aj do loss funkcie?
 10. MCC kód má stovky hodnôt. Porovnajte one-hot, zoskupenie do tried a embedding vrstvu — čo si vyberiete pri 500 riadkoch a čo pri 5 miliónoch?
 

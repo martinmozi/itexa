@@ -1,24 +1,219 @@
 /* ---------------------------------------------------------------
    Doplnkové štýly k téme Material.
-   Cieľ: uniesť široké ASCII diagramy a husté tabuľky, ktoré tvoria
-   podstatnú časť týchto materiálov.
+   Ciele:
+     1. uniesť široké ASCII diagramy a husté tabuľky,
+     2. hustejšia sadzba — na jednu obrazovku sa zmestí viac textu,
+     3. v bočnom menu jasne odlíšiť sekciu (hlavné menu) od stránky.
    --------------------------------------------------------------- */
+
+/* ===============================================================
+   1. Šírka stránky
+   =============================================================== */
 
 /* o niečo širšia sadzba — dokumenty majú veľa širokých tabuliek */
 .md-grid {
   max-width: 64rem;
 }
 
+/* Stránky bez bočných panelov (úvodná má skryté navigation aj toc) by inak
+   roztiahli text cez celú šírku okna — na 1440 px to je ~150 znakov na riadok.
+   Na stránkach s panelmi je obsah užší než tento strop, takže ich to nemení. */
+.md-content {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+/* ===============================================================
+   2. Hustota sadzby — menšie písmo a tesnejšie riadkovanie.
+      Texty sú dlhé a odborné; pri predvolených hodnotách Material
+      (.8rem / 1.6) sa na veľký displej zmestí prekvapivo málo.
+   =============================================================== */
+
+.md-typeset {
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+/* bloky: polovičné medzery oproti predvolenému 1em */
+.md-typeset p,
+.md-typeset blockquote,
+.md-typeset dl,
+.md-typeset figure,
+.md-typeset ol,
+.md-typeset ul,
+.md-typeset pre,
+.md-typeset .highlight {
+  margin-top: 0.55em;
+  margin-bottom: 0.55em;
+}
+
+/* zoznamy sú tu hlavný nosič obsahu — najviac ušetria práve tu */
+.md-typeset ul li,
+.md-typeset ol li {
+  margin-bottom: 0.2em;
+}
+.md-typeset li > ul,
+.md-typeset li > ol {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+.md-typeset ol li blockquote,
+.md-typeset ol li p,
+.md-typeset ul li blockquote,
+.md-typeset ul li p {
+  margin: 0.3em 0;
+}
+
+/* nadpisy: menšie odstupy, aby sekcie nerozbíjali stránku na kusy */
+.md-typeset h1 {
+  font-size: 1.7em;
+  line-height: 1.25;
+  margin: 0 0 0.6em;
+}
+.md-typeset h2 {
+  font-size: 1.4em;
+  line-height: 1.3;
+  margin: 1.1em 0 0.45em;
+}
+.md-typeset h3 {
+  font-size: 1.15em;
+  line-height: 1.35;
+  margin: 0.9em 0 0.35em;
+}
+.md-typeset h4 {
+  margin: 0.8em 0 0.3em;
+}
+.md-typeset h5,
+.md-typeset h6 {
+  margin: 0.8em 0 0.3em;
+}
+
+/* tabuľky: tesnejšie bunky, inak zaberú pol obrazovky na pár riadkov */
+.md-typeset table:not([class]) {
+  font-size: 0.62rem;
+}
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  padding: 0.4em 0.7em;
+  line-height: 1.45;
+}
+
+/* bloky kódu */
+.md-typeset pre > code {
+  padding: 0.55em 0.9em;
+  line-height: 1.4;
+}
+
+/* admonície a <details> */
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 0.62rem;
+  margin: 0.8em 0;
+}
+.md-typeset .admonition-title,
+.md-typeset summary {
+  padding-bottom: 0.25rem;
+  padding-top: 0.25rem;
+}
+
+/* vodorovná čiara ako oddeľovač sekcií nemusí mať okolo seba toľko miesta */
+.md-typeset hr {
+  margin: 1em 0;
+}
+
 /* ASCII diagramy v ```text blokoch: menšie písmo, tesnejší riadok,
    aby sa ~100-znakové obrázky zmestili bez vodorovného scrollu */
 .md-typeset .language-text code {
-  font-size: 0.70rem;
-  line-height: 1.45;
+  font-size: 0.64rem;
+  line-height: 1.4;
 }
+
+/* ===============================================================
+   3. Navigácia — hlavné menu vs. podmenu
+   =============================================================== */
+
+/* horná lišta: hlavné časti kurzu nech sú výraznejšie */
+.md-tabs__link {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+/* ľavý panel celkovo o kúsok menší a hustejší */
+.md-nav {
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+@media screen and (min-width: 76.25em) {
+  .md-nav__link {
+    margin-top: 0.38em;
+  }
+}
+
+/* názov aktívnej záložky nad menu (napr. „Tutoriály“) — hlavička panela */
+.md-nav--lifted > .md-nav__list > .md-nav__item--active > .md-nav__link {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+  padding-bottom: 0.25rem;
+  border-bottom: 0.05rem solid var(--md-default-fg-color--lightest);
+}
+
+/* HLAVNÉ MENU — sekcie kurzu (00 — Prostredie, 01 — Prehľad AI a ML, …):
+   tučné, sýtou farbou a s medzerou nad sebou */
+.md-nav[data-md-level="1"] > .md-nav__list > .md-nav__item--nested > .md-nav__container {
+  margin-top: 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+}
+.md-nav[data-md-level="1"] > .md-nav__list > .md-nav__item--nested:first-child > .md-nav__container {
+  margin-top: 0.2rem;
+}
+
+/* PODMENU — jednotlivé stránky sekcie: ľahšie písmo, tichšia farba
+   a zvislá vodiaca čiara, ktorá ich viditeľne zavesí pod sekciu */
+.md-nav[data-md-level="2"] > .md-nav__list {
+  border-left: 0.05rem solid var(--md-default-fg-color--lightest);
+  margin-left: 0.15rem;
+}
+.md-nav[data-md-level="2"] > .md-nav__list > .md-nav__item > .md-nav__link {
+  font-weight: 400;
+  color: var(--md-default-fg-color--light);
+}
+.md-nav[data-md-level="2"] > .md-nav__list > .md-nav__item > .md-nav__link:hover {
+  color: var(--md-typeset-a-color);
+}
+.md-nav[data-md-level="2"] > .md-nav__list > .md-nav__item > .md-nav__link--active {
+  color: var(--md-typeset-a-color);
+  font-weight: 600;
+}
+
+/* aktívna stránka: nech je v zozname vidno na prvý pohľad */
+.md-nav__link--active,
+.md-nav__item--active > .md-nav__link {
+  font-weight: 600;
+}
+
+/* obsah stránky (pravý panel) rovnako hustejšie */
+.md-nav--secondary .md-nav__link {
+  margin-top: 0.3em;
+}
+
+/* ===============================================================
+   4. Drobnosti prevzaté z pôvodných štýlov
+   =============================================================== */
 
 /* tabuliek je v textoch veľa — zvýraznená hlavička uľahčuje čítanie */
 .md-typeset table:not([class]) th {
   background-color: var(--md-default-fg-color--lightest);
+}
+
+/* názvy tokenov (<|assistant|>) sa v úzkych stĺpcoch tabuliek lámali uprostred;
+   tabuľka má vlastný vodorovný scroll, tak radšej nelámať */
+.md-typeset table:not([class]) code {
+  white-space: nowrap;
 }
 
 /* SVG schémy majú pevné biele pozadie; v tmavom režime im dáme
@@ -59,18 +254,4 @@
 .md-typeset .grid.cards > ul > li > :last-child {
   margin-top: auto;
   padding-top: 0.4rem;
-}
-
-/* Stránky bez bočných panelov (úvodná má skryté navigation aj toc) by inak
-   roztiahli text cez celú šírku okna — na 1440 px to je ~150 znakov na riadok.
-   Na stránkach s panelmi je obsah užší než tento strop, takže ich to nemení. */
-.md-content {
-  max-width: 48rem;
-  margin-inline: auto;
-}
-
-/* názvy tokenov (<|assistant|>) sa v úzkych stĺpcoch tabuliek lámali uprostred;
-   tabuľka má vlastný vodorovný scroll, tak radšej nelámať */
-.md-typeset table:not([class]) code {
-  white-space: nowrap;
 }

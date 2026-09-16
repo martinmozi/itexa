@@ -96,7 +96,7 @@ Zhrnutie rozdielu v jednej tabuľke:
 
 | ✅ Výhody | ❌ Nevýhody |
 |---|---|
-| **Špička na obraz** a priestorové dáta | Vyžaduje **veľa dát a výpočtu** (GPU) |
+| **Špičkové výsledky na obraze** a priestorových dátach | Vyžaduje **veľa dát a výpočtu** (GPU) |
 | Weight sharing → menej parametrov, invariancia voči posunu | Málo vysvetliteľná — ťažko sa zisťuje „prečo" |
 | Automaticky sa naučí príznaky (netreba ich ručne navrhovať) | Citlivá na adversariálne zmeny (malý šum ju zmätie) |
 | Hierarchia hrany → tvary → objekty | Na **tabuľkových dátach zbytočná** — použite XGBoost |

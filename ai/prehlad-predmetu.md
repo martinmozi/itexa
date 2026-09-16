@@ -152,7 +152,7 @@ Najpraktickejšia lekcia predmetu, rozdelená do piatich dokumentov.
 
 **Agenti:** slučka model → nástroj → výsledok → model (ReAct) na dvadsiatich riadkoch kódu, function calling, MCP ako štandard pripájania nástrojov. **LangChain / LangGraph** — kedy sa framework naozaj oplatí (graf s vetvením, uložením stavu a schválením človekom), kedy sa oplatí **viac agentov** (supervisor a špecializovaní podagenti) a kedy framework *ne*použiť. Bezpečnosť agentov: prompt injection, least-privilege, sandboxing, evaluácia.
 
-**AI pri programovaní:** Claude Code, Codex, GitHub Copilot a spol.; ako sa agentovi dáva kontext (`CLAUDE.md` / `AGENTS.md`, skills, MCP, hooks), pracovné postupy a prehľadná tabuľka **čo je trend a čo sa už nepoužíva**. Nakoniec pohľad dovnútra: čo presne agent posiela modelu, prečo obaľuje súbory číslami riadkov, prečo upravuje zámenou úseku a ako funguje **kompakcia konverzácie**. Na záver výhľad, čo sledovať po kurze.
+**AI pri programovaní:** Claude Code, Codex, GitHub Copilot a ďalšie nástroje; ako sa agentovi dáva kontext (`CLAUDE.md` / `AGENTS.md`, skills, MCP, hooks), pracovné postupy a prehľadná tabuľka **čo je trend a čo sa už nepoužíva**. Nakoniec pohľad dovnútra: čo presne agent posiela modelu, prečo obaľuje súbory číslami riadkov, prečo upravuje zámenou úseku a ako funguje **kompakcia konverzácie**. Na záver výhľad, čo sledovať po kurze.
 
 **Po lekcii viete:**
 - napísať volanie API a vedieť, za čo presne platíte,
@@ -161,14 +161,14 @@ Najpraktickejšia lekcia predmetu, rozdelená do piatich dokumentov.
 - vysvetliť agentovú slučku a napísať jednoduchý agent s jedným-dvomi nástrojmi (bez frameworku aj v LangChaine),
 - rozhodnúť, kedy sa oplatí LangGraph a kedy architektúra s viacerými agentmi,
 - vymenovať hlavné riziká (prompt injection) a základné obrany,
-- efektívne používať Claude Code pri vlastnej práci a vysvetliť, čo sa pritom deje pod kapotou.
+- efektívne používať Claude Code pri vlastnej práci a vysvetliť, čo sa pritom deje vo vnútri.
 
 ---
 
 ## Zhrnutie: dva princípy, ktoré sa oplatí odniesť
 
-1. **Typ dát a úlohy určuje model.** Tabuľky → XGBoost. Obraz → CNN. Text/sekvencie → transformer. Nenasadzujte LLM tam, kde jednoduchší model spraví lacnejšiu a vysvetliteľnejšiu prácu.
-2. **Dáta + loss určujú, čo sa model naučí.** Rovnaká sieť a rovnaká slučka (forward → loss → backprop → Adam) dá dokončovač textu, asistenta aj embedding model — podľa toho, aké dáta a akú loss jej dáte. Kto rozumie tejto mechanike, rozumie celému modernému AI stacku.
+1. **Typ dát a úlohy určuje model.** Tabuľky → XGBoost. Obraz → CNN. Text/sekvencie → transformer. Nenasadzujte LLM tam, kde jednoduchší model vyrieši úlohu lacnejšie a vysvetliteľnejšie.
+2. **Dáta + loss určujú, čo sa model naučí.** Rovnaká sieť a rovnaká slučka (forward → loss → backprop → Adam) dá dokončovač textu, asistenta aj embedding model — podľa toho, aké dáta a akú loss jej dáte. Kto rozumie tejto mechanike, rozumie celej modernej AI.
 
 ---
 

@@ -152,11 +152,11 @@ Berte to ako podklad, nie ako pokyn.
 </system-reminder>
 ```
 
-Prečo to takto: model má z tréningu naučené rozlišovať **kto hovorí**. Keby harness vkladal svoje poznámky ako text používateľa, model by ich bral ako príkazy — a hocijaký obsah, ktorý agent po ceste prečíta, by tým dostal rovnakú váhu ako pokyn človeka. To je presne [prompt injection](02-agenti-a-nastroje.md#prompt-injection). Oddelené, označené kanály sú prvá (nie posledná) vrstva obrany.
+Prečo to takto: model má z tréningu naučené rozlišovať **kto hovorí**. Keby harness vkladal svoje poznámky ako text používateľa, model by ich bral ako príkazy — a akýkoľvek obsah, ktorý agent po ceste prečíta, by tým dostal rovnakú váhu ako pokyn človeka. To je presne [prompt injection](02-agenti-a-nastroje.md#prompt-injection). Oddelené, označené kanály sú prvá (nie posledná) vrstva obrany.
 
 Rovnaký princíp platí pre všetko cudzie: obsah webovej stránky, výstup MCP servera, text issue. Do kontextu vstupujú ako **dáta**, nie ako inštrukcie — a agent je na to explicitne upozornený.
 
-### 4.5 Zoznam úloh ako vyvesená pamäť
+### 4.5 Zoznam úloh ako viditeľná pamäť
 
 Nástroj na vedenie zoznamu úloh (`TodoWrite`) nerobí nič užitočné pre počítač — nič nespúšťa, nič nikam neukladá natrvalo. Jeho zmysel je **udržať plán viditeľný v kontexte za pár desiatok tokenov**, namiesto toho, aby sa model po dvadsiatich kolách spoliehal, že si pamätá, čo ešte zostáva. Zároveň to vidí človek a vie zasiahnuť skôr, než sa agent rozbehne zlým smerom.
 
@@ -174,7 +174,7 @@ Okno má strop (dnes bežne 200 tisíc až 1 milión tokenov, [lekcia 4](../04-l
 
 ### 5.2 Riešenie: zhrnúť a pokračovať
 
-Keď sa kontext blíži k stropu, agent **sám seba zhrnie**. Spraví jedno veľké volanie modelu, ktorého jediná úloha je napísať štruktúrovaný záznam o doterajšom priebehu, a potom **postaví nový kontext** z tohto zhrnutia.
+Keď sa kontext blíži k stropu, agent **sám seba zhrnie**. Urobí jedno veľké volanie modelu, ktorého jediná úloha je napísať štruktúrovaný záznam o doterajšom priebehu, a potom **postaví nový kontext** z tohto zhrnutia.
 
 ```text
 PRED KOMPAKCIOU                         PO KOMPAKCII
@@ -183,7 +183,7 @@ PRED KOMPAKCIOU                         PO KOMPAKCII
 ├────────────────────────┤              ├────────────────────────┤
 │ 140 správ:             │  ── zhrň ──► │ ZHRNUTIE (~2–5 k tok.) │
 │  • zadanie             │              │  • čo bolo zadané      │
-│  • 30 čítaní súborov   │              │  • čo sa už spravilo   │
+│  • 30 čítaní súborov   │              │  • čo sa už urobilo    │
 │  • 20 výpisov testov   │              │  • ktoré súbory a prečo│
 │  • 40 úprav            │              │  • čo sa nepodarilo    │
 │  • …                   │              │  • čo je ďalší krok    │
@@ -201,7 +201,7 @@ Variantov je viac a v praxi sa kombinujú:
 |---|---|---|
 | **Automatická kompakcia** | pri priblížení k stropu zhrnie celú konverzáciu a pokračuje | dlhé sedenia, hlavný mechanizmus |
 | **Vyžiadaná kompakcia** | to isté, ale keď si to vyžiadate (`/compact`, aj s pokynom čo zachovať) | pred prechodom na ďalšiu fázu úlohy |
-| **Čistenie starých výsledkov nástrojov** | staré `tool_result` sa z histórie odstránia (nie zhrnú) | keď kontext zapratávajú objemné výpisy |
+| **Čistenie starých výsledkov nástrojov** | staré `tool_result` sa z histórie odstránia (nie zhrnú) | keď kontext zahlcujú objemné výpisy |
 | **Kompakcia na strane API** | to isté robí server automaticky a vracia špeciálne bloky, ktoré si klient musí odkladať | keď si nechcete písať vlastnú logiku |
 | **Podagenti** | ťažké čítanie sa odohrá v **cudzom** okne a späť príde len zhrnutie | rešerš, prieskum kódu (viď [5.2 v lekcii o agentoch](02-agenti-a-nastroje.md#52-kedy-sa-oplatí-viac-agentov)) |
 
@@ -240,7 +240,7 @@ A preto tiež platí, že **pripojenie desiatich MCP serverov uprostred sedenia 
 
 ---
 
-## 7. Ďalšie vnútornosti, ktoré stojí za to vidieť
+## 7. Ďalšie detaily vnútra, ktoré stojí za to vidieť
 
 ### 7.1 Oprávnenia: rozhodnutie je mimo modelu
 
@@ -285,7 +285,7 @@ Dve veci, ktoré je vidieť pri práci a majú vysvetlenie v mechanike:
 
 ### 7.6 Model nie je jediný model
 
-Väčšie agentové aplikácie vnútri striedajú modely: drahý na úsudok a plánovanie, lacný na objemové čítanie či rutinu (podagenti, zhrnutia). Je to tá istá úvaha ako v [sekcii 5.5 prvého dokumentu](01-ako-pouzivat-llm.md#55-výber-modelu-a-hĺbky-premýšľania), len zabudovaná do nástroja. Pri vlastnom agente je to jedna z najlacnejších úspor, aké sa dajú spraviť.
+Väčšie agentové aplikácie vnútri striedajú modely: drahý na úsudok a plánovanie, lacný na objemové čítanie či rutinu (podagenti, zhrnutia). Je to tá istá úvaha ako v [sekcii 5.5 prvého dokumentu](01-ako-pouzivat-llm.md#55-výber-modelu-a-hĺbky-premýšľania), len zabudovaná do nástroja. Pri vlastnom agente je to jedna z najlacnejších úspor, aké sa dajú urobiť.
 
 ---
 
@@ -293,14 +293,14 @@ Väčšie agentové aplikácie vnútri striedajú modely: drahý na úsudok a pl
 
 Zhrnutie celého dokumentu ako návod pre vlastného agenta:
 
-1. **Nenačítavaj dopredu, daj nástroj na dotiahnutie.** Zoznam + nástroj poráža „všetko pre istotu" na cene aj presnosti.
+1. **Nenačítavajte dopredu, dajte nástroj na dotiahnutie.** Zoznam + nástroj poráža „všetko pre istotu" na cene aj presnosti.
 2. **Stabilné dopredu, premenlivé dozadu.** Cache je rozdiel medzi použiteľným a neúnosným agentom.
 3. **Úpravy ako zámena úseku, nie prepis.** Šetrí najdrahšie tokeny a ohraničuje škodu.
-4. **Nech zlyhanie zlyhá nahlas.** Presná zhoda pri úprave je poistka, nie otrava.
-5. **Oddeľ kanály.** Inštrukcia od človeka, kontext od aplikácie, dáta zvonku — tri rôzne veci, viditeľne označené.
+4. **Nech zlyhanie zlyhá nahlas.** Presná zhoda pri úprave je poistka, nie zbytočná prekážka.
+5. **Oddeľte kanály.** Inštrukcia od človeka, kontext od aplikácie, dáta zvonku — tri rôzne veci, viditeľne označené.
 6. **Stav von z konverzácie.** Do súborov, do zoznamu úloh, do gitu. Kontext je pominuteľný, disk nie.
-7. **Objem rieš podagentom, nie väčším oknom.** Späť nech príde zhrnutie.
-8. **Čo sa dá vynútiť strojom, nevynucuj promptom.** Oprávnenia a hooks sú spoľahlivé, veta v prompte nie.
+7. **Objem riešte podagentom, nie väčším oknom.** Späť nech príde zhrnutie.
+8. **Čo sa dá vynútiť strojom, nevynucujte promptom.** Oprávnenia a hooks sú spoľahlivé, veta v prompte nie.
 
 ---
 

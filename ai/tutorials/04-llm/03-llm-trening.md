@@ -4,7 +4,7 @@
 
 > **Cieľ dokumentu:** vysvetliť celú tréningovú pipeline veľkého jazykového modelu — čo sa deje od stiahnutia surového internetu až po model s príponou `-Instruct`, ktorý si viete stiahnuť z Hugging Face a ktorý odpovedá na otázky. Po prečítaní budete rozumieť, prečo *base* model „nevie odpovedať", čo presne pridáva inštrukčné ladenie, odkiaľ sa berie povaha hotového asistenta, a kam do tejto pipeline zapadá váš vlastný fine-tuning (LoRA).
 
-Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-ucenie/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskom merítku). Tokenizáciu a BPE detailne rozoberá [05-embeddings.md](05-embeddings.md).
+Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-ucenie/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskej mierke). Tokenizáciu a BPE detailne rozoberá [05-embeddings.md](05-embeddings.md).
 
 ### Mapa dokumentu
 
@@ -12,7 +12,7 @@ Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, k
 |---|---|---|
 | [Pipeline](#celková-pipeline) · [Fáza 0: dáta](#fáza-0-dáta--surovina-ktorá-rozhoduje-o-všetkom) | tri fázy vedľa seba, príprava korpusu | Čo všetko sa s modelom stane, než ho stiahnem z Hugging Face? |
 | [Fáza 1: pretraining](#fáza-1-pretraining--predikcia-ďalšieho-tokenu) | predikcia ďalšieho tokenu, [jeden prechod = veľa príkladov](#jeden-prechod-veľa-tréningových-príkladov-teacher-forcing), perplexita, scaling laws, klaster | Ako sa dá učiť na biliónoch tokenov bez labelov a čo z toho vyjde? |
-| [Base model v akcii](#base-model-v-akcii-iterácie-generovania) | **generovanie krok po kroku** | Prečo vypadne len jeden token a ako sa výstup vracia na vstup? |
+| [Base model v akcii](#base-model-v-akcii-iterácie-generovania) | **generovanie krok po kroku** | Prečo vznikne len jeden token a ako sa výstup vracia na vstup? |
 | [Fáza 2: SFT](#fáza-2-sft--instruction-tuning--z-dokončovača-asistent) | chat šablóna, [maskovanie loss](#tréning-loss-len-na-odpovedi), [dve masky](#dve-masky-ktoré-sa-ľahko-zamieňajú), [Instruct model v akcii](#instruct-model-v-akcii-tá-istá-otázka-iný-priebeh) | Ako sa z dokončovača textu stane asistent, ktorý odpovedá a vie prestať? |
 | [Fáza 3: preferenčné ladenie](#fáza-3-preferenčné-ladenie--rlhf-dpo-a-reasoning) | RLHF, DPO, RLVR a povaha hotového asistenta | Odkiaľ sa berie tón, odmietanie a „reasoning"? |
 
@@ -61,10 +61,10 @@ Pretraining potrebuje **bilióny (10¹²) tokenov** textu. Typický mix:
 | knihy, články, Wikipedia | menší, ale kvalitný | dlhé súvislé texty, fakty |
 | matematika, veda | cielený | reasoning |
 
-Surový web je ale plný spamu, duplikátov a smetí, preto sa robí:
+Surový web je však plný spamu, duplikátov a nekvalitného obsahu, preto sa robí:
 
 1. **Filtrovanie kvality** — heuristiky aj klasifikátory vyhodia spam, generovaný balast, toxický obsah.
-2. **Deduplikácia** — ten istý text miliónkrát by model naučila memorovať, nie generalizovať.
+2. **Deduplikácia** — ten istý text miliónkrát by model naučil memorovať, nie generalizovať.
 3. **Mixovanie** — pomery zdrojov sú starostlivo ladené; „dáta sú nový hyperparameter".
 
 > **Prečo je to dôležité pochopiť:** kvalita a zloženie dát vysvetľuje väčšinu rozdielov medzi modelmi. Preto je taký veľký rozdiel medzi *open-weight* (dáta tajné) a *plne open-source* modelmi (dáta verejné) — viď [04-llm-modely.md](04-llm-modely.md). A preto malé modely horšie zvládajú slovenčinu: v mixe jej je málo.
@@ -91,7 +91,7 @@ model:  P(" Bratislava") = 0.62   ← správny token, chceme čo najvyššie
 
 Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0,01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md), len parametrov sú miliardy.
 
-Dve vlastnosti robia z tejto jednoduchej úlohy zázrak:
+Dve vlastnosti robia z tejto jednoduchej úlohy mimoriadne silný nástroj:
 
 1. **Self-supervised** — labely netreba vyrábať, sú to ďalšie slová samotného textu. Preto sa dá trénovať na biliónoch tokenov: každá pozícia v každom texte je jeden tréningový príklad.
 2. **Predpovedať ďalší token dobre = rozumieť** — aby model vedel dokončiť „Násobenie 23 × 17 = ", musí vedieť násobiť. Aby dokončil detektívku vetou „Vrahom je …", musí sledovať dej. Kompresia textu si vynúti model sveta.
@@ -183,7 +183,7 @@ Klesajúca trénovacia a stagnujúca validačná perplexita znamená to isté ak
   MT-Bench — kvalita dialógu). Tie majú zas vlastnú slabinu: **kontamináciu** — ak sa
   testovacie otázky ocitli v tréningovom korpuse (a web ich obsahuje), model ich má
   zapamätané a skóre nemeria schopnosť, ale memorovanie. Preto je vlastná testovacia sada
-  na vlastných dátach cennejšia než tabuľka na leaderboarde ([ako ju spraviť](07-fine-tuning-lora.md#5-ako-zmerať-či-to-pomohlo)).
+  na vlastných dátach cennejšia než tabuľka na leaderboarde ([ako ju zostaviť](07-fine-tuning-lora.md#5-ako-zmerať-či-to-pomohlo)).
 
 ### Koľko parametrov a koľko dát: scaling laws a Chinchilla
 
@@ -199,7 +199,7 @@ tréningu zhruba 6 operácií (2 na forward, 4 na backward):
 C ≈ 6 · N · D        [FLOPs]      N = počet parametrov, D = počet tréningových tokenov
 ```
 
-Otázka za všetky peniaze znie: **keď mám rozpočet `C`, mám radšej väčší model, alebo viac dát?**
+Kľúčová otázka znie: **keď mám rozpočet `C`, mám radšej väčší model, alebo viac dát?**
 Odpoveď dal článok *Chinchilla* (DeepMind, 2022): pri pevnom rozpočte treba `N` aj `D` zväčšovať
 **rovnakým tempom**, čo prakticky znamená pomer
 
@@ -207,7 +207,7 @@ Odpoveď dal článok *Chinchilla* (DeepMind, 2022): pri pevnom rozpočte treba 
 D ≈ 20 · N           (~20 tréningových tokenov na každý parameter)
 ```
 
-Predchádzajúca generácia modelov bola podľa tohto merítka **výrazne pod-trénovaná**:
+Predchádzajúca generácia modelov bola podľa tohto meradla **výrazne pod-trénovaná**:
 
 | Model | Parametre `N` | Tokeny `D` | `D / N` | Poznámka |
 |---|---|---|---|---|
@@ -238,14 +238,14 @@ parallelism*):
 |---|---|---|
 | **Data parallel** | dáta — každá GPU dostane iné mikro-dávky, model má celý | gradienty (all-reduce raz za krok); pri **FSDP/ZeRO** sa delia aj váhy a stav optimalizátora |
 | **Tensor parallel** | šírka vrstvy — matice rozrezané medzi GPU ([sekcia 3](02-transformer-vnutro.md#prečo-sa-oplatí-ísť-skôr-do-šírky-problém-s-paralelizáciou)) | aktivácie, 2× za vrstvu (drží sa vnútri jedného uzla, kde je NVLink) |
-| **Pipeline parallel** | hĺbka — vrstvy rozdelené medzi GPU | aktivácie na hraniciach stupňov; bublinu zaplátajú mikro-dávky |
+| **Pipeline parallel** | hĺbka — vrstvy rozdelené medzi GPU | aktivácie na hraniciach stupňov; bublinu prekryjú mikro-dávky |
 
 K tomu tri techniky, bez ktorých by sa to do pamäte nevošlo a ktoré poznáte z lekcie 3:
 
 - **Mixed precision** — počíta sa v `bf16`, ale master kópia váh a stav Adamu ostávajú v `fp32`
   (rozpočet pamäte je v [07-fine-tuning-lora.md](07-fine-tuning-lora.md#1-prečo-sa-celý-model-dotrénovať-nedá)).
 - **Gradient accumulation** — efektívna dávka miliónov tokenov sa poskladá z mnohých malých
-  krokov bez updatu; až potom sa spraví jeden Adam krok. Veľká dávka je pri LLM nutnosť,
+  krokov bez updatu; až potom sa urobí jeden Adam krok. Veľká dávka je pri LLM nutnosť,
   lebo gradient z pár viet je príliš hlučný.
 - **Activation checkpointing** — medzivýsledky sa neukladajú, ale pri backprope prepočítajú:
   ušetrí pamäť za ~30 % výpočtu navyše.
@@ -279,7 +279,7 @@ Base model má v sebe všetky znalosti a schopnosti — len ich „nepodáva" fo
 ### Base model v akcii: iterácie generovania
 
 Teraz tú istú sieť pustíme opačným smerom — bez cieľových tokenov, len s promptom. Každý riadok
-tabuľky je **jeden celý prechod** všetkými 32 vrstvami; token, ktorý z neho vypadne, sa pripojí na
+tabuľky je **jeden celý prechod** všetkými 32 vrstvami; token, ktorý z neho vzíde, sa pripojí na
 koniec sekvencie a stane sa súčasťou vstupu nasledujúceho prechodu:
 
 ```text
@@ -511,7 +511,7 @@ Klasický postup z ChatGPT má dva kroky:
    posilňované učenie posúva váhy k vyššiemu skóre. Kľúčová poistka je **KL-penalizácia**:
    k odmene sa pripočíta trest za to, ako ďaleko sa model vzdialil od SFT verzie.
 
-Bez tej poistky nastáva **reward hacking** — model nájde odpoveď, ktorú reward model miluje,
+Bez tej poistky nastáva **reward hacking** — model nájde odpoveď, ktorú reward model hodnotí najvyššie,
 hoci je pre človeka nezmyselná (typicky zdvorilé, dlhé a prázdne texty). Reward model je totiž
 len model: má svoje slepé miesta a optimalizovať naplno proti nemu znamená nájsť presne tie
 miesta.
@@ -545,7 +545,7 @@ ktorý vidíte ako státisíce tokenov navyše ([prečo premýšľanie = viac to
 
 ### Čo z toho študent vidí každý deň
 
-Preferenčné ladenie vysvetľuje väčšinu „povahových rysov" dnešných asistentov:
+Preferenčné ladenie vysvetľuje väčšinu „povahových čŕt" dnešných asistentov:
 
 - **Odmietanie.** Model neodmieta preto, že by mu to zakazoval filter — odmietnutie je
   **naučená odpoveď** s vysokou odmenou. Preto sa dá niekedy „obísť" preformulovaním: nie je to
@@ -573,7 +573,7 @@ asistenta, preferenčné ladenie ho vycibrí.**
 1. Prečo sa pretraining dá robiť na biliónoch tokenov, hoci nikto tie dáta „nelabeloval"?
 2. Jeden forward prechod nad blokom 4096 tokenov — koľko tréningových príkladov z neho vznikne? A koľko predikcií sa použije, keď tým istým modelom nad tým istým blokom **generujete**? Prečo ten rozdiel?
 3. Čo je teacher forcing a prečo sa vďaka nemu dá tréning počítať nad celým blokom naraz, kým generovanie musí ísť token po tokene?
-4. Base model na prompt „Preloz do angličtiny: pes" odpovie „Preloz do angličtiny: mačka. Preloz do angličtiny: dom." — vysvetlite, prečo je to z pohľadu jeho tréningu *správne* správanie. Čo presne sa musí zmeniť, aby namiesto toho odpovedal „dog"?
+4. Base model na prompt „Prelož do angličtiny: pes" odpovie „Prelož do angličtiny: mačka. Prelož do angličtiny: dom." — vysvetlite, prečo je to z pohľadu jeho tréningu *správne* správanie. Čo presne sa musí zmeniť, aby namiesto toho odpovedal „dog"?
 5. Čím sa líši SFT od pretrainingu (a) v dátach, (b) v loss funkcii, (c) v cieli? Čo majú mechanicky spoločné?
 6. Vysvetlite rozdiel medzi **kauzálnou maskou** a **loss maskou**. Čo by sa pokazilo, keby chýbala prvá? A čo, keby chýbala druhá?
 7. Prompt pre Instruct model sa končí tokenom `<|assistant|>`, za ktorým už nič nie je. Prečo je práve toto miesto rozhodujúce a ktorá pozícia v tréningovej sekvencii ho naučila?

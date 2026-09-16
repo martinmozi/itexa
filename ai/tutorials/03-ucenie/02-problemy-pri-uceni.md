@@ -110,7 +110,7 @@ print(f"mŕtve neuróny: {dead:.1%}")            # nad ~20 % je to problém
 
 ## 4. Zlá inicializácia váh
 
-Inicializácia je jediná vec, ktorú spravíte **raz**, a napriek tomu rozhodne, či sa sieť vôbec rozbehne.
+Inicializácia je jediná vec, ktorú urobíte **raz**, a napriek tomu rozhodne, či sa sieť vôbec rozbehne.
 
 **Nuly nikdy.** Ak sú všetky váhy vrstvy rovnaké, všetky neuróny v nej počítajú to isté, dostanú ten istý gradient a zostanú navždy identické — vrstva so 100 neurónmi sa správa ako jeden. Toto sa volá **problém symetrie** a jediný liek je náhoda. (Biasy na nulu inicializovať možno a je to bežné — symetriu lámu už náhodné váhy.)
 
@@ -121,7 +121,7 @@ Inicializácia je jediná vec, ktorú spravíte **raz**, a napriek tomu rozhodne
 | **He (Kaiming)** | `std = √(2 / n_vstupov)` | **ReLU a príbuzné** — tá dvojka kompenzuje, že ReLU zahodí polovicu signálu |
 | **Xavier (Glorot)** | `std = √(2 / (n_vstupov + n_výstupov))` | tanh, sigmoid |
 
-V PyTorchi sú vrstvy rozumne inicializované automaticky; vo vlastnej NumPy implementácii zo [zadania 1](../../zadania/rozpoznavanie-obrazkov.md) to musíte spraviť sami:
+V PyTorchi sú vrstvy rozumne inicializované automaticky; vo vlastnej NumPy implementácii zo [zadania 1](../../zadania/rozpoznavanie-obrazkov.md) to musíte urobiť sami:
 
 ```python
 W1 = np.random.randn(n_in, n_hidden) * np.sqrt(2.0 / n_in)    # He, pre ReLU
@@ -145,7 +145,7 @@ Najčastejšia príčina neúspechu vôbec — a našťastie sa diagnostikuje po
     potom plató)            cez minimum)            beh trvá večnosť)
 ```
 
-**Ako nájsť ten správny:** urobte krátky beh, v ktorom `lr` **exponenciálne rastie** (napr. z `1e-6` na `1`) a vykreslite loss proti `lr`. Vhodná hodnota je rádovo tam, kde loss klesá najstrmšie — teda zhruba **desatina hodnoty, pri ktorej začne divergovať**. Pre Adama je `1e-3` dobrý štart, pre fine-tuning predtrénovaného modelu skôr `1e-5` až `5e-5` (model je už blízko dobrého riešenia a veľký krok by ho z neho vykopol).
+**Ako nájsť ten správny:** urobte krátky beh, v ktorom `lr` **exponenciálne rastie** (napr. z `1e-6` na `1`) a vykreslite loss proti `lr`. Vhodná hodnota je rádovo tam, kde loss klesá najstrmšie — teda zhruba **desatina hodnoty, pri ktorej začne divergovať**. Pre Adama je `1e-3` dobrý štart, pre fine-tuning predtrénovaného modelu skôr `1e-5` až `5e-5` (model je už blízko dobrého riešenia a veľký krok by ho z neho vychýlil).
 
 **Warmup a decay.** Na začiatku tréningu sú `m` a `v` v Adame ešte nespoľahlivé odhady z pár vzoriek, takže plný `lr` môže model rozhodiť. Preto sa `lr` prvých niekoľko sto krokov lineárne dvíha z nuly (*warmup*) a potom pomaly klesá (kosínusovo) — viď [hyperparametre Adama](01-adam-optimalizator.md#4-hyperparametre).
 
@@ -223,7 +223,7 @@ Pri **fp16** sú dve pasce. Zhora: aktivácie alebo gradienty nad `65 504` sa st
 
 ## 10. Nedeterminizmus a nereprodukovateľnosť
 
-Dva behy s rovnakým kódom dajú rôzne výsledky. Bežné a väčšinou neškodné — kým nehľadáte chybu, vtedy je to zabijak. Zdroje: inicializácia váh, miešanie dát, dropout, a na GPU aj **poradie sčítavania v paralelných redukciách** (sčítanie v pohyblivej rádovej čiarke nie je asociatívne, takže iné poradie dá iný posledný bit) a nedeterministické cuDNN kernely.
+Dva behy s rovnakým kódom dajú rôzne výsledky. Bežné a väčšinou neškodné — kým nehľadáte chybu; vtedy je to vážna prekážka. Zdroje: inicializácia váh, miešanie dát, dropout, a na GPU aj **poradie sčítavania v paralelných redukciách** (sčítanie v pohyblivej rádovej čiarke nie je asociatívne, takže iné poradie dá iný posledný bit) a nedeterministické cuDNN kernely.
 
 ```python
 torch.manual_seed(42); np.random.seed(42); random.seed(42)
@@ -238,7 +238,7 @@ Ak sa beh **nedá zreprodukovať ani so zafixovaným seedom a determinizmom**, j
 
 Drvivá väčšina problémov z predchádzajúcich sekcií je softvérová. Hardvérové sa však stávajú tiež, a majú veľmi charakteristický rukopis: **nereprodukovateľnosť**. Softvérová chyba padne pri rovnakom seede vždy na tom istom kroku; hardvérová zakaždým inde.
 
-**Prečo je jeden preklopený bit katastrofa.** Pamäť DRAM aj GPU HBM sú fyzikálne zariadenia — nabitý kondenzátor môže stratiť náboj vplyvom kozmického žiarenia, vadnej bunky alebo prehriatia. V pohyblivej rádovej čiarke pritom nie sú všetky bity rovnako dôležité: preklopenie bitu v mantise zmení hodnotu o zanedbateľný zlomok, ale **preklopenie horného bitu exponentu** zmení `1,0` na `1,7·10³⁸`. Takáto hodnota sa v ďalšom kroku znásobí, vyletí do `Inf`, z toho vznikne `NaN` a niekoľkodňový tréning je na odpis.
+**Prečo je jeden preklopený bit katastrofa.** Pamäť DRAM aj GPU HBM sú fyzikálne zariadenia — nabitý kondenzátor môže stratiť náboj vplyvom kozmického žiarenia, vadnej bunky alebo prehriatia. V pohyblivej rádovej čiarke pritom nie sú všetky bity rovnako dôležité: preklopenie bitu v mantise zmení hodnotu o zanedbateľný zlomok, ale **preklopenie horného bitu exponentu** zmení `1,0` na `1,7·10³⁸`. Takáto hodnota sa v ďalšom kroku znásobí, vyletí do `Inf`, z toho vznikne `NaN` a niekoľkodňový tréning je stratený.
 
 **ECC (*Error-Correcting Code*)** je hardvérová obrana: pamäť ku každému slovu ukladá kontrolné bity, ktoré umožnia **jednobitovú chybu automaticky opraviť** a dvojbitovú aspoň **spoľahlivo detegovať** (schéma SECDED — *Single Error Correct, Double Error Detect*).
 
@@ -277,20 +277,20 @@ Zhrnutie správy: **~78 % neočakávaných prerušení malo potvrdenú alebo pre
 
 **Poučenie pre vás nie je „kúpte si lepší hardvér", ale „počítajte so zlyhaním".** Ukladajte checkpoint každých `N` krokov a ukladajte **kompletný stav**, nie len váhy: parametre, **`m` a `v` z Adama** (bez nich sa optimalizátor po reštarte rozbieha odznova a loss vyskočí), číslo kroku, stav rozvrhu learning rate, stav `GradScaler`-a a stav generátorov náhodných čísel. Tréning musí vedieť pokračovať tak, aby na krivke lossu nebolo vidno, kde bol prerušený. Všimnite si aj riadok **silent data corruption**: to je presne ten prípad, keď hardvér nespadne ani nenahlási chybu, len ticho vráti nesprávne číslo — a jediné, čo ho odhalí, je nedôvera k nereprodukovateľným výsledkom.
 
-> Pravidlo pri delení vinníkov: **deterministická chyba = softvér, náhodná = hardvér.** Než začnete podozrievať železo, zafixujte seed a overte, že chyba nastáva zakaždým na rovnakom kroku.
+> Pravidlo pri delení vinníkov: **deterministická chyba = softvér, náhodná = hardvér.** Než začnete podozrievať hardvér, zafixujte seed a overte, že chyba nastáva zakaždým na rovnakom kroku.
 
 ---
 
 ## 12. Postup pri ladení — v tomto poradí
 
-1. **Preuč 8 príkladov.** Nejde to? Chyba je v kóde, nie v učení. Ďalej nepokračujte.
-2. **Skontroluj dáta.** Tvary, `NaN`, rozsahy, párovanie labelov, duplicity, rozloženie tried.
-3. **Znormalizuj vstupy.**
-4. **Rozbehni najjednoduchší možný model**, ktorý má šancu fungovať, a až potom pridávaj zložitosť.
-5. **Nalaď `lr`** — jeden hyperparameter má väčší dopad než všetky ostatné dohromady.
-6. **Loguj normy gradientov po vrstvách.** Miznú? → §1. Explodujú? → §2.
-7. **Až keď to konverguje, rieš preučenie** — dropout, weight decay, augmentácia, early stopping.
-8. **Meň jednu vec naraz** a zapisuj si výsledky. Bez záznamu nemáte experiment, len dojem.
+1. **Preučte 8 príkladov.** Nejde to? Chyba je v kóde, nie v učení. Ďalej nepokračujte.
+2. **Skontrolujte dáta.** Tvary, `NaN`, rozsahy, párovanie labelov, duplicity, rozloženie tried.
+3. **Znormalizujte vstupy.**
+4. **Rozbehnite najjednoduchší možný model**, ktorý má šancu fungovať, a až potom pridávajte zložitosť.
+5. **Nalaďte `lr`** — jeden hyperparameter má väčší vplyv než všetky ostatné dohromady.
+6. **Logujte normy gradientov po vrstvách.** Miznú? → §1. Explodujú? → §2.
+7. **Až keď tréning konverguje, riešte preučenie** — dropout, weight decay, augmentácia, early stopping.
+8. **Meňte jednu vec naraz** a zapisujte si výsledky. Bez záznamu nemáte experiment, len dojem.
 
 ---
 
@@ -300,7 +300,7 @@ Zhrnutie správy: **~78 % neočakávaných prerušení malo potvrdenú alebo pre
 2. Loss počas tréningu osciluje hore-dole a nekonverguje. Ktorý hyperparameter podozrievate ako prvý a ako overíte, že máte pravdu?
 3. Prečo sa gradient pri clippingu škáluje ako celok, a nie každá zložka zvlášť?
 4. Načo je „test preučenia jedného batchu" a čo presne vám hovorí jeho zlyhanie?
-5. Sieť s ReLU sa po pár epochách prestane učiť. Ako zmeriate, či za to môžu mŕtve neuróny, a čo s tým spravíte?
+5. Sieť s ReLU sa po pár epochách prestane učiť. Ako zmeriate, či za to môžu mŕtve neuróny, a čo s tým urobíte?
 6. V čom je bf16 bezpečnejší než fp16, hoci má menej bitov mantisy? Načo slúži loss scaling?
 7. Tréning padá po niekoľkých hodinách, zakaždým na inom mieste. Ako rozlíšite softvérovú chybu od hardvérovej a čo je ECC?
 8. Prečo pri checkpointe nestačí uložiť len váhy modelu?

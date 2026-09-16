@@ -2,7 +2,7 @@
 
 > **Poradie čítania:** **lekcia 0 — príprava** · [Čo je umelá inteligencia](../01-prehlad/01-co-je-ai.md) →
 
-> **Cieľ dokumentu:** praktická príručka, ako si pripraviť počítač na prácu s AI — od Python prostredia a PyTorchu cez nastavenie GPU (CUDA na NVIDIA, Metal na Macu) až po lokálnu inferenciu LLM pomocou vLLM. Na záver odporúčania, aký hardvér má zmysel doma a kedy je čas prenajať si GPU v cloude (runpod.io a spol.). Predpokladáme, že Python ovládate.
+> **Cieľ dokumentu:** praktická príručka, ako si pripraviť počítač na prácu s AI — od Python prostredia a PyTorchu cez nastavenie GPU (CUDA na NVIDIA, Metal na Macu) až po lokálnu inferenciu LLM pomocou vLLM. Na záver odporúčania, aký hardvér má zmysel doma a kedy je čas prenajať si GPU v cloude (runpod.io a podobné služby). Predpokladáme, že Python ovládate.
 
 Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](../../zadania/rozpoznavanie-obrazkov.md) (vlastná sieť + PyTorch) aj [zadanie 2](../../zadania/RAG_Fine_tunning.md) (RAG a LoRA fine-tuning).
 
@@ -10,7 +10,7 @@ Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](../../zadania
 
 ## 1. Python prostredie
 
-Na vývoj v AI stačí **Python 3.10 až 3.12**. S úplne najnovšou verziou Pythonu sa neoplatí ponáhľať — PyTorch a spol. ju podporia typicky až o pár mesiacov po vydaní.
+Na vývoj v AI stačí **Python 3.10 až 3.12**. S úplne najnovšou verziou Pythonu sa neoplatí ponáhľať — PyTorch a ďalšie knižnice ju podporia typicky až o pár mesiacov po vydaní.
 
 Prvé pravidlo: **nikdy neinštalujte knižnice do systémového Pythonu.** AI knižnice sú veľké, majú prísne vzájomné závislosti na verziách a jeden pokazený upgrade vie rozbiť celé prostredie. Každý projekt preto dostane vlastné **virtuálne prostredie** — samostatný priečinok `.venv` s vlastnou kópiou Pythonu a knižníc.
 
@@ -51,7 +51,7 @@ uv pip install torch numpy   # tá istá syntax ako pip, len rýchlejšie
 
 ### venv + pip — klasika, ktorá funguje všade
 
-Ak `uv` inštalovať nechcete alebo nemôžete (firemný stroj bez práv, cudzí server), všetko v tomto kurze sa dá spraviť aj štandardnou dvojicou zabudovanou v Pythone. Príkazy nižšie sú rovnocennou alternatívou — nikde v kurze nie je nič, čo by vyžadovalo výhradne `uv`:
+Ak `uv` inštalovať nechcete alebo nemôžete (firemný stroj bez práv, cudzí server), všetko v tomto kurze sa dá urobiť aj štandardnou dvojicou zabudovanou v Pythone. Príkazy nižšie sú rovnocennou alternatívou — nikde v kurze nie je nič, čo by vyžadovalo výhradne `uv`:
 
 ```bash
 python3 -m venv .venv
@@ -93,7 +93,7 @@ Editor je vec vkusu, ale ak nemáte vyhranený názor, zvoľte **Visual Studio C
 
 Jedno nastavenie, ktoré si treba osvojiť hneď: **výber interpretera.** Po vytvorení virtuálneho prostredia (`uv venv`, `uv sync` alebo `python3 -m venv`) stlačte `Ctrl+Shift+P` → *Python: Select Interpreter* → vyberte `.venv` v projekte. VS Code potom prostredie sám aktivuje v každom novom termináli a debugger aj notebooky používajú správne knižnice. Ak vám import „nefunguje", v deviatich prípadoch z desiatich beží kód proti inému interpreteru, než do ktorého ste inštalovali.
 
-K AI asistentom v editore (Claude Code, Copilot a spol.): pomôžu, ale v tomto kurze je cieľom pochopiť mechaniku vlastnými rukami — pri zadaniach nimi šetrite. Ako sa s nimi pracuje efektívne a kedy im (ne)veriť, je téma lekcie 8.
+K AI asistentom v editore (Claude Code, Copilot a ďalším): pomôžu, ale v tomto kurze je cieľom pochopiť mechaniku vlastnými rukami — pri zadaniach nimi šetrite. Ako sa s nimi pracuje efektívne a kedy im (ne)veriť, je téma lekcie 8.
 
 ---
 
@@ -278,7 +278,7 @@ Odporúčania podľa rozpočtu (stav v roku 2026, ceny sa hýbu):
 
 ---
 
-## 8. Kedy už doma nestačí — runpod.io a spol.
+## 8. Kedy už doma nestačí — runpod.io a podobné služby
 
 Hranica je jednoduchá: **keď sa úloha nezmestí do vašej VRAM ani po kvantizácii a QLoRA trikoch, alebo by bežala neúnosne dlho.** Typicky:
 
@@ -320,7 +320,7 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 3. Koľko VRAM potrebuje inferencia 8B modelu vo fp16 a koľko po 4-bitovej kvantizácii? Ukážte výpočet.
 4. Čím sa líši vLLM od Ollamy — technicky aj použitím — a kedy siahnete po ktorom?
 5. Prečo potrebuje plný fine-tuning niekoľkonásobne viac pamäte než inferencia toho istého modelu a ako tento problém obchádza QLoRA?
-6. Spolužiak s RTX 4060 Ti (16 GB) chce spraviť plný fine-tuning 8B modelu. Čo mu poradíte a aké dve lacnejšie alternatívy mu ponúknete?
+6. Spolužiak s RTX 4060 Ti (16 GB) chce urobiť plný fine-tuning 8B modelu. Čo mu poradíte a aké dve lacnejšie alternatívy mu ponúknete?
 
 ---
 

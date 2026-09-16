@@ -2,7 +2,7 @@
 
 > **Poradie čítania:** ← [Rozhodovacie stromy](01-rozhodovacie-stromy.md) · **lekcia 2** · [XGBoost krok za krokom (ISO 8583)](03-xgboost-priklad-iso8583.md) →
 
-Namiesto jedného stromu sa použije **veľa stromov naraz** a ich predpovede sa skombinujú. Existujú dve hlavné stratégie, ako to spraviť — a je dobré vidieť ich vedľa seba:
+Namiesto jedného stromu sa použije **veľa stromov naraz** a ich predpovede sa skombinujú. Existujú dve hlavné stratégie, ako to urobiť — a je dobré vidieť ich vedľa seba:
 
 ![Porovnanie random forest a XGBoost: random forest učí stromy nezávisle a paralelne a spriemeruje ich, XGBoost učí stromy postupne, pričom každý opravuje chyby predchádzajúcich](../../images/ensemble-forest-boosting.svg)
 

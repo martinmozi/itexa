@@ -23,8 +23,8 @@ Model urobí predpoveď, porovná ju so správnou odpoveďou (chyba = *loss*), a
 
 Ešte jedno praktické rozdelenie dát, ktoré sa ťahá celým ML:
 
-- **Tabuľkové dáta** — riadky a stĺpce (Excel, databáza): vek, príjem, počet klikov… Tu dnes **kraľujú stromové metódy a XGBoost**.
-- **Neštruktúrované dáta** — obraz, zvuk, text, video. Tu **kraľuje hlboké učenie** (CNN pre obraz, transformery pre text).
+- **Tabuľkové dáta** — riadky a stĺpce (Excel, databáza): vek, príjem, počet klikov… Tu dnes **dominujú stromové metódy a XGBoost**.
+- **Neštruktúrované dáta** — obraz, zvuk, text, video. Tu **dominuje hlboké učenie** (CNN pre obraz, transformery pre text).
 
 Toto rozlíšenie je najdôležitejšia intuícia pri výbere modelu, preto sa k nemu budeme vracať pri každej rodine.
 

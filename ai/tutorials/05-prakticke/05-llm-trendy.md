@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Čo je dnes na hrane
+## 1. Čo je dnes na čele vývoja
 
 - **Reasoning modely ako predvolená voľba.** Model dostane priestor „premýšľať" pred odpoveďou a kvalita rastie s množstvom výpočtu pri **inferencii**, nie len s veľkosťou modelu. Škálovanie sa tým presunulo z tréningu čiastočne do behu — čo mení aj ekonomiku: viac platíte za odpoveď, menej za tréning.
 - **Agenti ako hlavný spôsob nasadenia.** Od „chatbot nad dokumentmi" k systémom, ktoré vykonávajú viackrokové úlohy s nástrojmi (viď [lekcia 8](02-agenti-a-nastroje.md)). S tým prichádza aj hlavné riziko obdobia — **bezpečnosť agentov**.

@@ -145,7 +145,7 @@ Jeden ukázaný vzorový vstup a výstup zaváži viac než odsek opisu. Model z
 ```text
 Zatrieď hlásenie do kategórie: chyba | požiadavka | otázka
 
-Vstup:  „Po update mi padá appka pri otvorení faktúry."
+Vstup:  „Po aktualizácii mi padá aplikácia pri otvorení faktúry."
 Výstup: chyba
 
 Vstup:  „Šlo by pridať export do XLSX?"
@@ -205,7 +205,7 @@ Cena je podobná (vstupy sú menšie), laditeľnosť neporovnateľná. Toto je t
 
 ### 3.7 Nechajte výsledok skontrolovať — ale s kritériami
 
-*„Skontroluj si to"* spraví málo. *„Skontroluj podľa týchto štyroch bodov a pri každom napíš áno/nie a prečo"* spraví veľa, lebo kontrola dostane merateľné kritériá.
+*„Skontroluj si to"* pomôže málo. *„Skontroluj podľa týchto štyroch bodov a pri každom napíš áno/nie a prečo"* pomôže veľa, lebo kontrola dostane merateľné kritériá.
 
 Najsilnejšia verzia je **kontrola v samostatnom volaní** s novým kontextom: model, ktorý text práve napísal, má tendenciu ho obhajovať. Volanie, ktoré vidí len zadanie a výsledok, je prísnejší recenzent. (V agentoch je to uzol „kontrola" z [grafu v ďalšej lekcii](02-agenti-a-nastroje.md#51-kedy-sa-framework-naozaj-oplatí-proces-s-vetvením-kontrolou-a-človekom-v-slučke).)
 
@@ -237,7 +237,7 @@ Prompt engineering vznikol ako remeslo v čase, keď modely inštrukcie držali 
 | `temperature`, `top_p` ladenie „na kreativitu" | jediný dostupný regulátor | pri najnovších modeloch sa nenastavujú vôbec |
 | `KROK 1: … KROK 2: …` presný scenár pre úlohu s úsudkom | model bez návodu blúdil | prílišná predpísanosť **zhoršuje** výsledok; model má zvyčajne lepší plán než náš scenár. Kroky nechajte tam, kde na poradí naozaj záleží (nezvratné operácie, prihlasovacie postupy) |
 | Dlhé zoznamy zákazov („nikdy nerob X, Y, Z…") | odháňanie starých chýb | zákaz chyby, ktorú by model neurobil, ho k nej vie **pritiahnuť**. Opisujte, ako vyzerá úspech |
-| „Nepíš príliš dlho, max 50 slov" pri náročnej úlohe | modely boli ukecané | tvrdý strop dusí uvažovanie; radšej kvalitatívne („stručne") alebo ukážkou |
+| „Nepíš príliš dlho, max 50 slov" pri náročnej úlohe | modely boli rozvláčne | tvrdý strop dusí uvažovanie; radšej kvalitatívne („stručne") alebo ukážkou |
 | Doladiť model na firemné dáta, aby „vedel" naše fakty | kontext bol krátky | **kontext + RAG + nástroje**; fine-tuning na štýl a formát, nie na fakty ([lekcia 7](../04-llm/07-fine-tuning-lora.md)) |
 
 **Čo z remesla naopak zostalo a je dôležitejšie než kedysi:**
@@ -247,7 +247,7 @@ Prompt engineering vznikol ako remeslo v čase, keď modely inštrukcie držali 
 - **vynútený formát** cez schému,
 - **meranie** — bez testovacej sady je každá úprava promptu len pocit ([sekcia 6](#6-ako-zistiť-či-ste-si-pomohli)).
 
-> **Praktický dôsledok, ktorý stojí peniaze:** prompt napísaný pre staršiu generáciu modelu novšiu generáciu **predražuje** — núti ju premýšľať a písať tam, kde netreba. Pri prechode na nový model sa preto oplatí prompty prejsť a barličky vyhádzať; býva to lacnejšie *aj* presnejšie.
+> **Praktický dôsledok, ktorý stojí peniaze:** prompt napísaný pre staršiu generáciu modelu novšiu generáciu **predražuje** — núti ju premýšľať a písať tam, kde netreba. Pri prechode na nový model sa preto oplatí prompty prejsť a barličky odstrániť; býva to lacnejšie *aj* presnejšie.
 
 ---
 
@@ -263,7 +263,7 @@ Platí sa za **tokeny na vstupe** a **tokeny na výstupe**, pričom výstupné s
 | Sonnet 5 | $2 | $10 | bežná práca vo veľkom objeme |
 | Haiku 4.5 | $1 | $5 | triedenie, extrakcia, čítanie objemu |
 
-Milión tokenov je zhruba 700-tisíc anglických slov. Znie to veľa — kým nezistíte, že jedna agentová úloha ich prežerie stotisíc.
+Milión tokenov je zhruba 700-tisíc anglických slov. Znie to veľa — kým nezistíte, že jedna agentová úloha ich spotrebuje stotisíc.
 
 ### 5.2 Prompt caching — najväčšia jediná páka
 
@@ -286,7 +286,7 @@ Ak na odpoveď nikto nečaká — nočné spracovanie, prepočet archívu, vyhod
 
 ### 5.4 Neposielajte, čo netreba
 
-- **Netahajte celý manuál do každého promptu**, keď z neho ide o dve kapitoly — na to je [RAG](../04-llm/06-rag.md) alebo nástroj. (Pozor na opak: ak si to model musí prácne dohľadávať v troch kolách, môže to vyjsť drahšie než dokument v cache.)
+- **Neťahajte celý manuál do každého promptu**, keď z neho ide o dve kapitoly — na to je [RAG](../04-llm/06-rag.md) alebo nástroj. (Pozor na opak: ak si to model musí prácne dohľadávať v troch kolách, môže to vyjsť drahšie než dokument v cache.)
 - **Neopakujte v systémovom prompte to, čo je v definíciách nástrojov.** Tie sa posielajú tak či tak.
 - **Obrázky zmenšite** na rozlíšenie, ktoré úloha potrebuje — počet tokenov rastie s plochou obrázka, nie s množstvom informácie v ňom.
 - **Orežte históriu** na to, čo je ešte relevantné. Dlhý kontext nie je zadarmo ani výpočtovo ([kvadratická attention](../04-llm/01-transformer-siete.md)), ani finančne.
@@ -351,15 +351,15 @@ Keď model dostane nástroje a začne konať, toto riziko prestáva byť teoreti
 
 ## Kontrolné otázky
 
-1. Prečo cena konverzácie rastie rýchlejšie než počet otázok? Čo sa s tým dá spraviť?
+1. Prečo cena konverzácie rastie rýchlejšie než počet otázok? Čo sa s tým dá urobiť?
 2. Aký je rozdiel medzi `system` a `user` správou a prečo na tom záleží pri bezpečnosti?
 3. Čo presne robí veta „Si teraz Michael Jordan" s výstupom modelu — a čo nerobí?
-4. Máte prompt, ktorý obsahuje „Rozmýšľaj krok po kroku", „Si expert svetovej triedy" a „Vráť IBA platný JSON". Čo s každou z tých troch viet dnes spravíte a prečo?
+4. Máte prompt, ktorý obsahuje „Rozmýšľaj krok po kroku", „Si expert svetovej triedy" a „Vráť IBA platný JSON". Čo s každou z tých troch viet dnes urobíte a prečo?
 5. Vymenujte tri formulácie, ktoré znižujú počet halucinácií pri odpovedaní nad dodaným dokumentom.
 6. Prečo je `max_tokens=200` zlý spôsob, ako dostať krátku odpoveď?
 7. Ako skladáte prompt, aby fungoval prompt caching, a ako overíte, že naozaj funguje?
 8. Máte nočné spracovanie 50 000 dokumentov. Vymenujte tri nezávislé opatrenia, ktorými znížite účet, a pri každom povedzte, čo za to obetujete.
-9. Zmenili ste prompt a odpovede sa vám zdajú lepšie. Čo musíte spraviť, než to nasadíte?
+9. Zmenili ste prompt a odpovede sa vám zdajú lepšie. Čo musíte urobiť, než to nasadíte?
 10. Prečo je prompt napísaný pred dvomi rokmi na dnešnom modeli často drahší *aj* horší?
 
 ---

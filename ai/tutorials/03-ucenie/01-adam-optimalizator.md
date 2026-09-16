@@ -61,7 +61,7 @@ Neurón robí dva kroky:
 |---|---|---|---|
 | **ReLU** | `max(0, z)` | `⟨0, ∞)` | **predvolená voľba pre skryté vrstvy** — lacná na výpočet, netrpí miznúcim gradientom pre kladné `z` |
 | **Sigmoid** | `1 / (1 + e⁻ᶻ)` | `(0, 1)` | **výstupná vrstva pri binárnej klasifikácii** — výstup sa dá čítať ako pravdepodobnosť (spam / nie spam) |
-| **Softmax** | `eᶻⁱ / Σ eᶻʲ` | pravdepodobnosti so súčtom 1 | **výstupná vrstva pri klasifikácii do viacerých tried** — z 10 výstupov spraví rozdelenie pravdepodobnosti (číslice 0–9) |
+| **Softmax** | `eᶻⁱ / Σ eᶻʲ` | pravdepodobnosti so súčtom 1 | **výstupná vrstva pri klasifikácii do viacerých tried** — z 10 výstupov vytvorí rozdelenie pravdepodobnosti (číslice 0–9) |
 | **Tanh** | `(eᶻ − e⁻ᶻ) / (eᶻ + e⁻ᶻ)` | `(−1, 1)` | skryté vrstvy, keď je výhodný výstup centrovaný okolo nuly; historicky v rekurentných sieťach |
 | **Leaky ReLU** | `max(αz, z)`, čiže `z` pre `z > 0` a `αz` pre `z ≤ 0` (typicky `α = 0,01`) | `(−∞, ∞)` | náhrada ReLU tam, kde sieti odumierajú neuróny — záporná časť má malý sklon `α`, takže gradient nikdy nie je presne nula |
 | **GELU** | `z · Φ(z)`, kde `Φ` je distribučná funkcia normálneho rozdelenia `N(0, 1)` | `⟨−0,17; ∞)` | **skryté vrstvy transformerov** (BERT, GPT) — hladká, všade diferencovateľná verzia ReLU |
@@ -69,8 +69,8 @@ Neurón robí dva kroky:
 K posledným dvom riadkom:
 
 - **`α` v Leaky ReLU je hyperparameter**, nie učený parameter — volíte ho vy (bežne `0,01`)
-  a Adam s ním nič nerobí. Varianta **PReLU** z neho učený parameter spraví, ale tá sa
-  používa zriedka.
+  a Adam s ním nič nerobí. Varianta **PReLU** z neho robí učený parameter, používa sa však
+  zriedka.
 - **GELU** sa dá čítať ako „ReLU s mäkkým prechodom": namiesto tvrdého vypnutia pri nule
   násobí vstup pravdepodobnosťou `Φ(z)`, že je náhodná hodnota z `N(0, 1)` menšia než `z`.
   Pre veľké kladné `z` je `Φ(z) ≈ 1` (teda `GELU(z) ≈ z`), pre veľké záporné `z` je
@@ -102,7 +102,7 @@ sklon (derivácia) je presne to, čím sa pri backprope násobí gradient:
   gradient**), takže sieť sa prestane učiť. Preto sa v **skrytých** vrstvách hlbokých sietí
   už takmer nepoužívajú.
 - **Softmax** nie je funkcia jedného čísla, preto je vykreslený inak: berie celý vektor
-  výstupov naraz a spraví z neho pravdepodobnosti, ktoré dávajú spolu 100 %.
+  výstupov naraz a prevedie ho na pravdepodobnosti, ktoré dávajú spolu 100 %.
 
 Praktické pravidlo: **skryté vrstvy = ReLU, výstupná vrstva podľa úlohy** — sigmoid pre
 áno/nie, softmax pre výber z viacerých tried, žiadna aktivácia (identita) pre regresiu,
@@ -569,11 +569,11 @@ začiatku tréningu, rozdiel na konci je zvyčajne malý. V PyTorchi `torch.opti
 ### 8.4 RAdam — rektifikovaný Adam (warmup „zadarmo")
 
 **Problém.** V prvých krokoch je `v̂` odhadnuté z hŕstky vzoriek, takže má **obrovský
-rozptyl**. Náhodne malé `√v̂` znamená obrovský krok — a jediný taký krok vie hodiť model do
-zlej oblasti, z ktorej sa už nespamätá. Presne preto sa v praxi používa *warmup* (8.9).
+rozptyl**. Náhodne malé `√v̂` znamená obrovský krok — a jediný taký krok môže model zaviesť do
+zlej oblasti, z ktorej sa už nedostane. Presne preto sa v praxi používa *warmup* (8.9).
 
 **Riešenie (Liu et al., 2019).** RAdam rozptyl adaptívneho člena **spočíta** a krok ním
-vynásobí. Pokiaľ je odhad ešte nedôveryhodný, adaptívnu časť úplne vypne a spraví obyčajný
+vynásobí. Pokiaľ je odhad ešte nedôveryhodný, adaptívnu časť úplne vypne a urobí obyčajný
 krok s momentom:
 
 ```
@@ -606,7 +606,7 @@ P ← P − lr · m̂ / (√ŝ + ε)
 Interpretácia je pekná: `s` je odhad **rozptylu** gradientu, čiže „nedôvery" v smer.
 
 - Gradient sedí s predikciou (`g ≈ m`) → `s` malé → **veľký krok**. V dlhej rovnej dolinke
-  sa tak Adam plazí (lebo `g²` je veľké), zatiaľ čo AdaBelief zrýchli.
+  tak Adam postupuje zbytočne pomaly (lebo `g²` je veľké), zatiaľ čo AdaBelief zrýchli.
 - Gradient skáče okolo `m` → `s` veľké → **malý, opatrný krok**.
 
 **Kedy použiť:** keď má úloha dlhé úzke „rokliny" a Adam v nich spomaľuje. Nie je súčasťou
@@ -698,8 +698,8 @@ opt.lr = lr_at(global_step)
 ```
 
 Alternatívy: lineárny pokles (jednoduchší, takmer rovnako dobrý), *step decay* (vydelenie
-desiatimi po pevných epochách, klasika z CNN sveta) alebo `ReduceLROnPlateau` (zníženie `lr`,
-keď sa validačný loss prestane zlepšovať).
+desiatimi po pevných epochách, klasika z oblasti CNN) alebo `ReduceLROnPlateau` (zníženie `lr`,
+keď validačný loss prestane klesať).
 
 ---
 
@@ -819,7 +819,7 @@ for epoch in range(num_epochs):
 | **AMSGrad** (8.2) | delí maximom `v̂` | loss občas vyskočí, tréning nekonverguje | +1 pole na parameter |
 | **Nadam** (8.3) | moment sa pozerá dopredu | chcete rýchlejší štart | žiadna |
 | **RAdam** (8.4) | vypne adaptivitu, kým je neistá | nechcete ladiť warmup | žiadna |
-| **AdaBelief** (8.5) | `v` z odchýlky `(g − m)²` | Adam sa plazí v úzkej dolinke | žiadna |
+| **AdaBelief** (8.5) | `v` z odchýlky `(g − m)²` | Adam v úzkej dolinke spomaľuje | žiadna |
 | **Adamax** (8.6) | ∞-norma namiesto `g²` | riedke gradienty, embeddingy | žiadna |
 | **Lookahead** (8.7) | pomalé + rýchle váhy | veľký rozptyl medzi behmi | 1 kópia váh |
 | **Adafactor / 8-bit / Lion** (8.11) | menší stav optimalizátora | nevojdete sa do pamäte GPU | mierna strata kvality |
@@ -827,10 +827,10 @@ for epoch in range(num_epochs):
 **Poradie, v akom to riešiť.** Keď tréning nekonverguje, **nezačínajte výmenou variantu
 Adama** — zisk býva rádovo menší než zisk zo správneho `lr`, rozvrhu a clippingu:
 
-1. Over `lr` (rádový sweep: `1e-2`, `1e-3`, `1e-4`).
-2. Pridaj **clipping** (8.8) a **warmup + cosine** (8.9).
-3. Prepni Adam → **AdamW** (8.1) a nalaď `λ`, biasy a LayerNorm vynechaj.
-4. Až potom skús iný variant jadra (AMSGrad, RAdam, AdaBelief) — a vždy meraj na validačnej
+1. Overte `lr` (rádové porovnanie: `1e-2`, `1e-3`, `1e-4`).
+2. Pridajte **clipping** (8.8) a **warmup + cosine** (8.9).
+3. Prepnite Adam → **AdamW** (8.1) a nalaďte `λ`; biasy a LayerNorm vynechajte.
+4. Až potom skúste iný variant jadra (AMSGrad, RAdam, AdaBelief) — a vždy merajte na validačnej
    množine, nie na trénovacej.
 
 Ak vám tréning nekonverguje z úplne iného dôvodu (zlá inicializácia, mŕtve neuróny, nevhodná
@@ -854,7 +854,7 @@ Ako si overiť, že je Adam implementovaný dobre:
    - či nedelíte nulou (chýbajúce `+ ε` alebo `t` začína od 0),
    - či `m`, `v` majú správny tvar a nie sú náhodou zdieľané medzi parametrami,
    - či je `lr` primeraný (skúste `0.001`).
-4. **Sanity check na malom probléme** — najprv otestujte na jednoduchej úlohe (napr. XOR alebo
+4. **Overenie na malom probléme** (*sanity check*) — najprv otestujte na jednoduchej úlohe (napr. XOR alebo
    aproximácia funkcie), kde rýchlo vidno, či sieť konverguje.
 
 ---

@@ -29,13 +29,13 @@ Podstatná je **rovnaká výstupná schopnosť** (odpovedať na otázky z textu)
 
 ## Voľba dokumentu (spoločné pre obe úlohy)
 
-Vyberte si **jeden dostatočne dlhý text**, ktorý model **nemá napamäť** — tzn. **nie** slávnu
+Vyberte si **jeden dostatočne dlhý text**, ktorý model **nemá naspamäť** — teda **nie** slávnu
 knihu z tréningových dát (žiadny Harry Potter, Biblia, Wikipedia „Slovensko"…). Cieľom je, aby
 model **bez vašej úpravy odpovedať nevedel**.
 
 Vhodné zdroje:
 
-- **vlastný / firemný dokument, skriptá, diplomovka, manuál, zmluva,**
+- **vlastný / firemný dokument, skriptá, diplomová práca, manuál, zmluva,**
 - **odborný článok alebo `arXiv` preprint** (novší než tréningové dáta modelu),
 - **menej známa kniha z [Project Gutenberg](https://www.gutenberg.org/)**,
 - **dokumentácia knižnice**, ktorú model nepozná.
@@ -107,16 +107,16 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
 1. **Chunking** — dokument rozdeľte na časti (*chunky*) (napr. 200–500 tokenov s prekryvom ~50).
    Zvážte delenie po odsekoch/vetách, nie naslepo v strede vety.
    > *Podklad:* stratégie chunkingu a metadáta sú rozpísané v [06-rag.md](../tutorials/04-llm/06-rag.md).
-2. **Embeddingy** — každý chunk preveďte na vektor embeddovacím modelom
+2. **Embeddingy** — každý chunk preveďte na vektor embedding modelom
    (napr. `sentence-transformers/all-MiniLM-L6-v2` alebo viacjazyčný `intfloat/multilingual-e5-small`).
 3. **Index** — vektory (a k nim pôvodný text + metadáta) uložte do vektorovej databázy /
    FAISS indexu.
-   > *Hint:* embeddingy **normalizujte** a používajte kosínusovú podobnosť — prečo, viď
+   > *Pomôcka:* embeddingy **normalizujte** a používajte kosínusovú podobnosť — prečo, viď
    > [05-embeddings.md](../tutorials/04-llm/05-embeddings.md) (sekcia o normalizácii).
 
 ## A2 — Dotaz (online)
 
-1. Otázku embedujte **tým istým** modelom ako chunky.
+1. Otázku preveďte na vektor **tým istým** modelom ako chunky.
 2. Nájdite **top-k** najpodobnejších chunkov (napr. `k = 3–5`).
 3. Zostavte **prompt** vo formáte:
    ```
@@ -129,7 +129,7 @@ Cieľ: model odpovedá **s pomocou vyhľadaného kontextu**, váhy sa nemenia.
    Otázka: {otázka}
    ```
 4. Prompt pošlite LLM a vypíšte odpoveď **spolu s tým, z ktorých chunkov čerpala** (zdroje).
-   > *Hint:* pri generovaní nastavte **nízku teplotu** (`temperature ≈ 0–0.3`, prípadne
+   > *Pomôcka:* pri generovaní nastavte **nízku teplotu** (`temperature ≈ 0–0.3`, prípadne
    > `do_sample=False`) a rovnaké nastavenie použite aj pre baseline — inak neporovnávate
    > pipeline, ale náhodu. Viď [dekódovanie](../tutorials/04-llm/01-transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie).
 
@@ -159,7 +159,7 @@ Model sa neučí zo surového textu dobre — potrebuje **inštrukčný formát*
 **dvojíc otázka → odpoveď** (prípadne inštrukcia → odpoveď) postavených nad vaším dokumentom:
 
 1. Z textu vygenerujte **desiatky až stovky** dvojíc Q&A pokrývajúcich fakty z dokumentu.
-   > *Hint:* dvojice môžete pripraviť **ručne**, alebo si ich nechať **vygenerovať silnejším
+   > *Pomôcka:* dvojice môžete pripraviť **ručne**, alebo si ich nechať **vygenerovať silnejším
    > LLM** z jednotlivých pasáží (a potom prekontrolovať). Napíšte, ako ste ich získali.
 2. Naformátujte ich do **chat/inštrukčnej šablóny** daného modelu
    (`tokenizer.apply_chat_template`).
@@ -173,7 +173,7 @@ Model sa neučí zo surového textu dobre — potrebuje **inštrukčný formát*
 2. Trénujte cez `trl.SFTTrainer` (alebo vlastnú slučku) niekoľko epôch, sledujte **loss**.
 3. Uložte **LoRA adaptér** (nie celý model — stačia váhy adaptéra).
 
-> *Hint:* sledujte **overfitting** — pri malom datasete a veľa epochách si model zapamätá
+> *Pomôcka:* sledujte **overfitting** — pri malom datasete a veľa epochách si model zapamätá
 > vety doslova. Cieľ je, aby vedel odpovedať aj na **inak formulovanú** otázku.
 
 ## B3 — Experimenty (fine-tuning)

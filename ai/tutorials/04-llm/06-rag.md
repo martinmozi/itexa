@@ -2,7 +2,7 @@
 
 > **Poradie čítania:** ← [Embeddingy](05-embeddings.md) · **lekcia 6** · [Fine-tuning: LoRA a QLoRA](07-fine-tuning-lora.md) →
 
-**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **podsunieme do promptu** — ale len tie časti, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](05-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
+**RAG** (*Retrieval-Augmented Generation*) rieši jednoduchý problém: jazykový model nepozná vaše dokumenty a doučiť mu ich je drahé a nepružné. Namiesto toho mu ich **vložíme priamo do promptu** — ale len tie časti, ktoré sa práve na otázku hodia. Celé to stojí na vektoroch z [predchádzajúceho dokumentu](05-embeddings.md): keď je otázka aj text uložený ako vektor, „nájdi relevantné" sa zmení na „nájdi najbližšie".
 
 Celá pipeline má dve polovice — jednu, ktorá beží raz dopredu, a druhú, ktorá beží pri každej otázke:
 
@@ -19,7 +19,7 @@ Celá pipeline má dve polovice — jednu, ktorá beží raz dopredu, a druhú, 
    │                (malý LLM, CPU/GPU)                       │                       │
    │                                                          ▼                       │
    │                                            [reranker / cross-encoder]            │
-   │                                             (malý LLM, DRAHÝ – GPU rád)          │
+   │                                             (malý LLM, DRAHÝ – žiada si GPU)     │
    │                                                          │                       │
    │                                                          ▼                       │
    │                                        top-3 chunky ──► [veľký generatívny LLM]  │
@@ -29,7 +29,7 @@ Celá pipeline má dve polovice — jednu, ktorá beží raz dopredu, a druhú, 
 
 V hranatých zátvorkách sú **modely, ktoré reálne počítajú** (a teda spotrebujú CPU/GPU). Všimnite si, že „malých" modelov je viac a bežia na rôznych miestach – nižšie rozoberieme každý z nich.
 
-Kľúčové je uvedomiť si, že **v RAG bežia typicky až tri modely**, a dva z nich sú „malé" LLM-ká, ktoré napriek tomu **nie sú zadarmo** na výpočet.
+Kľúčové je uvedomiť si, že **v RAG bežia typicky až tri modely**, a dva z nich sú „malé" modely, ktoré napriek tomu **nie sú zadarmo** na výpočet.
 
 ---
 
@@ -42,7 +42,7 @@ Toto sa robí **raz** (alebo pri zmene dokumentov) a je to *dávkové* spracovan
 3. **Embedding** – každý chunk prejde embedding modelom ([05-embeddings.md](05-embeddings.md)) → vektor.
 4. **Indexovanie** – vektory + metadáta (ID chunku, `parent_id`, zdroj, odkaz na text) sa uložia do vektorovej DB (napr. FAISS).
 
-Keďže je to offline a dávkové, dá sa to nechať bežať aj dlhšie na CPU, alebo to výrazne zrýchliť na GPU pri veľkom objeme dokumentov. **Latencia tu nie je kritická**, dôležitý je throughput.
+Keďže je to offline a dávkové, dá sa to nechať bežať aj dlhšie na CPU, alebo to výrazne zrýchliť na GPU pri veľkom objeme dokumentov. **Latencia tu nie je kritická**, dôležitá je priepustnosť.
 
 ### Chunking – prečo naň záleží
 
@@ -74,7 +74,7 @@ chunk B: tokeny 22–51    "… Nevyčerpanú dovolenku možno preniesť … so 
 chunk C: tokeny 44–70    "… Preplácanie dovolenky je možné iba pri skončení pracovného pomeru."
 ```
 
-Všimnite si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 tokenov overlapu. Prečo? Predstavme si otázku *„Kedy vzniká nárok na dovolenku?"* – odpoveď („po odpracovaní 60 dní") leží presne na hranici. Bez overlapu by sa mohla rozseknúť medzi dva chunky a ani jeden by ju neobsahoval celú. Overlap túto stratu na hraniciach zmierňuje. Cena je **redundancia**: prekrývajúci text sa embedduje a ukladá viackrát (pri overlape 8 z 30 tokenov je to ~27 % dát navyše).
+Všimnite si, že tokeny `22–29` sú **v chunku A aj B** – to je tých 8 tokenov overlapu. Prečo? Predstavme si otázku *„Kedy vzniká nárok na dovolenku?"* – odpoveď („po odpracovaní 60 dní") leží presne na hranici. Bez overlapu by sa mohla rozseknúť medzi dva chunky a ani jeden by ju neobsahoval celú. Overlap túto stratu na hraniciach zmierňuje. Cena je **redundancia**: prekrývajúci text sa spracuje embedding modelom a uloží viackrát (pri overlape 8 z 30 tokenov je to ~27 % dát navyše).
 
 ### Stratégie delenia (od najhoršej po najlepšiu)
 
@@ -116,7 +116,7 @@ Príklad: child-chunk „nárok vzniká po odpracovaní 60 dní" sa vo vyhľadá
 
 Toto sa deje **pri každej otázke používateľa** a tu už **latencia záleží** – používateľ čaká na odpoveď:
 
-1. **Embedding otázky** – tá istá cesta ako pri chunkoch ([05-embeddings.md](05-embeddings.md)), ale len pre jednu krátku vetu → *query vektor*. Keďže je to bi-encoder, chunky boli zaembeddované vopred, teraz sa počíta iba embedding query.
+1. **Embedding otázky** – tá istá cesta ako pri chunkoch ([05-embeddings.md](05-embeddings.md)), ale len pre jednu krátku vetu → *query vektor*. Keďže je to bi-encoder, vektory chunkov sú spočítané vopred a teraz sa počíta iba vektor otázky.
 2. **Vyhľadanie top-k** – vo FAISS sa nájde napr. `top-20–50` najbližších vektorov (rýchle, čistá lineárna algebra / ANN index).
 3. **Reranking (voliteľné, ale veľmi účinné)** – užší set kandidátov prejde cross-encoderom, ktorý vyberie skutočný `top-3–5`.
 4. **Generovanie odpovede** – vybrané chunky sa vložia do promptu a **veľký generatívny LLM** vygeneruje odpoveď.
@@ -133,7 +133,7 @@ riadok | id            | vektor
    3   | chunk_vypoved   | [ 0.20, 0.10, 0.97 ]
 ```
 
-Príde otázka *„Koľko dní dovolenky mám?"*, zaembedduje sa ([rovnakým modelom](05-embeddings.md)) a znormuje na query vektor:
+Príde otázka *„Koľko dní dovolenky mám?"*, [rovnakým modelom](05-embeddings.md) sa prevedie na vektor a znormuje sa na query vektor:
 
 ```text
 q = [ 0.78, 0.60, 0.18 ]
@@ -152,7 +152,7 @@ Zoradené zostupne: `dovolenka (0.990) > nadcas (0.951) > mzda (0.429) > vypoved
 
 ### Flat vs. ANN – prečo nie vždy počítame všetkých N
 
-To, čo sme práve spravili (porovnať query so **všetkými** vektormi), je **brute-force / flat** index (`IndexFlatIP`, `IndexFlatL2`). Je **presný**, ale je `O(N·dim)` na dotaz – pri miliónoch chunkov to je pri každej otázke priveľa.
+To, čo sme práve urobili (porovnať query so **všetkými** vektormi), je **brute-force / flat** index (`IndexFlatIP`, `IndexFlatL2`). Je **presný**, ale je `O(N·dim)` na dotaz – pri miliónoch chunkov to je pri každej otázke priveľa.
 
 Preto existujú **ANN** indexy (*Approximate Nearest Neighbor*), ktoré obetujú štipku presnosti za obrovské zrýchlenie:
 
@@ -202,24 +202,24 @@ otázka
 
 Fáza 1 zúži milióny chunkov na desiatky (lacno). Fáza 2 tých pár desiatok **dôkladne prehodnotí** (draho, ale už len `k`-krát). Bez fázy 1 by bol reranker neúnosne drahý (bežal by `N`×), bez fázy 2 zas do promptu prepadnú „falošne podobné" chunky.
 
-**Prečo to zvyšuje kvalitu.** Do generatívneho LLM sa zmestí len pár chunkov. Ak je medzi nimi ten správny, ale až na 8. mieste, a vy berete `top-5`, **odpoveď v kontexte vôbec nie je** a model buď mlží, alebo povie „neviem". Reranker ten správny chunk posunie z 8. na 1.–2. miesto → **recall v rámci malého okna sa zásadne zlepší** (metrika *nDCG* / *recall@k*).
+**Prečo to zvyšuje kvalitu.** Do generatívneho LLM sa zmestí len pár chunkov. Ak je medzi nimi ten správny, ale až na 8. mieste, a vy berete `top-5`, **odpoveď v kontexte vôbec nie je** a model buď odpovedá vyhýbavo, alebo povie „neviem". Reranker ten správny chunk posunie z 8. na 1.–2. miesto → **recall v rámci malého okna sa zásadne zlepší** (metrika *nDCG* / *recall@k*).
 
 ### Kedy má reranking zmysel
 
 - **Otázky vyžadujú porozumenie, nie len zhodu slov** – parafrázy, súvislosti, „prečo/ako". Tu čistý bi-encoder najviac chybuje.
-- **Veľká alebo šumivá databáza** – veľa chunkov, ktoré sú si navzájom podobné; treba jemne rozlíšiť, ktorý *naozaj* odpovedá.
+- **Veľká alebo zašumená databáza** – veľa chunkov, ktoré sú si navzájom podobné; treba jemne rozlíšiť, ktorý *naozaj* odpovedá.
 - **Malé okno kontextu / drahý generatívny LLM** – keď si môžete dovoliť poslať len 3–5 chunkov, kvalita tých pár rozhoduje o všetkom.
 - **Používate hybridný alebo ANN retrieval** – kombinujete BM25 + vektory alebo ANN index (IVF/HNSW), ktorý vracia širší, „hrubší" set; reranker ho dočistí.
 - **Kvalita odpovede je dôležitejšia než pár desiatok ms latencie** – interné vyhľadávanie, právo, medicína, podpora.
 
 ### Kedy sa (zatiaľ) neoplatí
 
-- **Malá databáza a jasné, kľúčovkové otázky** – ak `top-5` z bi-encodera už spoľahlivo obsahuje odpoveď, reranker nič nepridá, len pridá latenciu.
-- **Prísny latency rozpočet bez GPU** – cross-encoder na CPU vie pridať stovky ms až sekundy na dotaz (viď nižšie); v real-time chate to môže byť neúnosné.
+- **Malá databáza a jasné otázky postavené na kľúčových slovách** – ak `top-5` z bi-encodera už spoľahlivo obsahuje odpoveď, reranker nič nepridá, len pridá latenciu.
+- **Prísny latency rozpočet bez GPU** – cross-encoder na CPU vie pridať stovky ms až sekundy na dotaz (viď nižšie); v interaktívnom chate to môže byť neúnosné.
 - **Málo kandidátov** – rerankovať `top-3` nemá zmysel, keď aj tak všetky tri idú do promptu.
 - **Skôr riešte základy** – ak je slabý **chunking** alebo nevhodný **embedding model**, reranker to nezachráni; najprv opravte fázu 1.
 
-> **Pravidlo palca:** začnite **bez** rerankera (bi-encoder + `top-5`) a zmerajte kvalitu. Ak sa ukáže, že správny chunk *sa vyhľadá, ale je príliš nízko* (je v `top-20`, ale nie v `top-5`), pridajte reranker – vytiahnite `top-20–50` a nechajte ho vybrať finálnych 3–5. To je presne situácia, keď reranking dáva najväčší zisk za najmenšiu prácu.
+> **Praktické pravidlo:** začnite **bez** rerankera (bi-encoder + `top-5`) a zmerajte kvalitu. Ak sa ukáže, že správny chunk *sa vyhľadá, ale je príliš nízko* (je v `top-20`, ale nie v `top-5`), pridajte reranker – vytiahnite `top-20–50` a nechajte ho vybrať finálnych 3–5. To je presne situácia, keď reranking dáva najväčší zisk za najmenšiu prácu.
 
 **Voľba modelu.** Bežné rerankery: `cross-encoder/ms-marco-MiniLM-L-6-v2` (rýchly, anglický), `BAAI/bge-reranker-v2-m3` (viacjazyčný, aj slovenčina), `jina-reranker`. Používajú sa cez `sentence-transformers` (`CrossEncoder`) – dostanú zoznam dvojíc *(otázka, chunk)* a vrátia skóre.
 
@@ -232,7 +232,7 @@ Zhrnutie, prečo aj „malé" modely reálne potrebujú výkon:
 - **Kde je záťaž:** drvivá väčšina výpočtu je v **transformer vrstvách** – maticové násobenia Q/K/V, self-attention `O(n²)` a feed-forward vrstvy. Tokenizácia a lookup v embedding matici sú zanedbateľné, pooling a normalizácia tiež (rozpísané krok po kroku v [05-embeddings.md](05-embeddings.md)).
 
 - **Embedding model (bi-encoder) – CPU zvládne, GPU zrýchli:**
-  - *Offline indexovanie* je dávkové → CPU stačí, GPU sa oplatí len pri veľkých objemoch (throughput).
+  - *Offline indexovanie* je dávkové → CPU stačí, GPU sa oplatí len pri veľkých objemoch (priepustnosť).
   - *Query embedding pri dotaze* je jedna krátka veta → na CPU rádovo desiatky ms, čo býva OK.
 
 - **Reranker (cross-encoder) – tu GPU dáva najväčší zmysel:**
@@ -241,17 +241,17 @@ Zhrnutie, prečo aj „malé" modely reálne potrebujú výkon:
   - Na CPU to vie pridať stovky ms až sekundy na dotaz; na GPU je to prijateľné.
   - **Toto je typicky prvý kandidát na GPU** v RAG systéme.
 
-- **Batchovanie:** modely bežia efektívnejšie, keď spracúvajú viac vstupov naraz (jeden veľký maticový výpočet). Pri indexovaní sa to využíva prirodzene; pri online dotaze menej (jedna otázka), preto tam pomáha práve GPU alebo aspoň dobre nastavené vlákna na CPU.
+- **Dávkovanie:** modely bežia efektívnejšie, keď spracúvajú viac vstupov naraz (jeden veľký maticový výpočet). Pri indexovaní sa to využíva prirodzene; pri online dotaze menej (jedna otázka), preto tam pomáha práve GPU alebo aspoň dobre nastavené vlákna na CPU.
 
 - **Kvantizácia (INT8/FP16):** malé modely sa dajú kvantizovať, čím klesne pamäť aj výpočet a na CPU to beží citeľne rýchlejšie – za cenu malej straty presnosti. Bežný kompromis pri lokálnom nasadení.
 
-> **Zhrnutie pre nasadenie:** embedding model rád beží aj na CPU (najmä query pri dotaze), reranker si o GPU priam pýta, a veľký generatívny LLM je úplne iná váhová kategória (rieši sa samostatne – lokálne GPU alebo API). Pri plánovaní hardvéru pre RAG počítajte s tým, že **„malé modely" sú malé len v porovnaní s generatívnym LLM** – na CPU sú stále citeľnou záťažou, hlavne reranker pri každom dotaze.
+> **Zhrnutie pre nasadenie:** embedding model rád beží aj na CPU (najmä query pri dotaze), reranker GPU prakticky vyžaduje a veľký generatívny LLM je úplne iná váhová kategória (rieši sa samostatne – lokálne GPU alebo API). Pri plánovaní hardvéru pre RAG počítajte s tým, že **„malé modely" sú malé len v porovnaní s generatívnym LLM** – na CPU sú stále citeľnou záťažou, hlavne reranker pri každom dotaze.
 
 ---
 
 ## 6. Pokročilý retrieval — kam sa RAG posunul
 
-Sekcie 1 a 2 opisujú **základnú pipeline**, ktorá stačí na zadanie aj na väčšinu firemných nasadení: chunkovať → embeddovať → hľadať top-k → prípadne rerankovať → generovať. Nasledujúce techniky riešia jej konkrétne slabiny. Nasadzujte ich **až keď zmeriate, že základ nestačí** – každá pridáva latenciu aj kód.
+Sekcie 1 a 2 opisujú **základnú pipeline**, ktorá stačí na zadanie aj na väčšinu firemných nasadení: chunkovať → previesť na vektory → hľadať top-k → prípadne rerankovať → generovať. Nasledujúce techniky riešia jej konkrétne slabiny. Nasadzujte ich **až keď zmeriate, že základ nestačí** – každá pridáva latenciu aj kód.
 
 ### 1. Hybridné vyhľadávanie (vektor + BM25)
 
@@ -266,7 +266,7 @@ Vektorové vyhľadávanie chytá **význam**, ale zlyháva na presných reťazco
 Používateľská otázka často nevyzerá ako text, ktorý hľadáme:
 
 - **Rozšírenie / prepis** – LLM otázku preformuluje do podoby bližšej dokumentom (doplní synonymá, odborný termín).
-- **HyDE** (*Hypothetical Document Embeddings*) – LLM najprv **vymyslí hypotetickú odpoveď**, tá sa zaembedduje a hľadá sa podľa nej. Hľadáme tak odpoveď podobnú odpovedi, nie odpoveď podobnú otázke – čo je geometricky bližšie.
+- **HyDE** (*Hypothetical Document Embeddings*) – LLM najprv **vymyslí hypotetickú odpoveď**, tá sa prevedie na vektor a hľadá sa podľa nej. Hľadáme tak odpoveď podobnú odpovedi, nie odpoveď podobnú otázke – čo je geometricky bližšie.
 - **Rozklad na podotázky** – zložená otázka („Ako sa líši nárok na dovolenku u nás a v zmluve X?") sa rozbije na samostatné dotazy a výsledky sa spoja (*multi-hop*).
 
 Cena je vždy jedno LLM volanie navyše pred vyhľadávaním.
@@ -295,12 +295,12 @@ Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, 
 
 ---
 
-## TL;DR
+## Zhrnutie
 
 - **Chunking**: cieľ ~200–500 tokenov, **overlap** proti roztrhnutiu myšlienky na hranici, **metadáta** (`text`, `source`, `parent_id`…) sa ukladajú popri vektore, **parent-child** = hľadaj malým, vkladaj veľký.
 - **Vyhľadávanie** = `N` dot productov + zoradenie (flat index), alebo **ANN** (IVF/HNSW/PQ) pre veľké `N` – rýchlejšie za cenu drobnej straty presnosti; preto sa dočisťuje rerankerom.
 - V RAG bežia **tri modely**: embedding (lacný, bi-encoder), reranker (drahý, cross-encoder, beží `k`× na dotaz), generatívny LLM (samostatná kategória).
-- Výpočet drží **transformer vrstvy** (`O(n²)` attention + maticové násobenia). Embedding zvládne **CPU**, reranker si pýta **GPU**.
+- Výpočet drží **transformer vrstvy** (`O(n²)` attention + maticové násobenia). Embedding zvládne **CPU**, reranker si vyžaduje **GPU**.
 - Keď základ nestačí: **hybrid** (vektor + BM25) na presné kódy a mená, **prepis dotazu / HyDE** na zle formulované otázky, **filtre nad metadátami** na oprávnenia, **agentický RAG** na zložené otázky — všetko za cenu latencie.
 
 ---
@@ -310,11 +310,11 @@ Zaplatí sa za to viacerými LLM volaniami na jednu otázku – teda latenciou, 
 1. Kolega navrhuje chunky po 5 000 tokenov, „aby sa nič nestratilo". Vysvetlite mu dva problémy, ktoré tým vzniknú.
 2. Otázka „Kedy vzniká nárok na dovolenku?" má odpoveď presne na hranici dvoch chunkov. Ktorý mechanizmus z tohto dokumentu problém rieši a ako?
 3. Prečo sa cross-encoder (reranker) nikdy nepúšťa na celú databázu, ale bi-encoder áno? (Kľúč: čo sa dá predpočítať.)
-4. Zaindexovali ste databázu modelom A a otázky embeddujete modelom B (rovnaká dimenzia výstupu). Prečo vyhľadávanie vráti nezmysly?
+4. Zaindexovali ste databázu modelom A a otázky prevádzate na vektory modelom B (rovnaká dimenzia výstupu). Prečo vyhľadávanie vráti nezmysly?
 5. Kedy sa oplatí ANN index (IVF/HNSW) namiesto flat indexu a čím za to platíte?
 6. Používatelia sa sťažujú, že RAG nenájde dokument, keď zadajú presné číslo zmluvy `ZML-2024/118`. Prečo na tom vektorové vyhľadávanie zlyháva a čím to opravíte?
 7. Čo robí HyDE a prečo môže hľadanie podľa vymyslenej odpovede fungovať lepšie než hľadanie podľa otázky?
-8. Ktoré tri modely v RAG pipeline bežia a ktorý z nich si pýta GPU?
+8. Ktoré tri modely v RAG pipeline bežia a ktorý z nich si vyžaduje GPU?
 
 ---
 

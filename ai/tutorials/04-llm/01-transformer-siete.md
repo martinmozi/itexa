@@ -12,7 +12,7 @@ Nadväzuje na všeobecný [prehľad AI a modelov](../01-prehlad/README.md). Ako 
 
 Pred rokom 2017 sa text a postupnosti spracovávali hlavne **rekurentnými sieťami (RNN, LSTM)**. Tie čítali vetu **slovo po slove**, zľava doprava, a niesli si so sebou „pamäť". Mali dva zásadné problémy:
 
-1. **Sekvenčnosť** — token č. 100 sa nedal spracovať, kým nebol hotový token č. 99. Nedalo sa to poriadne paralelizovať, teda ani rýchlo trénovať na GPU.
+1. **Sekvenčnosť** — token č. 100 sa nedal spracovať, kým nebol hotový token č. 99. Nedalo sa to efektívne paralelizovať, teda ani rýchlo trénovať na GPU.
 2. **Krátka pamäť** — informácia zo začiatku dlhej vety sa cestou „rozriedila", model zabúdal vzdialený kontext.
 
 Článok *„Attention Is All You Need"* (2017) navrhol architektúru **transformer**, ktorá obe veci rieši jedným ťahom: zahodí rekurenciu a nahradí ju **mechanizmom attention**, ktorý dovolí každému tokenu **priamo sa pozrieť na všetky ostatné naraz**. Tým sa spracovanie dá plne paralelizovať a vzdialený kontext je rovnako dostupný ako blízky.
@@ -63,9 +63,9 @@ Mechanizmus pracuje s tromi rolami, ktoré si každý token vyrobí zo svojho ve
 - **Key (K)** — *„čo ponúkam / čím sa dám nájsť?"* (nálepka tokenu)
 - **Value (V)** — *„akú informáciu nesiem?"* (obsah tokenu)
 
-Analógia s vyhľadávaním: **Query** je to, čo napíšeš do vyhľadávača, **Key** sú kľúčové slová stránok a **Value** je samotný obsah stránky, ktorý dostaneš, keď sa Query s Key zhodujú.
+Analógia s vyhľadávaním: **Query** je to, čo zadáte do vyhľadávača, **Key** sú kľúčové slová stránok a **Value** je samotný obsah stránky, ktorý dostanete, keď sa Query s Key zhodujú.
 
-![Detail self-attention: tokeny sa premietnu na Query, Key a Value; spočíta sa skóre podobnosti Q·K, škáluje sa a prejde softmaxom na váhy, ktorými sa spraví vážený súčet hodnôt V; príklad ukazuje, že zámeno „ju" dá najväčšiu váhu slovu „rybu"](../../images/self-attention.svg)
+![Detail self-attention: tokeny sa premietnu na Query, Key a Value; spočíta sa skóre podobnosti Q·K, škáluje sa a prejde softmaxom na váhy, ktorými sa spočíta vážený súčet hodnôt V; príklad ukazuje, že zámeno „ju" dá najväčšiu váhu slovu „rybu"](../../images/self-attention.svg)
 
 Výpočet má tri kroky (na obrázku očíslované):
 
@@ -98,7 +98,7 @@ Jedna attention „hlava" zachytí **jeden typ vzťahu** (napr. gramatickú zhod
 Postup:
 
 1. Vstup prejde **jednou** projekciou na Q, K a V a ten výsledok sa **rozdelí na `h` hláv** (napr. 8, 12, 96…) — každá hlava dostane svoj výsek `d/h` súradníc. (Hlavy teda nie sú `h` samostatných matíc: je to jedna veľká matica a potom preskupenie rozmerov. Pri implementácii je to obyčajný `reshape` — detaily v [02-transformer-vnutro.md](02-transformer-vnutro.md#4-cesta-jedného-vektora-jednou-vrstvou).)
-2. Každá hlava spraví **vlastnú self-attention** (presne tú z predchádzajúcej sekcie) — a keďže má vlastné váhy, naučí sa sledovať iný typ vzťahu.
+2. Každá hlava vykoná **vlastnú self-attention** (presne tú z predchádzajúcej sekcie) — a keďže má vlastné váhy, naučí sa sledovať iný typ vzťahu.
 3. Výstupy všetkých hláv sa **spoja (concat)** a prejdú cez výstupnú lineárnu vrstvu `W_O`.
 
 **Dôležité:** viac hláv **nezvyšuje** výpočtovú náročnosť dramaticky — každá hlava pracuje s menším rozmerom, takže spolu to stojí zhruba ako jedna veľká attention, ale model získa **oveľa bohatšiu reprezentáciu**. Rôzne hlavy sa reálne špecializujú — pri vizualizácii vidno hlavy, ktoré párujú sloveso s podmetom, iné zas zátvorky či zámená.
@@ -130,7 +130,7 @@ Poskladajme diely do jedného behu **decoder-only** modelu (GPT/Claude štýl), 
 1. Prompt („Aké je hlavné mesto Slovenska?") sa tokenizuje a prevedie na embeddingy + positional encoding.
 2. Prejde N decoder blokmi:  maskovaná multi-head self-attention → Add&Norm → feed-forward → Add&Norm.
    → každý token nazbiera kontext z predošlých tokenov.
-3. Z posledného vektora spraví Linear + Softmax pravdepodobnosti pre KAŽDÝ token slovníka.
+3. Z posledného vektora vyrobí Linear + Softmax pravdepodobnosti pre KAŽDÝ token slovníka.
 4. Vyberie sa ďalší token (napr. „Bratislava").
 5. Ten token sa PRIPOJÍ na koniec vstupu a celé sa to zopakuje od kroku 2 — token po tokene,
    kým model nevygeneruje značku konca.
@@ -142,7 +142,7 @@ Tento „autoregresívny" cyklus — *predpovedz ďalší token, priraď ho, opa
 
 ### Ako presne sa vyberá „ďalší token" (dekódovanie)
 
-Krok 4 vyššie sme odbavili slovami „vyberie sa ďalší token" — v skutočnosti je to nastavenie,
+Krok 4 sme vyššie zhrnuli slovami „vyberie sa ďalší token" — v skutočnosti je to nastavenie,
 ktoré zásadne mení správanie modelu, a v oboch zadaniach ho budete zadávať:
 
 - **Greedy** — vezme sa vždy token s najvyššou pravdepodobnosťou. Deterministické (rovnaký prompt
@@ -156,8 +156,8 @@ ktoré zásadne mení správanie modelu, a v oboch zadaniach ho budete zadávať
   (napr. 0.9) pravdepodobnostnej hmoty; zvyšný dlhý chvost sa odreže. Príbuzné **top-k** necháva
   pevný počet `k` najlepších.
 
-Praktické pravidlo: na **faktické** úlohy (RAG, extrakcia, klasifikácia) choďte greedy alebo veľmi
-nízka teplota (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p ≈ 0.9`. V Hugging Face
+Praktické pravidlo: na **faktické** úlohy (RAG, extrakcia, klasifikácia) voľte greedy dekódovanie alebo veľmi
+nízku teplotu (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p ≈ 0.9`. V Hugging Face
 `transformers` sú to parametre `do_sample`, `temperature`, `top_p`, `top_k` a `max_new_tokens`.
 
 > Zapamätajte si to pred zadaním 2: ak RAG odpovedá zakaždým inak alebo si vymýšľa aj so správnym

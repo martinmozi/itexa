@@ -28,9 +28,9 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
 
 | # | Variant | Dataset (Hugging Face) | Vstup | Počet tried | Vlastný vstup |
 |---|---|---|---|---|---|
-| **1** | **Písmená (EMNIST Letters)** | [`randall-lab/emnist`](https://huggingface.co/datasets/randall-lab/emnist) (konfig. `letters`) | 28×28 grayscale | 26 (A–Z) | nakresli písmeno v MS Paint |
-| **2** | **Matematické symboly (HASYv2)** | [`randall-lab/hasy-v2`](https://huggingface.co/datasets/randall-lab/hasy-v2) | 32×32 grayscale | 369 (`+ − × ∑ √ …`) | nakresli symbol v MS Paint |
-| **3** | **Oblečenie (Fashion-MNIST)** | [`zalando-datasets/fashion_mnist`](https://huggingface.co/datasets/zalando-datasets/fashion_mnist) | 28×28 grayscale | 10 (tričko, topánka…) | nakresli/priprav obrázok kúska oblečenia |
+| **1** | **Písmená (EMNIST Letters)** | [`randall-lab/emnist`](https://huggingface.co/datasets/randall-lab/emnist) (konfig. `letters`) | 28×28 grayscale | 26 (A–Z) | vlastnoručne nakreslené písmeno (napr. v MS Paint) |
+| **2** | **Matematické symboly (HASYv2)** | [`randall-lab/hasy-v2`](https://huggingface.co/datasets/randall-lab/hasy-v2) | 32×32 grayscale | 369 (`+ − × ∑ √ …`) | vlastnoručne nakreslený symbol (napr. v MS Paint) |
+| **3** | **Oblečenie (Fashion-MNIST)** | [`zalando-datasets/fashion_mnist`](https://huggingface.co/datasets/zalando-datasets/fashion_mnist) | 28×28 grayscale | 10 (tričko, topánka…) | vlastný obrázok kusu oblečenia |
 
 > *Tip:* ako rozcvičku si môžete najprv skúsiť klasické **MNIST číslice**
 > ([`ylecun/mnist`](https://huggingface.co/datasets/ylecun/mnist)) — je to najjednoduchší prípad
@@ -50,7 +50,7 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
 
 ## Povolené nástroje
 
-- **Python** + **NumPy** (maticové operácie sú OK a odporúčané).
+- **Python** + **NumPy** (maticové operácie sú povolené a odporúčané).
 - **PyTorch** — **iba** v Časti 2B.
 - `datasets` (Hugging Face) na stiahnutie dát, `Pillow` na obrázky, `matplotlib` na vizualizáciu.
 
@@ -65,13 +65,13 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
    ds = load_dataset("zalando-datasets/fashion_mnist")
    train, test = ds["train"], ds["test"]
    ```
-   > *Hint:* pri EMNIST/HASYv2 doplňte príslušný `name=`/konfiguráciu podľa README datasetu.
+   > *Pomôcka:* pri EMNIST/HASYv2 doplňte príslušný `name=`/konfiguráciu podľa README datasetu.
 2. Každý obrázok preveďte na **vektor** (28×28 → 784, resp. 32×32 → 1024) a **normalizujte**
    pixely do rozsahu `<0, 1>` (delenie 255).
 3. Cieľové labely preveďte na **one-hot** vektory dĺžky = počet tried (pri PyTorch stačí index).
-   > *Hint:* vždy si najprv **vizualizujte pár vzoriek aj s labelmi** (`matplotlib`), aby ste
+   > *Pomôcka:* vždy si najprv **vizualizujte pár vzoriek aj s labelmi** (`matplotlib`), aby ste
    > overili orientáciu obrázka a správne priradenie tried.
-4. Z trénovacej časti si odkrojte **validačnú množinu** (napr. 10 %, `train` → `train` + `val`).
+4. Z trénovacej časti oddeľte **validačnú množinu** (napr. 10 %, `train` → `train` + `val`).
    Testovacia sada z datasetu zostane **nedotknutá** až do záverečného merania.
    > *Prečo:* v Časti 3 budete porovnávať niekoľko architektúr. Keby ste tú najlepšiu vybrali
    > podľa presnosti na testovacej sade, prestala by byť nezávislá a výsledné číslo by bolo
@@ -81,7 +81,7 @@ Všetky datasety sú na Hugging Face a načítajú sa knižnicou `datasets` (`pi
 
 ## Časť 2A — Vlastná sieť BEZ PyTorch
 
-Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje „pod kapotou".
+Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje vo vnútri siete.
 
 - **Vstupná vrstva:** podľa variantu (784 alebo 1024 neurónov).
 - **Skryté vrstvy:** konfigurovateľné — zadané ako zoznam, napr. `[128, 64]`.
@@ -89,7 +89,7 @@ Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje „pod kapoto
 
 ### Komponenty na implementáciu
 
-| Komponent | Hint |
+| Komponent | Pomôcka |
 |---|---|
 | Inicializácia váh | malé náhodné čísla `np.random.randn(...) * 0.01`, alebo **He/Xavier** |
 | Aktivácia (skryté) | `ReLU` alebo `sigmoid` |
@@ -99,10 +99,10 @@ Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje „pod kapoto
 | Spätné šírenie | reťazové pravidlo, gradienty `dW`, `db` |
 | Aktualizácia váh | najprv SGD `W -= lr*dW`, potom **Adam** (viď [01-adam-optimalizator.md](../tutorials/03-ucenie/01-adam-optimalizator.md)) |
 
-> *Hint k backpropu:* pri kombinácii **softmax + cross-entropy** sa gradient na výstupe
+> *Pomôcka k backpropu:* pri kombinácii **softmax + cross-entropy** sa gradient na výstupe
 > zjednoduší na `(predikcia − skutočnosť)`. Overte si to na papieri.
 
-> *Hint k tréningu:* použite **mini-batch** (napr. 32 alebo 64 vzoriek).
+> *Pomôcka k tréningu:* použite **mini-batch** (napr. 32 alebo 64 vzoriek).
 
 > *Keď sa sieť neučí:* skôr než začnete ladiť hyperparametre, prejdite si
 > **[02-problemy-pri-uceni.md](../tutorials/03-ucenie/02-problemy-pri-uceni.md)**. Začnite testom
@@ -127,10 +127,10 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 - Optimalizátor: `torch.optim.Adam` (rovnaký ako ste si napísali v Časti 2A).
 - Tréningová slučka: `forward → loss → loss.backward() → optimizer.step()`.
 
-> *Hint:* všimnite si, že `loss.backward()` nahrádza celý ručný backprop z Časti 2A a
+> *Pomôcka:* všimnite si, že `loss.backward()` nahrádza celý ručný backprop z Časti 2A a
 > `torch.optim.Adam` nahrádza váš vlastný Adam — presne to, čo ste si napísali sami.
 
-> *Hint:* dáta podávajte cez `DataLoader` s `batch_size` a `shuffle=True`.
+> *Pomôcka:* dáta podávajte cez `DataLoader` s `batch_size` a `shuffle=True`.
 
 ---
 
@@ -147,12 +147,12 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
    | `[128, 64]` | 0.001 | 10 | ? | ? |
    | `[256, 128, 64]` | 0.001 | 10 | ? | ? |
 
-   > *Hint:* cieľová presnosť závisí od variantu (MNIST/EMNIST > 95 %, Fashion-MNIST ~88 %,
+   > *Pomôcka:* cieľová presnosť závisí od variantu (MNIST/EMNIST > 95 %, Fashion-MNIST ~88 %,
    > HASYv2 podľa výberu podmnožiny tried). Viac vrstiev nie je vždy lepšie — sledujte aj čas.
 3. **Najlepšiu architektúru** z tabuľky zmerajte **raz** na testovacej sade a toto číslo uveďte
    ako výslednú presnosť. Ak je citeľne nižšie než validačná, napíšte do správy prečo.
 4. **Uložte natrénované siete** (váhy).
-   > *Hint:* 2A → `np.savez` / `pickle`; 2B → `torch.save(model.state_dict(), ...)`.
+   > *Pomôcka:* 2A → `np.savez` / `pickle`; 2B → `torch.save(model.state_dict(), ...)`.
 
 ---
 
@@ -160,12 +160,12 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 
 1. Vytvorte si **vlastný testovací obrázok** podľa svojho variantu (nakreslite písmeno / symbol /
    kúsok oblečenia v MS Paint alebo inom editore) — konzistentne s datasetom.
-2. Napíšte Python script, ktorý obrázok pripraví do formátu datasetu:
+2. Napíšte skript v Pythone, ktorý obrázok pripraví do formátu datasetu:
    - **zmenšite** na rozmer datasetu (28×28 alebo 32×32),
    - preveďte na **odtiene sivej** (grayscale),
    - **invertujte** farby, ak treba (overte si, či má dataset svetlý objekt na tmavom pozadí),
    - **normalizujte** do `<0, 1>`.
-   > *Hint:* `Image.open(...).convert('L').resize((W,W))`, potom `np.array(...)`.
+   > *Pomôcka:* `Image.open(...).convert('L').resize((W,W))`, potom `np.array(...)`.
 3. Podajte obrázok **obom natrénovaným sieťam** (2A aj 2B) a vypíšte predikciu a
    pravdepodobnosti. Zhodujú sa?
 
@@ -182,12 +182,12 @@ Cieľ: postaviť ekvivalentnú sieť rýchlo a porovnať, čo za vás framework 
 Zamyslite sa a stručne odpovedzte:
 
 - Čo sú **lokálne minimá** a **sedlové body** chybovej funkcie? V čom sa líšia?
-- Prečo v sieťach s veľa parametrami (vysoká dimenzia) **nie sú lokálne minimá až taký
+- Prečo v sieťach s veľkým počtom parametrov (vysoká dimenzia) **nie sú lokálne minimá až taký
   problém**, ako sa bežne intuitívne čaká — a čo býva reálnou prekážkou tréningu?
 - Ako pomáhajú **stochastickosť mini-batchov**, **momentum** a **Adam** dostať sa z týchto
   problematických miest? Pozorovali ste rozdiel medzi SGD a Adam pri vašom tréningu?
 
-> *Hint na zamyslenie:* metódy druhého rádu (napr. Levenberg–Marquardt) sú priťahované ku
+> *Na zamyslenie:* metódy druhého rádu (napr. Levenberg–Marquardt) sú priťahované ku
 > **každému** stacionárnemu bodu vrátane sediel — prečo je pri tomto probléme šum v SGD/Adam
 > skôr výhodou než nevýhodou?
 

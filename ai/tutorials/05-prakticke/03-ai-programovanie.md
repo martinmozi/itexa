@@ -18,7 +18,7 @@ Nie preto, že by bol kód „ľahší" než iný text. Ale preto, že pri kóde
 - **tréningových dát je obrovské množstvo** a sú verejné (GitHub),
 - **výsledok sa dá overiť strojom** — kompilátor, testy, linter, typová kontrola. Model dostane **spätnú väzbu bez človeka** a môže iterovať, kým to nesedí.
 
-Práve tá tretia vec je dôvod, prečo AI v programovaní bežala rýchlejšie než inde. Uzavretá slučka *sprav → spusti testy → oprav* je presne agentová slučka z [predchádzajúceho dokumentu](02-agenti-a-nastroje.md), len s obzvlášť dobrým signálom o úspechu. Tam, kde taký signál chýba (dizajn, texty, rozhodnutia), je pokrok pomalší — a to vysvetľuje aj hranice, o ktorých je [sekcia 7](#7-kde-to-zlyháva).
+Práve tá tretia vec je dôvod, prečo AI v programovaní bežala rýchlejšie než inde. Uzavretá slučka *uprav → spusti testy → oprav* je presne agentová slučka z [predchádzajúceho dokumentu](02-agenti-a-nastroje.md), len s obzvlášť dobrým signálom o úspechu. Tam, kde taký signál chýba (dizajn, texty, rozhodnutia), je pokrok pomalší — a to vysvetľuje aj hranice, o ktorých je [sekcia 7](#7-kde-to-zlyháva).
 
 ### Štyri generácie za päť rokov
 
@@ -40,7 +40,7 @@ Každá generácia tú predchádzajúcu **nezrušila** — doplňovanie riadku s
 | **Claude Code** (Anthropic) | agent | terminál, rozšírenie do VS Code/JetBrains, desktop, web | dlhé viackrokové úlohy nad celým repozitárom, práca s gitom, rozšíriteľnosť (MCP, skills, hooks, podagenti) |
 | **Codex** (OpenAI) | agent | terminál (CLI), IDE, cloud | lokálna aj cloudová podoba — úlohu delegujete a vráti sa s hotovou zmenou / pull requestom |
 | **GitHub Copilot** | doplňovanie + chat + agent | editor a GitHub | najtesnejšia integrácia s GitHubom (issues, PR, review), najnižší prah vstupu, firemné nasadenie |
-| **Cursor**, **Windsurf** | AI-first IDE | vlastný editor (fork VS Code) | doplňovanie „na steroidoch", agent priamo v editore, veľmi dobrá práca s viacerými súbormi |
+| **Cursor**, **Windsurf** | AI-first IDE | vlastný editor (fork VS Code) | mimoriadne silné doplňovanie kódu, agent priamo v editore, veľmi dobrá práca s viacerými súbormi |
 | **Cline**, **Aider**, **OpenHands**, **Continue** | agenti, open source | rozšírenie / terminál | vlastná voľba modelu (aj lokálneho), transparentnosť, žiadna viazanosť na poskytovateľa |
 | **Jules**, **Amazon Q Developer**, **Devin** a ďalší | agenti v cloude | webové rozhranie / CI | asynchrónne delegovanie úloh, hromadné zmeny naprieč repozitármi |
 
@@ -97,7 +97,7 @@ Textový súbor v koreni repozitára, ktorý si agent načíta na začiatku kaž
 
 **Čo tam nepatrí:** vysvetľovanie Pythonu, „píš čistý kód", „buď dôsledný", prepis dokumentácie knižnice. To všetko model vie a v súbore to len zaberá miesto v kontexte každého sedenia. Platí presne pravidlo zo [sekcie 3.1 predchádzajúceho dokumentu](01-ako-pouzivat-llm.md#31-kontext-ktorý-model-nemá-odkiaľ-vedieť): **čo viete len vy, to napíšte; čo vie model sám, vynechajte.**
 
-Praktická poučka z prevádzky: súbor rastie sám od seba a po pol roku má tristo riadkov pravidiel, z ktorých polovicu už nikto nevie zdôvodniť. Oplatí sa ho občas prejsť a vyhádzať všetko, čo nerieši konkrétny, reálne pozorovaný problém.
+Praktická poučka z prevádzky: súbor rastie sám od seba a po pol roku má tristo riadkov pravidiel, z ktorých polovicu už nikto nevie zdôvodniť. Oplatí sa ho občas prejsť a odstrániť všetko, čo nerieši konkrétny, reálne pozorovaný problém.
 
 ### 3.2 Skills — zabalený postup, ktorý sa načíta, až keď treba
 
@@ -117,12 +117,12 @@ Rozhodovacie pravidlo: **čo platí vždy → súbor s pravidlami. Čo platí pr
 
 ### 3.3 MCP — pripojenie na svet mimo repozitára
 
-[MCP zo sekcie 3 predchádzajúceho dokumentu](02-agenti-a-nastroje.md#3-mcp--štandard-na-pripájanie-nástrojov) je presne tá vec, ktorá z agenta nad kódom spraví agenta nad vašou firmou:
+[MCP zo sekcie 3 predchádzajúceho dokumentu](02-agenti-a-nastroje.md#3-mcp--štandard-na-pripájanie-nástrojov) je presne tá vec, ktorá z agenta nad kódom urobí agenta nad vašou firmou:
 
 ```text
                   ┌── Jira / Linear     (o čom je ten ticket vlastne?)
   agent ── MCP ───┼── Postgres          (aká je reálna schéma v staging?)
-                  ├── Sentry            (aký stacktrace to hádže v produkcii?)
+                  ├── Sentry            (aký stacktrace sa objavuje v produkcii?)
                   └── prehliadač        (naozaj sa to v UI zobrazí?)
 ```
 
@@ -147,7 +147,7 @@ Hook je obyčajný príkaz, ktorý spustí **nástroj, nie model** — pri urči
 
 ## 4. Ako s tým reálne pracovať
 
-Nástroj sám o sebe nespraví dobrý výsledok. Toto je postup, ktorý sa osvedčuje naprieč nástrojmi.
+Nástroj sám o sebe dobrý výsledok nezaručí. Toto je postup, ktorý sa osvedčuje naprieč nástrojmi.
 
 ### 4.1 Uzavrite slučku spätnej väzby
 
@@ -184,7 +184,7 @@ Commitujte často a pred väčšou zmenou majte čistý pracovný strom. Agent, 
 
 ### 4.4 Čítajte diff, nie zhrnutie
 
-Toto je nová a nepríjemná zručnosť: **kontrolovať kód, ktorý ste nepísali, a ktorý vyzerá dobre.** Zhrnutie od agenta („pridal som validáciu a testy") je jeho vlastný text, nie výpis toho, čo spravil. Pravda je v `git diff`.
+Toto je nová a nepríjemná zručnosť: **kontrolovať kód, ktorý ste nepísali, a ktorý vyzerá dobre.** Zhrnutie od agenta („pridal som validáciu a testy") je jeho vlastný text, nie výpis toho, čo naozaj urobil. Pravda je v `git diff`.
 
 Na čo sa pozerať prednostne:
 
@@ -195,7 +195,7 @@ Na čo sa pozerať prednostne:
 
 ### 4.5 Viac agentov naraz — áno, ale na čítanie
 
-To isté pravidlo ako v [sekcii 5.2 predchádzajúceho dokumentu](02-agenti-a-nastroje.md#52-kedy-sa-oplatí-viac-agentov): **paralelné čítanie funguje, paralelný zápis do tej istej kódovej bázy takmer nikdy.** Tri agenty, ktorí súčasne skúmajú tri časti systému a vrátia zhrnutia, sú výborný nápad. Traja agenti píšuci do toho istého modulu si navzájom rozbijú predpoklady. Ak už paralelný zápis, tak do oddelených vetiev alebo pracovných stromov (`git worktree`) a s poctivým zlučovaním.
+To isté pravidlo ako v [sekcii 5.2 predchádzajúceho dokumentu](02-agenti-a-nastroje.md#52-kedy-sa-oplatí-viac-agentov): **paralelné čítanie funguje, paralelný zápis do tej istej kódovej bázy takmer nikdy.** Traja agenti, ktorí súčasne skúmajú tri časti systému a vrátia zhrnutia, sú výborný nápad. Traja agenti píšuci do toho istého modulu si navzájom rozbijú predpoklady. Ak už paralelný zápis, tak do oddelených vetiev alebo pracovných stromov (`git worktree`) a s poctivým zlučovaním.
 
 ### 4.6 Kontext je vyčerpateľný zdroj
 
@@ -213,7 +213,7 @@ Toto je tabuľka, kvôli ktorej sa celý dokument oplatí prečítať. Vľavo po
 | **Copy-paste do chatového okna** — vybrať súbor, vložiť, skopírovať odpoveď späť | **Agent s prístupom k repozitáru**, ktorý si súbory nájde sám, spustí testy a ukáže diff |
 | **Doplňovanie riadkov ako hlavný spôsob použitia** | Doplňovanie zostáva (a je na svoju úlohu ideálne), ale ťažisko sa presunulo na **úlohy veľkosti celého ticketu** |
 | **Doladenie (fine-tuning) modelu na vlastnú kódovú bázu** | **Kontext, nástroje a vyhľadávanie v repozitári.** Fine-tuning na fakty nefunguje ([lekcia 7](../04-llm/07-fine-tuning-lora.md)) a kódová báza sa mení rýchlejšie, než sa stihne trénovať |
-| **Vektorový index nad celým repozitárom** ako spôsob, ako agentovi ukázať kód | **Agentické hľadanie** — `grep`, `glob`, čítanie súborov, sledovanie importov. Kód má presné identifikátory a štruktúru; doslovné hľadanie ich využije lepšie než podobnosť embeddingov (RAG zostáva kráľom nad **dokumentáciou a prózou**, viď [lekcia 6](../04-llm/06-rag.md)) |
+| **Vektorový index nad celým repozitárom** ako spôsob, ako agentovi ukázať kód | **Agentické hľadanie** — `grep`, `glob`, čítanie súborov, sledovanie importov. Kód má presné identifikátory a štruktúru; doslovné hľadanie ich využije lepšie než podobnosť embeddingov (RAG má naďalej navrch nad **dokumentáciou a prózou**, viď [lekcia 6](../04-llm/06-rag.md)) |
 | **Vlastná integrácia pre každý nástroj a každú aplikáciu zvlášť** | **MCP** — jeden protokol, integráciu napíšete raz |
 | **Jeden obrovský systémový prompt so všetkým** | **Vrstvenie a postupné odkrývanie** — pravidlá projektu + skills, ktoré sa načítajú, až keď treba |
 | **Pravidlá v prompte na veci, ktoré sa dajú skontrolovať strojom** | **Hooks, oprávnenia a CI** — deterministické vynútenie mimo modelu |

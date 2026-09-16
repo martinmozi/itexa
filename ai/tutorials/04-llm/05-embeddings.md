@@ -69,7 +69,7 @@ Spočítame páry (frekvencia = koľkokrát sa slovo vyskytuje):
 (o,s)  = 1             (s,ť)  = 1        ...
 ```
 
-Najčastejší je `(n,í)=8` → zlúčime na `ní`. Prepíšeme korpus a znova počítame; teraz vyhrá `(ní,z)=8` → `níz`, potom `(níz,k)=8` → `nízk`. Po troch merge pravidlách máme podreťazec `nízk` ako jeden token, ktorý zdieľajú všetky tri slová. Zriedke zakončenia (`osť`) zostanú rozbité na menšie časti. Presne **preto** sa časté kmene slov stanú jedným tokenom a zriedkavé slová sa poskladajú z viacerých – slovník je kompromis medzi „všetko sú znaky" (krátky slovník, dlhé sekvencie) a „všetko sú slová" (obrovský slovník, problém s neznámymi slovami).
+Najčastejší je `(n,í)=8` → zlúčime na `ní`. Prepíšeme korpus a znova počítame; teraz vyhrá `(ní,z)=8` → `níz`, potom `(níz,k)=8` → `nízk`. Po troch merge pravidlách máme podreťazec `nízk` ako jeden token, ktorý zdieľajú všetky tri slová. Zriedkavé zakončenia (`osť`) zostanú rozbité na menšie časti. Presne **preto** sa časté kmene slov stanú jedným tokenom a zriedkavé slová sa poskladajú z viacerých – slovník je kompromis medzi „všetko sú znaky" (krátky slovník, dlhé sekvencie) a „všetko sú slová" (obrovský slovník, problém s neznámymi slovami).
 
 ### Ako sa nová veta rozdelí (inferencia)
 
@@ -88,14 +88,14 @@ Pri reálnom použití sa merge pravidlá aplikujú **v tom istom poradí**, v a
 
 ### Špeciálne tokeny
 
-Okrem obsahových tokenov má slovník aj **riadiace (špeciálne) tokeny**, ktoré nesú žiadne slovo, ale majú funkčnú úlohu:
+Okrem obsahových tokenov má slovník aj **riadiace (špeciálne) tokeny**, ktoré nenesú žiadne slovo, ale majú funkčnú úlohu:
 
 | Token | Význam |
 |---|---|
 | `[CLS]` / `<s>` | začiatok sekvencie; jeho výstupný vektor sa často berie ako zhrnutie (viď pooling) |
 | `[SEP]` / `</s>` | oddeľovač / koniec sekvencie (dôležité pri cross-encoderi, kde spájame dva texty) |
 | `[PAD]` | výplň, aby mali všetky sekvencie v jednom batchi rovnakú dĺžku |
-| `[UNK]` | neznámy token (pri byte-level BPE prakticky nevzniká, lebo vždy vieme spadnúť na bajty) |
+| `[UNK]` | neznámy token (pri byte-level BPE prakticky nevzniká, lebo vždy sa dá vrátiť k jednotlivým bajtom) |
 
 Po tokenizácii teda reálne do modelu nevchádza `[4521, 892, ...]`, ale napr. `[CLS] 4521 892 ... 5 [SEP]` – s pridanými riadiacimi tokenmi na krajoch.
 
@@ -107,9 +107,9 @@ Prvá „vrstva" modelu nie je nič inteligentné – je to **embedding matica**
 
 > **Dôležité:** toto ešte **NIE JE** finálny embedding vety, ani embedding slova v kontexte. *„Banka"* má v tomto kroku rovnaký vektor vo vete o financiách aj o rieke — kontext doň dostane až attention.
 
-### Náš bežecký príklad (potiahneme ho cez celý zvyšok dokumentu)
+### Náš priebežný príklad (potiahneme ho cez celý zvyšok dokumentu)
 
-Aby sa dalo počítať ručne, zmenšíme všetko na miniatúrne rozmery: **slovník má 6 tokenov** a **hidden_dim = 4**. Spracujeme kratučkú vetu *„nárok na dovolenku"*, ktorá sa (v tomto miniatúrnom tokenizéri) rozdelí na tri tokeny:
+Aby sa dalo počítať ručne, zmenšíme všetko na miniatúrne rozmery: **slovník má 6 tokenov** a **hidden_dim = 4**. Spracujeme krátku vetu *„nárok na dovolenku"*, ktorá sa (v tomto miniatúrnom tokenizéri) rozdelí na tri tokeny:
 
 ```text
 token:    "nárok"   "na"   "dovolenku"
@@ -269,7 +269,7 @@ dim3: 0.794·1.300 + 0.102·1.200 + 0.105·0.900 = 1.0322 + 0.1224 + 0.0945 = 1.
 out_nárok = [ 0.433, 1.563, -0.024, 1.249 ]
 ```
 
-**Toto je pointa celého transformera:** pôvodný vektor tokenu „nárok" bol `[0.200, 1.900, -0.100, 1.300]`; po attention je `[0.433, 1.563, -0.024, 1.249]` – **primiešali sa doň hodnoty z „na" a „dovolenku"**. Vektor pre „dovolenku" by po analogickom výpočte niesol stopu „nároku". Kontext sa doslova „vmiešal" do čísel. (Rovnaký postup sa spraví pre `q_na` a `q_dovolenku` – dostaneme `out_na` a `out_dovolenku`; vynechávame, aby sa text nezahltil, ale je to identická aritmetika.)
+**Toto je pointa celého transformera:** pôvodný vektor tokenu „nárok" bol `[0.200, 1.900, -0.100, 1.300]`; po attention je `[0.433, 1.563, -0.024, 1.249]` – **primiešali sa doň hodnoty z „na" a „dovolenku"**. Vektor pre „dovolenku" by po analogickom výpočte niesol stopu „nároku". Kontext sa doslova „vmiešal" do čísel. (Rovnaký postup sa urobí pre `q_na` a `q_dovolenku` – dostaneme `out_na` a `out_dovolenku`; vynechávame, aby sa text nezahltil, ale je to identická aritmetika.)
 
 ### 3f) Multi-head attention
 
@@ -310,7 +310,7 @@ Typicky prvá vrstva dimenziu **zväčší** (napr. 1024 → 4096), aplikuje sa 
 
 Jedna transformer vrstva teda je: `attention → +residual → LayerNorm → FFN → +residual → LayerNorm`. Toto sa opakuje cez všetky vrstvy (`N`-krát) – vektory sa vrstvu po vrstve stávajú čoraz „abstraktnejšími" a kontextovo bohatšími. Po prejdení celého modelu máme stále `n` vektorov (jeden na token), len teraz každý z nich odzrkadľuje aj zvyšok vety.
 
-> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž a na GPU to letí rádovo rýchlejšie. Čo z toho plynie pre dĺžku vstupu a kontextové okno, je v [02, sekcia 8](02-transformer-vnutro.md#8-kontext-krátka-správa-dlhá-správa-a-prečo-má-okno-strop); čo z toho plynie pre plánovanie hardvéru, v [06-rag.md, sekcia 5](06-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
+> **Prečo je práve tento krok výpočtovo náročný:** self-attention je `O(n²)` v počte tokenov (počíta sa každý pár – matica `n × n`), a plus je tu množstvo maticových násobení (Q/K/V projekcie, FFN so zväčšenou dimenziou) naprieč všetkými vrstvami a hlavami. Práve toto z „malého" modelu robí na CPU citeľnú záťaž, kým na GPU beží rádovo rýchlejšie. Čo z toho plynie pre dĺžku vstupu a kontextové okno, je v [02, sekcia 8](02-transformer-vnutro.md#8-kontext-krátka-správa-dlhá-správa-a-prečo-má-okno-strop); čo z toho plynie pre plánovanie hardvéru, v [06-rag.md, sekcia 5](06-rag.md#5-výpočtové-nároky-kde-to-tlačí-na-cpugpu).
 
 ---
 
@@ -420,7 +420,7 @@ d(a, b) = √( (a₀-b₀)² + (a₁-b₁)² + … )
 
 ### Dopočítaný príklad
 
-Zoberme query vektor `q` a dva chunk-vektory `c₁`, `c₂` (zámerne **neznormované**, aby bol vidno rozdiel medzi dot a cosine):
+Zoberme query vektor `q` a dva chunk-vektory `c₁`, `c₂` (zámerne **neznormované**, aby bolo vidno rozdiel medzi dot a cosine):
 
 ```text
 q  = [ 0.9, 0.3, 0.1 ]
@@ -517,17 +517,17 @@ zlomok = 20.09 / 4097.7 = 0.00490
 L = − ln(0.00490) = 5.32           ← veľká loss → veľký gradient → veľká korekcia váh
 ```
 
-Gradient tejto veľkej straty sa spätne prešíri (*backpropagation*) cez pooling, všetky transformer vrstvy aj embedding maticu a **pošťuchne** váhy tak, aby nabudúce vyšlo `sim(a,p)` vyššie a `sim(a,n)` nižšie. Kľúčový trik moderného tréningu sú **in-batch negatives**: pozitívy iných príkladov v tom istom batchi sa použijú ako negatívy „zadarmo", takže z batchu veľkosti `B` dostaneme `B−1` negatívov na každý anchor bez extra výpočtu.
+Gradient tejto veľkej straty sa spätne prešíri (*backpropagation*) cez pooling, všetky transformer vrstvy aj embedding maticu a **jemne posunie** váhy tak, aby nabudúce vyšlo `sim(a,p)` vyššie a `sim(a,n)` nižšie. Kľúčový trik moderného tréningu sú **in-batch negatives**: pozitívy iných príkladov v tom istom batchi sa použijú ako negatívy „zadarmo", takže z batchu veľkosti `B` dostaneme `B−1` negatívov na každý anchor bez extra výpočtu.
 
-**Výsledok:** sémanticky súvisiace texty „vygravitujú" v priestore blízko seba, aj keď použili úplne iné slová (napr. *„dovolenka"* a *„voľno"* alebo *„PTO"* skončia blízko seba, ak to tak model videl v trénovacích dátach).
+**Výsledok:** sémanticky súvisiace texty sa v priestore usadia blízko seba, aj keď použili úplne iné slová (napr. *„dovolenka"* a *„voľno"* alebo *„PTO"* skončia blízko seba, ak to tak model videl v trénovacích dátach).
 
 A tu je odpoveď na to, **prečo sú rôzne modely nekompatibilné:** každý model má inú trénovaciu inicializáciu váh, iné trénovacie dáta, možno inú architektúru/veľkosť. Výsledné „smery" v jeho vektorovom priestore sú teda úplne iné geometrické usporiadanie – aj keby dva modely riešili identickú úlohu s rovnakou dimenziou výstupu, ich súradnicové sústavy si vzájomne nič nehovoria.
 
-> **Praktický dôsledok:** ak preindexujete databázu jedným modelom a otázku zaembeddujete iným, vyhľadávanie vráti nezmysly. **Embedding model sa nedá „za behu" vymeniť** bez preindexovania celej databázy.
+> **Praktický dôsledok:** ak preindexujete databázu jedným modelom a otázku prevediete na vektor iným, vyhľadávanie vráti nezmysly. **Embedding model sa nedá „za behu" vymeniť** bez preindexovania celej databázy.
 
 ---
 
-## TL;DR
+## Zhrnutie
 
 - **Embedding** = text → tokeny → lookup vektorov (embedding matica) → + pozičné kódovanie → transformer vrstvy (Q/K/V → dot product → /√d → softmax → vážený súčet V; +residual, LayerNorm, FFN) → pooling na 1 vektor → L2 normalizácia. Uloží sa do FAISS.
 - **Tokenizácia** (BPE) sa učí štatisticky mergovaním najčastejších párov; slovenčina = viac tokenov na tú istú vetu.

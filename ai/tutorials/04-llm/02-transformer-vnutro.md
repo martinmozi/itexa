@@ -4,7 +4,7 @@
 
 > **Cieľ dokumentu:** dopovedať to, čo [predchádzajúci dokument](01-transformer-siete.md) nechal na úrovni myšlienky — **konkrétne čísla a celú cestu textu modelom**, od tokenizéra až po hotovú vetu. Dokument má tri časti; ich mapa je hneď pod referenčnou tabuľkou.
 
-Predchádzajúci dokument vysvetlil **mechanizmus** (Q, K, V, softmax, multi-head, maska). Tento vysvetľuje **inžinierstvo okolo neho**: čo model vlastne dostáva na vstupe, prečo má práve 4096-rozmerné vektory, prečo 32 vrstiev, prečo z tisícok vstupných tokenov vypadne jeden jediný, koľko pamäte si vyžiada kontext 100 000 tokenov a prečo je prvý token odpovede pomalý a ďalšie rýchle.
+Predchádzajúci dokument vysvetlil **mechanizmus** (Q, K, V, softmax, multi-head, maska). Tento vysvetľuje **inžinierstvo okolo neho**: čo model vlastne dostáva na vstupe, prečo má práve 4096-rozmerné vektory, prečo 32 vrstiev, prečo z tisícok vstupných tokenov vzíde jeden jediný, koľko pamäte si vyžiada kontext 100 000 tokenov a prečo je prvý token odpovede pomalý a ďalšie rýchle.
 
 Všetky čísla nižšie počítam na jednom **referenčnom modeli** veľkosti ~8B (rozmery zodpovedajú Llama-3-8B; iné modely majú iné čísla, ale rovnakú štruktúru):
 
@@ -143,7 +143,7 @@ print(tok.convert_ids_to_tokens(ids))  # ako presne sa text rozdelil
 
 #### Špeciálne a chat tokeny
 
-Okrem obsahových tokenov má slovník aj **riadiace tokeny**. Sú to bežné riadky embedding matice a model sa ich význam učí ako pri hocijakom inom tokene — zvláštne je len to, že **tokenizér ich z používateľského textu nikdy nevyrobí**. Aj keby používateľ napísal doslova `<|eot_id|>`, rozreže sa to na obyčajné znakové tokeny. Práve preto sa hranice medzi rolami nedajú „podstrčiť" v texte.
+Okrem obsahových tokenov má slovník aj **riadiace tokeny**. Sú to bežné riadky embedding matice a model sa ich význam učí ako pri ktoromkoľvek inom tokene — zvláštne je len to, že **tokenizér ich z používateľského textu nikdy nevyrobí**. Aj keby používateľ napísal doslova `<|eot_id|>`, rozreže sa to na obyčajné znakové tokeny. Práve preto sa hranice medzi rolami nedajú „podstrčiť" v texte.
 
 | Token (Llama 3) | Úloha |
 |---|---|
@@ -334,7 +334,7 @@ A `d_ff` (šírka feed-forward vrstvy) je tradične **4 × `d_model`**. Pri mode
 | Llama 3 70B | 8192 | 80 | 64 | 28672 | 128 256 | 70 B | 102 |
 | Llama 3.1 405B | 16384 | 126 | 128 | 53248 | 128 256 | 405 B | 130 |
 
-Z tabuľky vypadne jedno prekvapivé číslo. Medzi Llama 3 8B a Llama 3.1 405B je **50× viac
+Z tabuľky vystupuje jedno prekvapivé číslo. Medzi Llama 3 8B a Llama 3.1 405B je **50× viac
 parametrov**, ale vrstiev pribudlo len **3,9×** (32 → 126). Väčšina rastu išla do **šírky**:
 `d_model` 4×, `d_ff` 3,7×, `n_heads` 4×. Veľký model teda nie je „ten istý model, len oveľa
 hlbší" — je to predovšetkým **oveľa širší** model, ktorý je *zároveň* o kus hlbší. Pomer
@@ -427,7 +427,7 @@ Porovnajme dva hypotetické modely s **rovnakým počtom parametrov** (25,8 mld.
 | kolektívnych synchronizácií na token pri tensor parallel na 8 GPU | **64** | **256** |
 | veľkosť typického maticového násobenia | 8192 × 8192 | 4096 × 4096 |
 
-Papierovo sú rovnaké. V reálnom nasadení je A citeľne rýchlejší, a to z troch nezávislých
+Na papieri sú rovnaké. V reálnom nasadení je A citeľne rýchlejší, a to z troch nezávislých
 dôvodov.
 
 **1. Šírka sa paralelizuje *vnútri* vrstvy (tensor parallelism).** Široké matice sa dajú
@@ -459,7 +459,7 @@ vrstvy 32 — je to reťaz, nie množina nezávislých úloh. Keď vrstvy rozdel
 bublina = (P − 1) / (M + P − 1)
 ```
 
-- Pri **tréningu** sa dá bublina zaplátať: pustíte veľa mikro-dávok naraz (`M = 64`,
+- Pri **tréningu** sa dá bublina prekryť: pustíte veľa mikro-dávok naraz (`M = 64`,
   `P = 8` → bublina ~10 %).
 - Pri **generovaní** ale beží token po tokene, takže `M = 1` a bublina je `(P−1)/P` —
   na 8 GPU **87 % času nečinnosti**. Preto sa pipeline pri interaktívnej inferencii
@@ -488,7 +488,7 @@ jedna vrstva na to nestačí a niekoľko vrstiev musí ísť *po sebe*. Extrémn
 zložené úlohy nezvládne, nech je akokoľvek široký — deľba práce medzi vrstvami je rozpísaná
 v [Čo robia jednotlivé vrstvy](#čo-robia-jednotlivé-vrstvy). Okrem toho `d_head` nad 128 už kvalitu
 nedvíha a embedding s `lm_head` rastú s `d_model` lineárne, takže v plytkom širokom modeli
-by zožrali neúmernú časť rozpočtu.
+by spotrebovali neúmernú časť rozpočtu.
 
 Empiricky sa preto kvalita drží skoro rovnaká v pomerne širokom pásme `d_model / n_layers`
 ≈ 60–130 a mimo neho klesá. **Praktické pravidlo:** vyberte pomer z tohto pásma — a keď sa
@@ -561,7 +561,7 @@ Všimnite si, že `X` sa nikdy neprepíše — vždy sa k nemu len **pripočíta
 Tri dôsledky, ktoré inak vyzerajú ako záhady:
 
 - **Preto je `d_model` konštantné.** Nie je to estetika — ak má každá vrstva pripočítavať do tej istej zbernice, musí mať zbernica stále rovnakú šírku.
-- **Preto model neumrie, keď mu vrstvu vyberiete.** Vrstvy nie sú reťaz, kde prerušenie znamená koniec; sú to prírastky. Odstránenie jednej z 32 kvalitu zhorší, ale model ďalej funguje — na tom stojí *layer pruning* aj *early exit*.
+- **Preto model neprestane fungovať, keď mu vrstvu vyberiete.** Vrstvy nie sú reťaz, kde prerušenie znamená koniec; sú to prírastky. Odstránenie jednej z 32 kvalitu zhorší, ale model ďalej funguje — na tom stojí *layer pruning* aj *early exit*.
 - **Preto sa dá „nazrieť" doprostred modelu.** Ak zoberiete `X` po 12. vrstve a pustíte ho rovno cez `lm_head`, dostanete zmysluplnú (len horšiu) predpoveď — technika známa ako *logit lens*. Predpoveď sa v zbernici postupne „vyostruje".
 
 #### Čo robia jednotlivé vrstvy
@@ -606,7 +606,7 @@ moderne (SwiGLU):   FFN(x) = W_down · ( SiLU(W_gate · x) ⊙ (W_up · x) )
 
 Tri veci, ktoré tu študenti najčastejšie prehliadnu:
 
-**a) Je to naozaj token po tokene.** Na [obrázku vyššie](#4-cesta-jedného-vektora-jednou-vrstvou) sú to tri oddelené dráhy s ✕ medzi nimi. Pri `n = 1000` tokenoch sa tá istá matica `W_1` použije 1000-krát na 1000 rôznych vektorov. Nič sa medzi tokenmi nemieša. Implementačne sa to spraví jedným maticovým násobením `[1000, 4096] × [4096, 14336]`, ale sémanticky sú to 1000 nezávislých priechodov. Preto sa FFN dá triviálne paralelizovať a preto je vo fáze generovania (jeden token) výpočtovo veľmi lacná.
+**a) Je to naozaj token po tokene.** Na [obrázku vyššie](#4-cesta-jedného-vektora-jednou-vrstvou) sú to tri oddelené dráhy s ✕ medzi nimi. Pri `n = 1000` tokenoch sa tá istá matica `W_1` použije 1000-krát na 1000 rôznych vektorov. Nič sa medzi tokenmi nemieša. Implementačne sa to urobí jedným maticovým násobením `[1000, 4096] × [4096, 14336]`, ale sémanticky sú to 1000 nezávislých priechodov. Preto sa FFN dá triviálne paralelizovať a preto je vo fáze generovania (jeden token) výpočtovo veľmi lacná.
 
 **b) Rozšírenie a zúženie má zmysel.** Vrstva najprv vektor **rozšíri** (4096 → 14336), pustí cez nelinearitu a potom **zúži** späť. Bez rozšírenia by nelinearita mala málo priestoru; bez zúženia by sa rozmer po každej vrstve zväčšoval a bloky by sa nedali skladať.
 
@@ -647,7 +647,7 @@ Preto sa MoE oplatí **poskytovateľom služieb**, nie pri lokálnom behu na not
 
 Dve veci, ktoré s MoE prichádzajú v balíku: router sa musí trénovať s **vyvažovacou stratou** (inak by väčšina tokenov smerovala k niekoľkým expertom a ostatní by sa nenaučili nič), a pri dávkovaní sa tokeny jednej dávky **rozptýlia medzi rôznych expertov**, čo komplikuje efektívnu inferenciu.
 
-> Keď teda v model carde uvidíte zápis typu **`235B-A22B`**, čítajte ho ako „235 miliárd v pamäti, 22 miliárd na token".
+> Keď teda v karte modelu (*model card*) uvidíte zápis typu **`235B-A22B`**, čítajte ho ako „235 miliárd v pamäti, 22 miliárd na token".
 
 ---
 
@@ -775,7 +775,7 @@ Preto tiež platí, že **dlhšia odpoveď = viac prechodov = lineárne viac ča
 
 Model sám od seba neprestane — cyklus beží, kým ho niečo nezastaví:
 
-| Zastavovač | Ako funguje | Kde sa vyhodnocuje |
+| Čo generovanie zastaví | Ako funguje | Kde sa vyhodnocuje |
 |---|---|---|
 | **EOS token** (<code>&lt;&#124;eot_id&#124;&gt;</code>, `</s>`) | model ho **vybral samplovaním** ako hociktorý iný token; je to bežný riadok logitov, ktorého pravdepodobnosť sa naučil v SFT | v samplovacej slučke |
 | `max_new_tokens` | tvrdý strop počtu prechodov | server / knižnica |
@@ -865,7 +865,7 @@ Ak je decode limitovaný čítaním váh a nie počítaním, ponúka sa trik: **
 1. malý „draft" model (napr. 1B) vygeneruje rýchlo k = 5 tokenov     ← lacné čítanie
 2. veľký model ich overí v JEDNOM prechode (ako prefill nad 5 tokenmi)
 3. prijme najdlhšiu zhodnú predponu, prvý nesúhlas prepíše svojím tokenom
-4. pokračuje od tade ďalej
+4. pokračuje odtiaľ ďalej
 ```
 
 Overenie 5 tokenov stojí veľký model takmer to isté ako jeden token — váhy sa aj tak čítajú celé, len raz. Pri rozumnej miere prijatia to dáva **1,5–3× rýchlejšie generovanie**, a to pri **matematicky identickom rozdelení** výstupu (odmietanie je navrhnuté tak, aby nemenilo pravdepodobnosti). Varianty sa líšia len tým, odkiaľ návrhy berú: menší model tej istej rodiny, prídavné predikčné hlavy (Medusa, EAGLE), alebo jednoduché hľadanie n-gramov v prompte (užitočné pri sumarizácii, kde sa veľa textu opakuje).
@@ -975,7 +975,7 @@ A k tomu **cena**: vstupné tokeny sa platia. 100 000 tokenov v každej otázke 
 | **GQA / MQA** ([sekcia 7](#kv-cache)) | veľkosť KV cache | menej K/V hláv (8 namiesto 32) → 4× menšia cache |
 | **Kvantizácia KV cache** | veľkosť KV cache | K/V v 8 bitoch namiesto 16 → polovičná cache |
 | **Sliding window** | kvadratika | token vidí len posledných napr. 4096 tokenov, vzdialenejšie sprostredkovane cez vrstvy |
-| **RoPE scaling / YaRN** | tréningová dĺžka | preškáluje pozičné frekvencie + krátke dotrénovanie → z 8k spraví 128k |
+| **RoPE scaling / YaRN** | tréningová dĺžka | preškáluje pozičné frekvencie + krátke dotrénovanie → rozšíri okno z 8k na 128k |
 | **PagedAttention** ([sekcia 7](#cache-o-úroveň-vyššie-prompt-caching)) | fragmentácia pamäte | KV cache po stránkach, zdieľanie prefixu medzi požiadavkami |
 
 #### Konverzácia: prečo `n` rastie aj pri krátkych otázkach
@@ -1013,7 +1013,7 @@ Toto je vlastnosť, ktorá LLM najviac odlišuje od všetkého, čo bolo v [lekc
 Prompt:
   zlá kvalita zvuku → HARDVÉR
   nesedí faktúra    → FAKTURÁCIA
-  appka padá po štarte → ???
+  aplikácia padá po štarte → ???
 
 Model: SOFTVÉR
 ```
@@ -1098,8 +1098,8 @@ Embedding matica, `W_Q/W_K/W_V/W_O` v každej vrstve, tri FFN matice v každej v
 
 | Parameter | Čo robí | Kedy meniť |
 |---|---|---|
-| `temperature` | plochosť rozdelenia pred výberom | 0–0.3 fakty, 0.7–1.0 kreatíva |
-| `top_p` / `top_k` | orezanie chvosta rozdelenia | 0.9 / 40 ako rozumný default |
+| `temperature` | plochosť rozdelenia pred výberom | 0–0.3 faktický text, 0.7–1.0 kreatívny text |
+| `top_p` / `top_k` | orezanie chvosta rozdelenia | 0.9 / 40 ako rozumné východisko |
 | `repetition_penalty`, `presence/frequency_penalty` | trestá opakovanie | keď sa model zacyklí |
 | `max_new_tokens` | strop dĺžky odpovede | vždy — chráni pred nekontrolovane dlhou odpoveďou |
 | `stop` sekvencie | kde skončiť | pri štruktúrovanom výstupe |
@@ -1181,7 +1181,7 @@ adaptéry trénuje v `bf16`).
 | Čím sa líši 8B a 405B model? | 50× viac parametrov, ale len 3,9× viac vrstiev — veľký model je hlavne **širší** (`N ≈ 12 · n_layers · d_model²`). |
 | Prečo sa rastie do šírky, nie do hĺbky? | Šírka sa paralelizuje vnútri vrstvy (tensor parallel), hĺbka je sériová reťaz: pri generovaní ju nezrýchli žiadny počet GPU, len predlžuje latenciu na token. |
 | Kde sa tokeny miešajú? | **Iba v attention.** Norm, FFN aj reziduá bežia per token. |
-| Čo drží model pokope? | Reziduálny prúd: vrstvy do spoločného vektora `[4096]` len pripočítavajú — preto je `d_model` konštantné a preto orezanie vrstvy model nezabije. |
+| Čo drží model pokope? | Reziduálny prúd: vrstvy do spoločného vektora `[4096]` len pripočítavajú — preto je `d_model` konštantné a preto odstránenie jednej vrstvy model nezničí. |
 | Čo je MoE? | FFN rozdelená na expertov s routerom: celkové parametre určujú VRAM, aktívne parametre rýchlosť (`235B-A22B` = 235 mld. v pamäti, 22 mld. na token). |
 
 **Časť C — generovanie a kontext**

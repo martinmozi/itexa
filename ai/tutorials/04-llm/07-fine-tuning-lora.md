@@ -86,7 +86,7 @@ Cena je mierna strata presnosti a pomalší tréning (kvôli rozbaľovaniu). Pre
 
 ## 4. Kedy fine-tuning áno a kedy nie
 
-Toto je najdôležitejšia časť lekcie — mechaniku vám spraví knižnica, rozhodnutie nie.
+Toto je najdôležitejšia časť lekcie — mechaniku za vás urobí knižnica, rozhodnutie nie.
 
 ### Oplatí sa
 
@@ -126,7 +126,7 @@ Tretia možnosť sa často prehliada: dnešné modely majú kontext v státisíc
 Fine-tuning aj RAG sa dajú „urobiť" a pritom nič nezlepšiť. Preto sa vyhodnocuje vždy proti **baseline** — surovému modelu bez úprav:
 
 1. **Testovacia sada otázok so správnymi odpoveďami**, pripravená **pred** tréningom. Časť otázok nesmie byť v tréningových dátach — inak meriate memorovanie, nie schopnosť.
-2. **Chytáky** — 2–3 otázky, ktorých odpoveď v dokumente **nie je**. Správna odpoveď znie „v texte to nie je uvedené". Bez nich sa nedá odlíšiť model, ktorý sa naučil obsah, od modelu, ktorý sa naučil sebavedomo tárať.
+2. **Otázky bez odpovede v texte („chytáky")** — 2–3 otázky, ktorých odpoveď v dokumente **nie je**. Správna odpoveď znie „v texte to nie je uvedené". Bez nich sa nedá odlíšiť model, ktorý sa naučil obsah, od modelu, ktorý sa naučil sebavedomo vymýšľať.
 3. **Rovnaké nastavenie generovania** pre baseline aj upravený model (hlavne teplota — viď [dekódovanie](01-transformer-siete.md#ako-presne-sa-vyberá-ďalší-token-dekódovanie)), inak porovnávate dve rôzne veci.
 4. **Úspešnosť zvlášť pre faktické otázky a zvlášť pre chytáky.**
 

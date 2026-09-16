@@ -119,7 +119,7 @@ Všimnite si tri veci:
 
 Nástroj z príkladu vyššie je napísaný priamo v našom kóde. Pri desiatich nástrojoch a troch aplikáciách to prestáva stačiť: každá aplikácia si tie isté integrácie píše nanovo, a pre každý model inak.
 
-**MCP** (*Model Context Protocol*) je otvorený protokol, ktorý toto rieši rovnako, ako to spravil USB pre periférie: **MCP server** vystaví nástroje (a dáta) štandardným rozhraním, **MCP klient** (ľubovoľná agentová aplikácia) sa naň pripojí a nástroje sa mu automaticky sprístupnia.
+**MCP** (*Model Context Protocol*) je otvorený protokol, ktorý toto rieši rovnako, ako to pre periférie vyriešilo USB: **MCP server** vystaví nástroje (a dáta) štandardným rozhraním, **MCP klient** (ľubovoľná agentová aplikácia) sa naň pripojí a nástroje sa mu automaticky sprístupnia.
 
 ```text
                       ┌── MCP server: GitHub      (issues, PR, commity)
@@ -287,7 +287,7 @@ Zatiaľ sme mali jeden model s jedným zoznamom nástrojov. Pri väčších úlo
 - **výber nástroja** — pri štyridsiatich nástrojoch v jednom zozname model čoraz častejšie siahne po nesprávnom,
 - **čas** — nezávislé podúlohy bežia zbytočne za sebou.
 
-**Viac agentov** znamená, že každú podúlohu rieši samostatná inštancia modelu s **vlastným kontextovým oknom, vlastným promptom a vlastnými nástrojmi**. Nadriadený agent (*supervisor*) zadá podúlohy, dostane späť len **zhrnutia** — nie tisíce riadkov, cez ktoré sa podriadení prehrýzli.
+**Viac agentov** znamená, že každú podúlohu rieši samostatná inštancia modelu s **vlastným kontextovým oknom, vlastným promptom a vlastnými nástrojmi**. Nadriadený agent (*supervisor*) zadá podúlohy, dostane späť len **zhrnutia** — nie tisíce riadkov, ktoré museli podriadení agenti prečítať.
 
 Príklad: **podklad pre výberové konanie dodávateľa.** Treba naraz preveriť verejné informácie o firme, jej finančné výkazy a našu doterajšiu skúsenosť z interných dokumentov.
 
@@ -410,7 +410,7 @@ Agent je nedeterministický: ten istý vstup môže dať iný priebeh (viď [tep
 
 ## Kontrolné otázky
 
-1. Vysvetlite rozdiel medzi chatbotom a agentom. Čo presne v slučke rozhoduje o tom, že sa spraví ďalší krok?
+1. Vysvetlite rozdiel medzi chatbotom a agentom. Čo presne v slučke rozhoduje o tom, že sa urobí ďalší krok?
 2. Model „zavolal nástroj". Čo sa v skutočnosti stalo a kto ten nástroj vykonal?
 3. Prečo je popis nástroja súčasťou promptu a nie iba dokumentáciou? Ako by ste prepísali popis „Vráti dáta o zákazníkovi"?
 4. Čo rieši MCP a prečo je to výhodné oproti tomu, keď si každá aplikácia píše integrácie sama?

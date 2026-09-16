@@ -23,13 +23,13 @@ Zoberme 10 transakcií jednej karty. Prvé stĺpce sú priamo z ISO 8583 správy
 | 9 | 88,50 € | 14:20 | 5912 lekáreň | čip | SK | 1 | 0 |
 | 10 | 15,00 € | 21:10 | 4111 doprava | bezkontakt | SK | 2 | 0 |
 
-Riadok 6 je tu naschvál: **poctivý** nákup v rakúskom e-shope. Bez neho by stačilo pravidlo „e-commerce = podvod" a nemali by sme čo trénovať.
+Riadok 6 je tu zámerne: **poctivý** nákup v rakúskom e-shope. Bez neho by stačilo pravidlo „e-commerce = podvod" a nemali by sme čo trénovať.
 
 > V reálnej prevádzke je podvodov rádovo 0,05 – 0,3 % transakcií. Tu ich máme 30 %, aby sa dali čísla ukázať na papieri. Ako sa s reálnou nevyváženosťou pracuje, je v bode 3 na konci dokumentu.
 
 ## Krok 0 — nultý odhad a prvé rezíduá
 
-Model ešte nič nevie, tak začne tým najhlúpejším možným odhadom: **priemerom cieľovej premennej**. Tri podvody z desiatich, teda pre **každý** riadok rovnako:
+Model ešte nič nevie, preto začne tým najjednoduchším možným odhadom: **priemerom cieľovej premennej**. Tri podvody z desiatich, teda pre **každý** riadok rovnako:
 
 ```text
 p₀ = 0,30      → každá transakcia dostane 30 % pravdepodobnosť podvodu
@@ -45,7 +45,7 @@ Pre náš nultý model:
 | riadok | y | predpoveď p₀ | **rezíduum r = y − p₀** | čo to hovorí |
 |---|---|---|---|---|
 | 3, 5, 8 (podvody) | 1 | 0,30 | **+0,70** | „toto bol podvod a ty si dal iba 30 % — prihoď 0,70" |
-| 1, 2, 4, 6, 7, 9, 10 | 0 | 0,30 | **−0,30** | „toto bolo v poriadku a ty strašíš 30 % — uber 0,30" |
+| 1, 2, 4, 6, 7, 9, 10 | 0 | 0,30 | **−0,30** | „toto bolo v poriadku, a ty hlásiš 30 % — uber 0,30" |
 
 Všimnite si dve veci. Po prvé, súčet rezíduí je nula: 3 × 0,70 − 7 × 0,30 = 0. Presne to znamená, že priemer je najlepší možný odhad, keď o riadkoch nič iné nevieme. Po druhé, **rezíduá sú teraz nový cieľ**. Druhý model sa už nebude učiť „podvod / nie podvod", ale bude sa učiť predpovedať tieto čísla: +0,70 a −0,30.
 
@@ -80,7 +80,7 @@ Dosadíme (p = 0,30 pre všetky riadky, teda p·(1−p) = 0,21):
 | e-commerce (4 riadky) | 0,70+0,70−0,30+0,70 = **+1,80** | 4 × 0,21 = 0,84 | 1,80 / (0,84+1) = **+0,978** |
 | ostatné (6 riadkov) | 6 × (−0,30) = **−1,80** | 6 × 0,21 = 1,26 | −1,80 / (1,26+1) = **−0,797** |
 
-Tento výstup sa **nepripočíta celý**. Vynásobí sa **learning rate** (`eta`, tu 0,3) — model spraví len tretinu navrhovaného kroku, aby sa jedným stromom neprestrelilo. (V reálnom nasadení býva `eta` ešte menšia, typicky 0,05; tu sme ju zvolili väčšiu, aby bol posun po dvoch stromoch vidno.) Po prevode späť na pravdepodobnosť dostaneme:
+Tento výstup sa **nepripočíta celý**. Vynásobí sa **learning rate** (`eta`, tu 0,3) — model urobí len tretinu navrhovaného kroku, aby jediný strom cieľ neprestrelil. (V reálnom nasadení býva `eta` ešte menšia, typicky 0,05; tu sme ju zvolili väčšiu, aby bol posun po dvoch stromoch vidno.) Po prevode späť na pravdepodobnosť dostaneme:
 
 | riadok | p pred | p po 1. strome | nové rezíduum |
 |---|---|---|---|
@@ -92,9 +92,9 @@ Tento výstup sa **nepripočíta celý**. Vynásobí sa **learning rate** (`eta`
 
 - Podvodom rezíduum **kleslo** z +0,70 na +0,635 — model sa priblížil, ale ešte zďaleka nedošiel.
 - Poctivým offline transakciám kleslo z −0,30 na −0,252 — tiež zlepšenie.
-- Ale riadku 6 rezíduum **narástlo** z −0,30 na −0,365. Prvý strom mu **uškodil**, lebo ho hodil do jedného vreca s podvodmi. A práve preto má teraz najväčšie rezíduum spomedzi poctivých riadkov — čo je zároveň **inštrukcia pre druhý strom**: „tu je moja najväčšia bolesť, poď to opraviť."
+- Ale riadku 6 rezíduum **narástlo** z −0,30 na −0,365. Prvý strom mu **uškodil**, lebo ho hodil do jedného vreca s podvodmi. A práve preto má teraz najväčšie rezíduum spomedzi poctivých riadkov — čo je zároveň **inštrukcia pre druhý strom**: „tu je moja najväčšia chyba, oprav ju."
 
-Takto boosting funguje: **rezíduá sú spôsob, akým si stromy medzi sebou odovzdávajú, čo ešte treba dorobiť.**
+Takto boosting funguje: **rezíduá sú spôsob, akým si stromy medzi sebou odovzdávajú, čo ešte zostáva opraviť.**
 
 ## Krok 2 — druhý strom opravuje, čo prvý pokazil
 
@@ -134,7 +134,7 @@ Riadok 6 je zachránený — druhý strom mu zobral, čo mu prvý neprávom prid
 | 10 | 0,76 | 0,29 | 0,07 |
 | 200 | 0,99 | 0,03 | 0,001 |
 
-Každý ďalší strom sa pýta na niečo, čo tie pred ním nedokázali rozlíšiť — MCC 7995 (stávkové kancelárie), nočnú hodinu v DE7, nesúlad krajiny obchodníka s krajinou vydania karty, sumu vysoko nad zvykom karty. Rezíduá sa zmenšujú, kroky sú čoraz jemnejšie a tréning sa zastaví (**early stopping**) vo chvíli, keď sa chyba na validačných dátach prestane zlepšovať — to je moment, keď by ďalšie stromy už len dolaďovali šum.
+Každý ďalší strom sa pýta na niečo, čo tie pred ním nedokázali rozlíšiť — MCC 7995 (stávkové kancelárie), nočnú hodinu v DE7, nesúlad krajiny obchodníka s krajinou vydania karty, sumu vysoko nad zvykom karty. Rezíduá sa zmenšujú, kroky sú čoraz jemnejšie a tréning sa zastaví (**early stopping**) vo chvíli, keď chyba na validačných dátach prestane klesať — to je moment, keď by ďalšie stromy už len dolaďovali šum.
 
 **Finálna predpoveď nie je hlasovanie, ale súčet:** východiskový odhad + 0,3 × (príspevok stromu 1) + 0,3 × (príspevok stromu 2) + … Preto sa boostingu hovorí *aditívny* model.
 
@@ -147,7 +147,7 @@ Gradient boosting je teda **gradientný zostup, kde krokom nie je úprava čísl
 ## Čo z toho plynie pre prax na ISO 8583 dátach
 
 1. **Surové DE polia nestačia.** Najsilnejšie príznaky sú **odvodené** — počet transakcií kartou za 1 h / 24 h, pomer sumy k priemernej sume karty za 90 dní, čas od predchádzajúcej transakcie, počet rôznych krajín za deň, či MCC karta ešte nikdy nepoužila. Práve stĺpec `tx/60 min` zachránil náš druhý strom. Bez feature engineeringu nepomôže ani najlepší model.
-2. **Vysoká kardinalita.** MCC má stovky hodnôt, DE43 desiatky krajín. One-hot to rozfúkne; použite `enable_categorical=True` (XGBoost), CatBoost, alebo target encoding **počítaný len z trénovacieho okna**.
+2. **Vysoká kardinalita.** MCC má stovky hodnôt, DE43 desiatky krajín. One-hot kódovanie by z nich urobilo stovky prevažne nulových stĺpcov; použite radšej `enable_categorical=True` (XGBoost), CatBoost, alebo target encoding **počítaný len z trénovacieho okna**.
 3. **Nevyváženosť tried.** Pri 0,1 % podvodov nastavte `scale_pos_weight` a **nesledujte accuracy** — model „všetko je v poriadku" má 99,9 %. Sledujte **PR-AUC** a recall pri prevádzkovo únosnej miere falošných poplachov.
 4. **Delenie dát podľa času, nie náhodne.** Náhodné rozdelenie by dalo model, ktorý sa učí z budúcnosti (*data leakage*) — trénujte na januári až marci, testujte na apríli. Aj príznaky musia byť počítané len z toho, čo bolo v momente autorizácie známe.
 5. **Latencia.** Autorizácia má rozpočet rádovo 100 ms. XGBoost s 300 plytkými stromami zvládne predikciu za jednotky milisekúnd na CPU — ďalší dôvod, prečo je v platobnej infraštruktúre populárnejší než neurónová sieť.
