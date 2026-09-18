@@ -19,7 +19,7 @@ Väčšina modelov v tomto kurze (stromy, XGBoost, klasifikačné siete) sú pr�
                     úprava parametrov ◄── porovnaj s pravdou (loss)
 ```
 
-Model urobí predpoveď, porovná ju so správnou odpoveďou (chyba = *loss*), a upraví svoje parametre tak, aby chyba klesala. Toto sa opakuje na tisícoch príkladov. Detailne je tréningová slučka a optimalizátor rozpísaný v [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md).
+Model urobí predpoveď, porovná ju so správnou odpoveďou (chyba = *loss*), a upraví svoje parametre tak, aby chyba klesala. Toto sa opakuje na tisícoch príkladov. Detailne je tréningová slučka a optimalizátor rozpísaný v [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md).
 
 Ešte jedno praktické rozdelenie dát, ktoré sa ťahá celým ML:
 
@@ -41,4 +41,4 @@ Toto rozlíšenie je najdôležitejšia intuícia pri výbere modelu, preto sa k
 ### Súvisiace dokumenty
 
 - [03-generalizacia-a-preucenie.md](03-generalizacia-a-preucenie.md) — **nasleduje**: prečo nestačí uspieť na trénovacích dátach
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka do detailu
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — tréningová slučka do detailu

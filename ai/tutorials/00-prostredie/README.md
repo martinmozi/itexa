@@ -5,6 +5,6 @@ Príprava počítača na prácu s AI. Nie je to prednáška — je to príručka
 
 | Dokument | O čom je |
 |---|---|
-| [01-vyvojove-prostredie.md](01-vyvojove-prostredie.md) | Python a virtuálne prostredia, VS Code, PyTorch, CUDA/MPS, knižnice kurzu, vLLM a Ollama, odporúčaný hardvér, kedy si prenajať GPU v cloude |
+| [01-vyvojove-prostredie.md](01-vyvojove-prostredie.md) | Python a virtuálne prostredia, Jupyter notebooky, VS Code, PyTorch, CUDA/MPS, knižnice kurzu, vLLM a Ollama, odporúčaný hardvér, kedy si prenajať GPU v cloude |
 
 ← [obsah tutoriálov](../README.md) · ďalej [01 — Prehľad](../01-prehlad/README.md) →

@@ -12,4 +12,4 @@ Hlavné rodiny modelov: čo ktorá robí, na aké dáta sa hodí a čím sa plat
 | [05-konvolucne-siete.md](05-konvolucne-siete.md) | konvolúcia, weight sharing, pooling, hierarchia príznakov |
 | [06-ktory-model-kedy.md](06-ktory-model-kedy.md) | **rozhodovacia tabuľka** — zhrnutie celej oblasti |
 
-← [01 — Prehľad](../01-prehlad/README.md) · ďalej [03 — Učenie](../03-ucenie/README.md) →
+← [01 — Prehľad](../01-prehlad/README.md) · ďalej [03 — Tréning modelov](../03-trening-modelov/README.md) →

@@ -6,6 +6,17 @@
 
 Príručka pokrýva všetko, čo budete potrebovať na [zadanie 1](../../zadania/rozpoznavanie-obrazkov.md) (vlastná sieť + PyTorch) aj [zadanie 2](../../zadania/RAG_Fine_tunning.md) (RAG a LoRA fine-tuning).
 
+> **Rýchly štart (5 minút).** Kto nechce čítať odpredu, tu je minimum, s ktorým sa dá začať; zvyšok dokumentu tie isté kroky vysvetľuje:
+>
+> ```bash
+> curl -LsSf https://astral.sh/uv/install.sh | sh   # správca prostredí (Windows: pozri sekciu 1)
+> uv init --python 3.12 ai-kurz && cd ai-kurz       # nový projekt s vlastným prostredím
+> uv add torch numpy matplotlib jupyterlab          # PyTorch + základné knižnice
+> uv run python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+> ```
+>
+> Ak posledný príkaz vypíše verziu PyTorchu, prostredie beží. Druhá hodnota `True` znamená, že PyTorch vidí NVIDIA GPU — na Macu tam bude `False` a akcelerácia sa overuje inak (sekcia 4). Zvyšné sekcie riešia GPU, lokálne LLM a hardvér.
+
 ---
 
 ## 1. Python prostredie
@@ -75,7 +86,29 @@ Prevodná tabuľka, aby sa v dokumente dali príkazy čítať v oboch svetoch:
 
 Kedysi bola v AI svete štandardom **conda**; dnes už nie je potrebná — pip balíky PyTorchu si nesú všetko so sebou (vrátane CUDA knižníc, ako uvidíme nižšie). Ak ju máte radi, funguje tiež, ale v tomto kurze vystačíme s `uv` alebo `venv`.
 
-Na experimentovanie sa hodí **Jupyter** (`uv add jupyterlab`, resp. `pip install jupyterlab`) alebo notebooky priamo vo VS Code — kód sa spúšťa po bunkách a grafy vidno hneď vedľa kódu.
+### Jupyter notebook — zápisník, v ktorom sa dá experimentovať
+
+Väčšina kódu v tomto kurze sa bude písať do **notebookov**, tak si hneď povedzme, čo to je.
+
+**Jupyter notebook** je súbor s príponou `.ipynb`, ktorý nie je jedným súvislým programom, ale postupnosťou **buniek**. Bunka je buď kúsok kódu, alebo text (markdown — nadpisy, vysvetlenia, vzorce). Bunku spustíte klávesou `Shift+Enter` a jej výstup — číslo, tabuľka, graf, obrázok — sa zobrazí hneď pod ňou a **uloží sa priamo do súboru**. Notebook je preto zároveň program aj zápis z experimentu: ten, komu ho pošlete, vidí výsledky bez toho, aby čokoľvek spúšťal.
+
+Kľúčový pojem je **kernel**: proces Pythonu, ktorý beží na pozadí notebooku a drží si **stav**. Keď v jednej bunke napíšete `x = 5`, premenná `x` žije v kernelovi ďalej a v ktorejkoľvek neskoršej bunke ju máte k dispozícii. Presne to robí notebooky v AI takými užitočnými — načítanie datasetu alebo modelu trvá minúty a pamäť zaberie v gigabajtoch, ale **urobí sa raz** a potom nad ním v ďalších bunkách experimentujete, koľko chcete. Pri bežnom skripte by ste tých pár minút čakali po každej zmene jedného riadku.
+
+Spustenie:
+
+```bash
+uv add jupyterlab        # bez uv:  pip install jupyterlab
+uv run jupyter lab       # otvorí notebook v prehliadači
+```
+
+V praxi ale JupyterLab v prehliadači spúšťať nemusíte — **VS Code otvára `.ipynb` súbory priamo** (rozšírenie Jupyter, sekcia 2) a máte pri tom napovedanie, debugger aj git. Tie isté notebooky otvorí aj **Google Colab** — Jupyter bežiaci v cloude, s GPU zadarmo (sekcia 7).
+
+Dve veci, na ktorých sa začiatočníci pravidelne popália:
+
+- **Bunky sa dajú spúšťať v ľubovoľnom poradí a kernel si pamätá všetko.** Ak bunku upravíte, spustíte a potom zmažete, jej premenné v pamäti stále existujú — notebook vám „funguje" vďaka stavu, ktorý v súbore nikde nie je. U kolegu, ktorý ho spustí odhora nadol, to spadne. Liek: pred odovzdaním vždy **Restart Kernel and Run All Cells** a skontrolovať, že všetko prejde načisto. Číslovanie `In [1]`, `In [2]` vedľa buniek ukazuje skutočné poradie spustenia — ak nejde pekne po sebe, je to varovný signál.
+- **Notebook nie je náhrada za `.py` súbory.** Hodí sa na skúšanie, vizualizácie a vysvetľovanie. Len čo máte kód hotový a chcete ho púšťať opakovane (tréning na hodiny, skript na serveri) alebo importovať z iných miest, presuňte ho do obyčajného modulu. Bežný kompromis: funkcie a triedy v `.py`, notebook slúži ako riadiaci panel, ktorý ich volá.
+
+> **Poznámka ku gitu:** `.ipynb` je vnútri JSON aj s uloženými výstupmi, takže diffy sú neprehľadné a obrázky zbytočne nafukujú repozitár. Pred commitom výstupy premažte (*Clear All Outputs*) — alebo si nastavte nástroj [nbstripout](https://github.com/kynan/nbstripout), ktorý to urobí za vás.
 
 ---
 
@@ -86,7 +119,7 @@ Editor je vec vkusu, ale ak nemáte vyhranený názor, zvoľte **Visual Studio C
 | Rozšírenie | Na čo |
 |---|---|
 | **Python** (Microsoft) | spúšťanie, debugovanie, výber interpretera; automaticky doinštaluje **Pylance** (napovedanie, kontrola typov) |
-| **Jupyter** (Microsoft) | notebooky `.ipynb` priamo v editore — netreba spúšťať JupyterLab v prehliadači |
+| **Jupyter** (Microsoft) | notebooky `.ipynb` priamo v editore — netreba spúšťať JupyterLab v prehliadači (čo je notebook, hovorí sekcia 1) |
 | **Ruff** | rýchly linter a formátovač Python kódu — udrží kód čistý bez ručného upratovania |
 | **Remote – SSH** | vývoj na vzdialenom stroji: pripojíte sa na prenajatý server na RunPode a pracujete v ňom, akoby bol lokálny (zíde sa v sekcii 8) |
 | **WSL** | len pre Windows: otvorí projekt priamo v Ubuntu vo WSL2, kde beží celý AI ekosystém |
@@ -181,7 +214,7 @@ Okrem PyTorchu budete postupne potrebovať:
 | Knižnica | Na čo | Kde v kurze |
 |---|---|---|
 | `numpy`, `matplotlib` | polia, grafy | zadanie 1 (sieť v NumPy) |
-| `jupyterlab` | notebooky na experimenty | všade |
+| `jupyterlab` | notebooky na experimenty (sekcia 1) | všade |
 | `transformers`, `datasets` | modely a datasety z Hugging Face | lekcie 5–7 |
 | `sentence-transformers` | embedding modely | zadanie 2A (RAG) |
 | `faiss-cpu` | vektorový index | zadanie 2A (RAG) |
@@ -317,10 +350,11 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 
 1. Prečo dnes pri inštalácii PyTorchu netreba inštalovať celý CUDA toolkit? Čo jediné musí byť v systéme a ako overíte, že funguje?
 2. Ako v PyTorch kóde napíšete výber zariadenia tak, aby ten istý skript bežal na NVIDIA stroji, Macu aj na CPU?
-3. Koľko VRAM potrebuje inferencia 8B modelu vo fp16 a koľko po 4-bitovej kvantizácii? Ukážte výpočet.
-4. Čím sa líši vLLM od Ollamy — technicky aj použitím — a kedy siahnete po ktorom?
-5. Prečo potrebuje plný fine-tuning niekoľkonásobne viac pamäte než inferencia toho istého modelu a ako tento problém obchádza QLoRA?
-6. Spolužiak s RTX 4060 Ti (16 GB) chce urobiť plný fine-tuning 8B modelu. Čo mu poradíte a aké dve lacnejšie alternatívy mu ponúknete?
+3. Čo je kernel notebooku a prečo sa notebook, ktorý vám „funguje", môže u kolegu rozsypať? Ako sa tomu vyhnete pred odovzdaním?
+4. Koľko VRAM potrebuje inferencia 8B modelu vo fp16 a koľko po 4-bitovej kvantizácii? Ukážte výpočet.
+5. Čím sa líši vLLM od Ollamy — technicky aj použitím — a kedy siahnete po ktorom?
+6. Prečo potrebuje plný fine-tuning niekoľkonásobne viac pamäte než inferencia toho istého modelu a ako tento problém obchádza QLoRA?
+7. Spolužiak s RTX 4060 Ti (16 GB) chce urobiť plný fine-tuning 8B modelu. Čo mu poradíte a aké dve lacnejšie alternatívy mu ponúknete?
 
 ---
 
@@ -328,7 +362,7 @@ Ak viete odpovedať vlastnými slovami, dokument ste pochopili:
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [tutorials/01-prehlad](../01-prehlad/README.md) — **nasleduje**: čo je AI, režimy učenia, metriky
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka, backpropagation, Adam (lekcia 3)
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — tréningová slučka, backpropagation, Adam (lekcia 3)
 - [04-llm-modely.md](../04-llm/04-llm-modely.md) — výber modelu (proprietárne / open-weight / open-source — lekcia 5)
 - [07-fine-tuning-lora.md](../04-llm/07-fine-tuning-lora.md) — LoRA/QLoRA a pamäťové nároky fine-tuningu (lekcia 7)
 - [zadania/rozpoznavanie-obrazkov.md](../../zadania/rozpoznavanie-obrazkov.md), [zadania/RAG_Fine_tunning.md](../../zadania/RAG_Fine_tunning.md) — praktické úlohy

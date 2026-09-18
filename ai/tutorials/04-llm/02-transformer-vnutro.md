@@ -1,6 +1,6 @@
 # Vnútro transformera — od tokenu po odpoveď
 
-> **Poradie čítania:** ← [Transformery a attention](01-transformer-siete.md) · **lekcia 4** · [Ako sa trénuje LLM](03-llm-trening.md) →
+> **Poradie čítania:** ← [Transformery a attention](01-transformer-siete.md) · **lekcia 4** · [Tréning transformera](../03-trening-modelov/04-trening-transformera.md) →
 
 > **Cieľ dokumentu:** dopovedať to, čo [predchádzajúci dokument](01-transformer-siete.md) nechal na úrovni myšlienky — **konkrétne čísla a celú cestu textu modelom**, od tokenizéra až po hotovú vetu. Dokument má tri časti; ich mapa je hneď pod referenčnou tabuľkou.
 
@@ -473,7 +473,7 @@ sýtia tensor cores — násobenie `4096 × 4096` využije GPU slabšie než `81
 
 **A ešte tréning.** Hlboký model má dlhšiu reťaz, ktorou musí prejsť gradient — viac
 sériových krokov backpropu, viac príležitostí na miznúci či explodujúci gradient a citlivejšie
-ladenie (viď [02-problemy-pri-uceni.md](../03-ucenie/02-problemy-pri-uceni.md)). Široký model
+ladenie (viď [02-problemy-pri-uceni.md](../03-trening-modelov/02-problemy-pri-uceni.md)). Široký model
 robí to isté ako jedno väčšie maticové násobenie — presne to, v čom je GPU najsilnejšia.
 
 **MoE je táto logika dotiahnutá do konca.** Experti sú **nezávislé** matice vedľa seba, takže
@@ -546,7 +546,7 @@ Odtiaľ plynie aj rozdelenie nákladov: attention rastie s **druhou mocninou** p
 
 #### Reziduálny prúd: vrstvy nie sú séria, ale zbernica
 
-Zápis `X = X + attention_out` a `X = X + ffn_out` vyzerá ako technický detail proti miznúcim gradientom ([03-ucenie](../03-ucenie/02-problemy-pri-uceni.md)). V skutočnosti určuje, **ako je celý model organizovaný**.
+Zápis `X = X + attention_out` a `X = X + ffn_out` vyzerá ako technický detail proti miznúcim gradientom ([03-trening-modelov](../03-trening-modelov/02-problemy-pri-uceni.md)). V skutočnosti určuje, **ako je celý model organizovaný**.
 
 Všimnite si, že `X` sa nikdy neprepíše — vždy sa k nemu len **pripočíta**. Vektor `[4096]` každého tokenu je teda **zbernica** (*residual stream*), ktorá tečie zdola nahor cez všetkých 32 vrstiev, a každý blok z nej **číta** (cez normalizáciu) a **pripíše** do nej svoj príspevok:
 
@@ -1250,7 +1250,8 @@ adaptéry trénuje v `bf16`).
 ## Súvisiace dokumenty
 
 - [01-transformer-siete.md](01-transformer-siete.md) — **predchádzajúci**: mechanizmus attention (Q, K, V, multi-head, maska)
-- [03-llm-trening.md](03-llm-trening.md) — **nasledujúci**: ako sa tieto váhy natrénujú
+- [04-trening-transformera.md](../03-trening-modelov/04-trening-transformera.md) — **nasledujúci**: ako sa tieto váhy natrénujú — Adam, warmup, pamäť a čo do toho vnáša attention
+- [03-llm-trening.md](03-llm-trening.md) — fázy tréningu LLM: pretraining → SFT → RLHF
 - [05-embeddings.md](05-embeddings.md) — BPE tréning slovníka krok po kroku a ten istý priechod vrstvou prepočítaný ručne na číslach (lekcia 6)
 - [06-rag.md](06-rag.md) — ako sa obmedzenému kontextu vyhnúť vyhľadávaním (lekcia 6)
 - [04-llm-modely.md](04-llm-modely.md) — konkrétne modely, ktorých čísla (`A22B`, kontext, cena) teraz viete čítať (lekcia 5)

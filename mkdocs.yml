@@ -128,10 +128,12 @@ nav:
           - Feed-forward siete (MLP): tutorials/02-typy-modelov/04-feed-forward-siete.md
           - Konvolučné siete (CNN): tutorials/02-typy-modelov/05-konvolucne-siete.md
           - Ktorý model kedy: tutorials/02-typy-modelov/06-ktory-model-kedy.md
-      - 03 — Učenie:
-          - tutorials/03-ucenie/README.md
-          - Adam — optimalizátor: tutorials/03-ucenie/01-adam-optimalizator.md
-          - Čo sa pri učení pokazí: tutorials/03-ucenie/02-problemy-pri-uceni.md
+      - 03 — Tréning modelov:
+          - tutorials/03-trening-modelov/README.md
+          - Adam — optimalizátor: tutorials/03-trening-modelov/01-adam-optimalizator.md
+          - Čo sa pri učení pokazí: tutorials/03-trening-modelov/02-problemy-pri-uceni.md
+          - XGBoost — tréning a inferencia: tutorials/03-trening-modelov/03-xgboost-trening-a-inferencia.md
+          - Tréning transformera: tutorials/03-trening-modelov/04-trening-transformera.md
       - 04 — Veľké jazykové modely:
           - tutorials/04-llm/README.md
           - Transformery a attention: tutorials/04-llm/01-transformer-siete.md

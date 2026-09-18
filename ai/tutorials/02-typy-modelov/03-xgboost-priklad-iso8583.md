@@ -142,7 +142,7 @@ Každý ďalší strom sa pýta na niečo, čo tie pred ním nedokázali rozlí�
 
 Krátka, ale užitočná poznámka. Model neminimalizuje rezíduá „lebo to tak vyzerá logicky" — rezíduum je presne **záporný gradient chybovej funkcie**. Pri klasifikácii s log-loss vyjde derivácia chyby podľa predpovede rovná `p − y`, takže záporný gradient je `y − p`, teda **presne to, čo sme celý čas počítali**. Pri regresii so štvorcovou chybou vyjde `y − ŷ`, teda „skutočná cena mínus odhad" z príkladu s bytom.
 
-Gradient boosting je teda **gradientný zostup, kde krokom nie je úprava čísla, ale pridanie celého stromu.** Rovnaká myšlienka ako pri trénovaní neurónových sietí (pozri [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md)), len parametrom je model sám.
+Gradient boosting je teda **gradientný zostup, kde krokom nie je úprava čísla, ale pridanie celého stromu.** Rovnaká myšlienka ako pri trénovaní neurónových sietí (pozri [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md)), len parametrom je model sám.
 
 ## Čo z toho plynie pre prax na ISO 8583 dátach
 
@@ -193,5 +193,6 @@ shap.plots.waterfall(shap.TreeExplainer(model)(X_test.iloc[[0]])[0])
 ### Súvisiace dokumenty
 
 - [02-random-forest-a-xgboost.md](02-random-forest-a-xgboost.md) — teória, na ktorú tento príklad nadväzuje
+- [03-xgboost-trening-a-inferencia.md](../03-trening-modelov/03-xgboost-trening-a-inferencia.md) — to isté v kóde: tréning, ladenie, uloženie modelu a inferencia (lekcia 3)
 - [04-metriky.md](../01-prehlad/04-metriky.md) — PR-AUC, precision/recall pri nevyvážených triedach
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tá istá myšlienka gradientu, len pri neurónových sieťach
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — tá istá myšlienka gradientu, len pri neurónových sieťach

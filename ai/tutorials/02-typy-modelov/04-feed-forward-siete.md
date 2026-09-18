@@ -22,7 +22,7 @@ Výsledok je opäť len vážený súčet pôvodných vstupov — s inou maticou
 
 Nelineárna aktivácia vložená medzi vrstvy toto „zrútenie" zlomí. Najpoužívanejšia **ReLU** je pritom prekvapivo jednoduchá: záporné hodnoty vynuluje, kladné nechá tak — max(0, z). **Sigmoid** stláča výstup do intervalu (0, 1), preto sa hodí na výstupnú vrstvu, keď má výstup vyjadrovať pravdepodobnosť. Vďaka nelinearite môže každá ďalšia vrstva rozhodovaciu hranicu „ohýbať" — a platí **veta o univerzálnej aproximácii**: už sieť s jednou dostatočne širokou nelineárnou skrytou vrstvou dokáže aproximovať ľubovoľnú spojitú funkciu. V praxi sa namiesto jednej obrovskej vrstvy používa viac menších — hlbšia sieť sa tú istú vec spravidla naučí s menším počtom neurónov.
 
-Ako sa váhy a biasy ladia tréningom (forward pass → loss → backpropagation → update optimalizátorom Adam), podrobne rozoberá [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md).
+Ako sa váhy a biasy ladia tréningom (forward pass → loss → backpropagation → update optimalizátorom Adam), podrobne rozoberá [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md).
 
 ---
 
@@ -56,7 +56,7 @@ Sumy idú od 7 € po 1 250 € — rozdelenie je silne **šikmé** (veľa malý
 
 Prečo `ln(1 + x)` a nie `ln(x)`: pri sume 0 € by logaritmus utiekol do mínus nekonečna. Pre naše dáta vychádza `μ = 4,51` a `σ = 1,74` (počítané z log-hodnôt), takže transakcia za 890 € dostane `z = (6,79 − 4,51) / 1,74 = 1,31`.
 
-> **Štandardizácia nie je kozmetika.** Bez nej by stĺpec „suma" (rádovo stovky) a stĺpec „počet transakcií" (rádovo jednotky) vstupovali do rovnakého váženého súčtu. Gradient pre váhu pri sume by bol stokrát väčší než pre váhu pri počte — a jeden learning rate nemôže vyhovovať obom naraz. Vznikne presne tá **dlhá úzka roklina**, o ktorej hovorí [02-problemy-pri-uceni.md](../03-ucenie/02-problemy-pri-uceni.md).
+> **Štandardizácia nie je kozmetika.** Bez nej by stĺpec „suma" (rádovo stovky) a stĺpec „počet transakcií" (rádovo jednotky) vstupovali do rovnakého váženého súčtu. Gradient pre váhu pri sume by bol stokrát väčší než pre váhu pri počte — a jeden learning rate nemôže vyhovovať obom naraz. Vznikne presne tá **dlhá úzka roklina**, o ktorej hovorí [02-problemy-pri-uceni.md](../03-trening-modelov/02-problemy-pri-uceni.md).
 
 #### 1b) Čas (DE7): kruhové kódovanie namiesto čísla
 
@@ -182,7 +182,7 @@ Rovnako pre zvyšné tri neuróny, a na výsledok sa aplikuje ReLU:
 | h3 | 1,201 | **1,201** |
 | h4 | 1,465 | **1,465** |
 
-Neurón h2 sa na tomto riadku vôbec neozve. To je normálne — ReLU robí sieť **riedkou**, na každý vstup reaguje len časť neurónov. (Ak sa neurón nikdy neozve na *žiadnom* riadku, je mŕtvy a to už je problém — viď [02-problemy-pri-uceni.md](../03-ucenie/02-problemy-pri-uceni.md).)
+Neurón h2 sa na tomto riadku vôbec neozve. To je normálne — ReLU robí sieť **riedkou**, na každý vstup reaguje len časť neurónov. (Ak sa neurón nikdy neozve na *žiadnom* riadku, je mŕtvy a to už je problém — viď [02-problemy-pri-uceni.md](../03-trening-modelov/02-problemy-pri-uceni.md).)
 
 Výstupná vrstva:
 
@@ -251,7 +251,7 @@ A ten istý riadok znovu cez sieť:
   loss: 1,310  →  0,927
 ```
 
-Jeden krok, jedna transakcia — a model je bližšie k pravde. Toto sa opakuje pre každý riadok v batchi, každý batch v epoche a každú epochu, kým chyba na validačnej množine prestane klesať. Váhy sa v praxi neposúvajú obyčajným SGD, ale **Adamom** — ten istý gradient, len s momentom a adaptívnym krokom pre každý parameter zvlášť ([01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md)).
+Jeden krok, jedna transakcia — a model je bližšie k pravde. Toto sa opakuje pre každý riadok v batchi, každý batch v epoche a každú epochu, kým chyba na validačnej množine prestane klesať. Váhy sa v praxi neposúvajú obyčajným SGD, ale **Adamom** — ten istý gradient, len s momentom a adaptívnym krokom pre každý parameter zvlášť ([01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md)).
 
 ### Ako to dopadne oproti XGBoostu
 
@@ -340,5 +340,5 @@ Dve veci v kóde, ktoré sa oplatí zapamätať: `BCEWithLogitsLoss` berie **log
 
 - [05-konvolucne-siete.md](05-konvolucne-siete.md) — **nasleduje**: čo pridáva CNN oproti MLP
 - [03-xgboost-priklad-iso8583.md](03-xgboost-priklad-iso8583.md) — **tie isté dáta druhým modelom**; porovnajte, čo si každý vyžaduje
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — ako sa táto sieť trénuje
-- [02-problemy-pri-uceni.md](../03-ucenie/02-problemy-pri-uceni.md) — mŕtve ReLU neuróny, miznúce gradienty
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — ako sa táto sieť trénuje
+- [02-problemy-pri-uceni.md](../03-trening-modelov/02-problemy-pri-uceni.md) — mŕtve ReLU neuróny, miznúce gradienty

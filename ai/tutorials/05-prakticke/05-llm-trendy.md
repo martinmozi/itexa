@@ -32,7 +32,7 @@ Nie zoznam nástrojov — tie zastarajú. Skôr miesta, kde sa dá overiť, čo 
 
 Konkrétne verzie modelov, knižníc aj frameworkov sa vymenia. Mechanika nie:
 
-- **tréningová slučka** — forward → loss → backprop → update je rovnaká pre malú sieť z [lekcie 3](../03-ucenie/01-adam-optimalizator.md) aj pre model s biliónom parametrov,
+- **tréningová slučka** — forward → loss → backprop → update je rovnaká pre malú sieť z [lekcie 3](../03-trening-modelov/01-adam-optimalizator.md) aj pre model s biliónom parametrov,
 - **attention** — jadro každého dnešného jazykového modelu ([lekcia 4](../04-llm/01-transformer-siete.md)),
 - **dáta a loss určujú, čo sa model naučí** — vysvetľuje rozdiel medzi base a Instruct modelom, embedding a generatívnym modelom, aj to, prečo fine-tuning nefunguje na fakty,
 - **typ dát určuje model** — na tabuľky stále XGBoost, na obraz CNN. Táto vec sa za desať rokov nezmenila a pravdepodobne sa ani nezmení,

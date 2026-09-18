@@ -4,7 +4,7 @@
 
 > **Cieľ dokumentu:** vysvetliť, ako sa dá veľký model prispôsobiť vlastnej úlohe na jednom GPU — čo presne je **LoRA adaptér**, prečo stačí, čo pridáva **QLoRA** — a hlavne vedieť sa **rozhodnúť**, kedy siahnuť po fine-tuningu a kedy po RAG alebo len po dlhšom prompte.
 
-Nadväzuje na [03-llm-trening.md](03-llm-trening.md): fine-tuning, ktorý tu robíme, je presne **Fáza 2 (SFT)** z pipeline opísanej v ňom, len na malých dátach a s malým počtom trénovaných parametrov. Tréningová slučka je stále tá istá ako v [lekcii 3](../03-ucenie/01-adam-optimalizator.md).
+Nadväzuje na [03-llm-trening.md](03-llm-trening.md): fine-tuning, ktorý tu robíme, je presne **Fáza 2 (SFT)** z pipeline opísanej v ňom, len na malých dátach a s malým počtom trénovaných parametrov. Tréningová slučka je stále tá istá ako v [lekcii 3](../03-trening-modelov/01-adam-optimalizator.md).
 
 ---
 
@@ -20,7 +20,7 @@ Plný fine-tuning znamená upravovať **všetky** váhy. Pri modeli so 7 miliard
 | kópia váh vo fp32 | 4 B | 28 GB |
 | **spolu** | **~16 B** | **~112 GB** |
 
-K tomu ešte aktivácie. Čiže niekoľko A100/H100 — pre bežnú firmu aj študenta nedostupné. (Riadok „stav Adamu" sú presne tie dve polia `m` a `v` z [lekcie 3](../03-ucenie/01-adam-optimalizator.md#5-stavové-premenné); ako ho zmenšiť bez LoRA — Adafactor, 8-bit Adam, Lion — je v [8.11](../03-ucenie/01-adam-optimalizator.md#811-úsporné-varianty-pre-veľké-modely).) A to všetko preto, aby sme model naučili napríklad odpovedať v našom firemnom tóne.
+K tomu ešte aktivácie. Čiže niekoľko A100/H100 — pre bežnú firmu aj študenta nedostupné. (Riadok „stav Adamu" sú presne tie dve polia `m` a `v` z [lekcie 3](../03-trening-modelov/01-adam-optimalizator.md#5-stavové-premenné); ako ho zmenšiť bez LoRA — Adafactor, 8-bit Adam, Lion — je v [8.11](../03-trening-modelov/01-adam-optimalizator.md#811-úsporné-varianty-pre-veľké-modely).) A to všetko preto, aby sme model naučili napríklad odpovedať v našom firemnom tóne.
 
 Kľúčové pozorovanie, z ktorého vychádza LoRA: **prispôsobenie modelu na úzku úlohu je „malá" zmena.** Nemeníme, čo model vie o svete — meníme, ako to podáva. Taká zmena sa nemusí dať zapísať do všetkých miliárd čísel; stačí jej oveľa menší priestor.
 

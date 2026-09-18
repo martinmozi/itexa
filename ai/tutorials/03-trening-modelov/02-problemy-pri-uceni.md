@@ -1,6 +1,6 @@
 # Čo sa pri učení pokazí — diagnostika a riešenia
 
-> **Poradie čítania:** ← [Adam — optimalizátor](01-adam-optimalizator.md) · **lekcia 3** · [Transformery a attention](../04-llm/01-transformer-siete.md) →
+> **Poradie čítania:** ← [Adam — optimalizátor](01-adam-optimalizator.md) · **lekcia 3** · [XGBoost v praxi — tréning a inferencia](03-xgboost-trening-a-inferencia.md) →
 
 > Táto stránka je **katalóg porúch tréningu**: čo sa najčastejšie pokazí, ako to rozoznať
 > a ako to opraviť. Nadväzuje na [01-adam-optimalizator.md](01-adam-optimalizator.md), ale dá sa
@@ -313,4 +313,5 @@ Zhrnutie správy: **~78 % neočakávaných prerušení malo potvrdenú alebo pre
 - [04-feed-forward-siete.md](../02-typy-modelov/04-feed-forward-siete.md) — aktivačné funkcie a prečo na nich záleží
 - [03-generalizacia-a-preucenie.md](../01-prehlad/03-generalizacia-a-preucenie.md) — preučenie, regularizácia, delenie dát
 - [04-metriky.md](../01-prehlad/04-metriky.md) — prečo accuracy pri nevyvážených triedach klame
+- [03-xgboost-trening-a-inferencia.md](03-xgboost-trening-a-inferencia.md) — **nasleduje**: tie isté otázky na tabuľkových dátach, od tréningu po nasadenie
 - [zadania/rozpoznavanie-obrazkov.md](../../zadania/rozpoznavanie-obrazkov.md) — zadanie, pri ktorom to budete potrebovať

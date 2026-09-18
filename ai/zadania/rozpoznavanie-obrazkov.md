@@ -1,6 +1,6 @@
 # Zadanie: Rozpoznávanie obrázkov vlastnou neurónovou sieťou
 
-> **Zadanie 1 z 2** · rieši sa počas lekcií 3–4 · podklady: [01-adam-optimalizator.md](../tutorials/03-ucenie/01-adam-optimalizator.md), [prehľad AI](../tutorials/01-prehlad/README.md), [typy modelov](../tutorials/02-typy-modelov/README.md), [01-vyvojove-prostredie.md](../tutorials/00-prostredie/01-vyvojove-prostredie.md)
+> **Zadanie 1 z 2** · rieši sa počas lekcií 3–4 · podklady: [01-adam-optimalizator.md](../tutorials/03-trening-modelov/01-adam-optimalizator.md), [prehľad AI](../tutorials/01-prehlad/README.md), [typy modelov](../tutorials/02-typy-modelov/README.md), [01-vyvojove-prostredie.md](../tutorials/00-prostredie/01-vyvojove-prostredie.md)
 
 ## Cieľ
 
@@ -17,7 +17,7 @@ Dôraz je na pochopení, ako sieť funguje zvnútra — preto najprv vlastná im
 až potom „pohodlný" PyTorch.
 
 > Špecifikácia optimalizátora Adam vrátane matematiky je v samostatnom dokumente
-> [01-adam-optimalizator.md](../tutorials/03-ucenie/01-adam-optimalizator.md).
+> [01-adam-optimalizator.md](../tutorials/03-trening-modelov/01-adam-optimalizator.md).
 
 ---
 
@@ -97,7 +97,7 @@ Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje vo vnútri si
 | Chybová funkcia | `cross-entropy` |
 | Dopredný priechod | `z = W·a + b`, potom aktivácia |
 | Spätné šírenie | reťazové pravidlo, gradienty `dW`, `db` |
-| Aktualizácia váh | najprv SGD `W -= lr*dW`, potom **Adam** (viď [01-adam-optimalizator.md](../tutorials/03-ucenie/01-adam-optimalizator.md)) |
+| Aktualizácia váh | najprv SGD `W -= lr*dW`, potom **Adam** (viď [01-adam-optimalizator.md](../tutorials/03-trening-modelov/01-adam-optimalizator.md)) |
 
 > *Pomôcka k backpropu:* pri kombinácii **softmax + cross-entropy** sa gradient na výstupe
 > zjednoduší na `(predikcia − skutočnosť)`. Overte si to na papieri.
@@ -105,14 +105,14 @@ Cieľ: implementovať sieť od nuly, aby ste rozumeli, čo sa deje vo vnútri si
 > *Pomôcka k tréningu:* použite **mini-batch** (napr. 32 alebo 64 vzoriek).
 
 > *Keď sa sieť neučí:* skôr než začnete ladiť hyperparametre, prejdite si
-> **[02-problemy-pri-uceni.md](../tutorials/03-ucenie/02-problemy-pri-uceni.md)**. Začnite testom
+> **[02-problemy-pri-uceni.md](../tutorials/03-trening-modelov/02-problemy-pri-uceni.md)**. Začnite testom
 > **„preuč 8 príkladov"** — ak sieť nedokáže naspamäť zvládnuť osem vzoriek, máte chybu
 > v backprope alebo v tvaroch polí, nie problém s učením.
 
 ### Optimalizátor Adam (povinné)
 
 Najprv rozbehajte tréning s obyčajným SGD, potom **implementujte Adam**. Postupujte podľa
-špecifikácie v [01-adam-optimalizator.md](../tutorials/03-ucenie/01-adam-optimalizator.md) (obsahuje vzorce, matematiku aj referenčný kód).
+špecifikácie v [01-adam-optimalizator.md](../tutorials/03-trening-modelov/01-adam-optimalizator.md) (obsahuje vzorce, matematiku aj referenčný kód).
 Do správy porovnajte konvergenciu **SGD vs. Adam** (loss po epochách).
 
 ---

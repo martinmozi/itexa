@@ -48,14 +48,14 @@ pochopili.
 
     [Otvoriť :material-arrow-right:](tutorials/02-typy-modelov/README.md)
 
--   :material-chart-bell-curve: **03 — Učenie**
+-   :material-chart-bell-curve: **03 — Tréning modelov**
 
     ---
 
-    Tréningová slučka a optimalizátor Adam do posledného kroku, plus diagnostika toho,
-    čo sa pri učení pokazí.
+    Ako sa model naozaj natrénuje: tréningová slučka a Adam do posledného kroku,
+    diagnostika porúch, tréning XGBoostu na tabuľkách a tréning transformera.
 
-    [Otvoriť :material-arrow-right:](tutorials/03-ucenie/README.md)
+    [Otvoriť :material-arrow-right:](tutorials/03-trening-modelov/README.md)
 
 </div>
 

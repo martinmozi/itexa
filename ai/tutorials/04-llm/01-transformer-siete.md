@@ -1,6 +1,6 @@
 # Transformery a attention — ako fungujú
 
-> **Poradie čítania:** ← [Čo sa pri učení pokazí](../03-ucenie/02-problemy-pri-uceni.md) · **lekcia 4** · [Vnútro transformera](02-transformer-vnutro.md) →
+> **Poradie čítania:** ← [XGBoost v praxi](../03-trening-modelov/03-xgboost-trening-a-inferencia.md) · **lekcia 4** · [Vnútro transformera](02-transformer-vnutro.md) →
 
 > **Cieľ dokumentu:** vysvetliť krok po kroku, ako funguje **transformer** — architektúra, ktorá stojí za dnešnými veľkými jazykovými modelmi (GPT, Claude, BERT…), prekladačmi aj generovaním obrázkov. Ťažiskom sú **detailné obrázky** mechanizmu **attention**, pretože práve on je jadrom celej myšlienky.
 
@@ -208,7 +208,7 @@ nízku teplotu (`T ≈ 0–0.3`); na kreatívny text `T ≈ 0.7–1.0` s `top_p 
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [tutorials/01-prehlad](../01-prehlad/README.md) — kam transformery zapadajú v celej AI (lekcia 1)
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam — lekcia 3)
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — ako sa siete trénujú (backpropagation, Adam — lekcia 3)
 - [02-transformer-vnutro.md](02-transformer-vnutro.md) — **nasleduje**: tokenizácia, rozmery, reziduálny prúd, feed-forward a MoE, výstupný token, KV cache a limity kontextu
 - [03-llm-trening.md](03-llm-trening.md) — **lekcia 5**: ako sa táto architektúra trénuje na jazyk
 - [05-embeddings.md](05-embeddings.md) — tá istá attention s číslami + cesta textu na vektor (lekcia 6)

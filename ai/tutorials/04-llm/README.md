@@ -12,4 +12,4 @@ Od architektúry transformera po praktickú prácu s dnešnými LLM.
 | [06-rag.md](06-rag.md) | chunking, indexovanie, vyhľadávanie, reranking, výpočtové nároky, pokročilý retrieval |
 | [07-fine-tuning-lora.md](07-fine-tuning-lora.md) | LoRA, QLoRA, kedy fine-tuning áno a kedy radšej RAG |
 
-← [03 — Učenie](../03-ucenie/README.md) · ďalej [05 — Praktické](../05-prakticke/README.md) →
+← [03 — Tréning modelov](../03-trening-modelov/README.md) · ďalej [05 — Praktické](../05-prakticke/README.md) →

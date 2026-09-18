@@ -50,5 +50,5 @@ Okrem voľby jednoduchšieho modelu má proti preučeniu každá rodina svoje n�
 ### Súvisiace dokumenty
 
 - [04-metriky.md](04-metriky.md) — **nasleduje**: čím sa kvalita modelu meria
-- [02-problemy-pri-uceni.md](../03-ucenie/02-problemy-pri-uceni.md) — preučenie v praxi: ako ho spoznať z krivky lossu
+- [02-problemy-pri-uceni.md](../03-trening-modelov/02-problemy-pri-uceni.md) — preučenie v praxi: ako ho spoznať z krivky lossu
 - [02-random-forest-a-xgboost.md](../02-typy-modelov/02-random-forest-a-xgboost.md) — ansámble ako spôsob, ako potlačiť rozptyl či skreslenie

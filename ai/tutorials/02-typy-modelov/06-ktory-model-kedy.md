@@ -1,6 +1,6 @@
 # Ktorý model kedy — rozhodovacia tabuľka
 
-> **Poradie čítania:** ← [Konvolučné siete (CNN)](05-konvolucne-siete.md) · **zhrnutie lekcií 1–3** · [Adam — optimalizátor](../03-ucenie/01-adam-optimalizator.md) →
+> **Poradie čítania:** ← [Konvolučné siete (CNN)](05-konvolucne-siete.md) · **zhrnutie lekcií 1–3** · [Adam — optimalizátor](../03-trening-modelov/01-adam-optimalizator.md) →
 
 | Dáta / úloha | Odporúčaný prvý model | Prečo |
 |---|---|---|
@@ -24,6 +24,6 @@
 
 ### Súvisiace dokumenty
 
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — **nasleduje**: ako sa neurónové siete trénujú
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — **nasleduje**: ako sa neurónové siete trénujú
 - [01-transformer-siete.md](../04-llm/01-transformer-siete.md) — modely pre text a postupnosti
 - [04-llm-modely.md](../04-llm/04-llm-modely.md) — tá istá otázka o úroveň vyššie: ktorý LLM kedy

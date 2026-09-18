@@ -1,10 +1,10 @@
 # Ako sa trénuje LLM — od surového textu po Instruct model
 
-> **Poradie čítania:** ← [Vnútro transformera](02-transformer-vnutro.md) · **lekcia 5** · [Prehľad súčasných modelov](04-llm-modely.md) →
+> **Poradie čítania:** ← [Tréning transformera](../03-trening-modelov/04-trening-transformera.md) · **lekcia 5** · [Prehľad súčasných modelov](04-llm-modely.md) →
 
 > **Cieľ dokumentu:** vysvetliť celú tréningovú pipeline veľkého jazykového modelu — čo sa deje od stiahnutia surového internetu až po model s príponou `-Instruct`, ktorý si viete stiahnuť z Hugging Face a ktorý odpovedá na otázky. Po prečítaní budete rozumieť, prečo *base* model „nevie odpovedať", čo presne pridáva inštrukčné ladenie, odkiaľ sa berie povaha hotového asistenta, a kam do tejto pipeline zapadá váš vlastný fine-tuning (LoRA).
 
-Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-ucenie/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskej mierke). Tokenizáciu a BPE detailne rozoberá [05-embeddings.md](05-embeddings.md).
+Predpokladá znalosť [transformerov](01-transformer-siete.md) (architektúra, ktorá sa trénuje) a [tréningovej slučky](../03-trening-modelov/01-adam-optimalizator.md) (backprop + Adam — presne tá istá mechanika, len v obrovskej mierke); optimalizačné detaily jedného kroku (warmup, clipping, pamäť, čo do toho vnáša attention) rozoberá [04-trening-transformera.md](../03-trening-modelov/04-trening-transformera.md). Tokenizáciu a BPE detailne rozoberá [05-embeddings.md](05-embeddings.md).
 
 ### Mapa dokumentu
 
@@ -89,7 +89,7 @@ model:  P(" Bratislava") = 0.62   ← správny token, chceme čo najvyššie
         ...
 ```
 
-Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0,01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md), len parametrov sú miliardy.
+Loss je **cross-entropy**: `L = −ln P(správny token)`. V príklade `L = −ln(0.62) = 0.48`. Keby model dal správnemu tokenu len 0,01, loss je `−ln(0.01) = 4.6` → veľký gradient → veľká korekcia váh. Presne tá istá mechanika ako pri malej sieti v [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md), len parametrov sú miliardy.
 
 Dve vlastnosti robia z tejto jednoduchej úlohy mimoriadne silný nástroj:
 
@@ -124,7 +124,7 @@ loss**:
 | 6 | `… ␣je ␣Bratislava` | `.` | 0,73 | 0,31 |
 
 Loss celej sekvencie je **priemer** týchto čísel (tu `1,83` nat/token), z neho ide jeden backward
-prechod a jeden Adam krok ([lekcia 3](../03-ucenie/01-adam-optimalizator.md)). Pri bloku 8192
+prechod a jeden Adam krok ([lekcia 3](../03-trening-modelov/01-adam-optimalizator.md)). Pri bloku 8192
 tokenov je to 8192 predikcií za jeden prechod modelom — odtiaľ tá efektivita. Všimnite si aj to,
 čo tabuľka hovorí o pozícii 1: predpovedať prvé slovo textu z ničoho je skoro nemožné (loss 5,52),
 kým s kontextom je to ľahké (0,13). Priemerná loss (a teda aj perplexita) je vždy zmes ľahkých
@@ -167,7 +167,7 @@ tokene hádzal desaťstennou kockou. Loss `0` → `PPL = 1` → dokonalá istota
 | 1,5 | 4,5 | dnešné veľké modely na dobrých dátach |
 
 Počas pretrainingu sa sleduje **perplexita na oddelenej (held-out) vzorke**, ktorú model
-nikdy nevidel — presne ako validačná krivka z [lekcie 3](../03-ucenie/02-problemy-pri-uceni.md).
+nikdy nevidel — presne ako validačná krivka z [lekcie 3](../03-trening-modelov/02-problemy-pri-uceni.md).
 Klesajúca trénovacia a stagnujúca validačná perplexita znamená to isté ako inde: preučenie.
 
 **Dve pasce, na ktoré sa v praxi naráža:**
@@ -594,7 +594,7 @@ asistenta, preferenčné ladenie ho vycibrí.**
 
 - [prehlad-predmetu.md](../../prehlad-predmetu.md) — prehľad celého predmetu (8 lekcií)
 - [01-transformer-siete.md](01-transformer-siete.md) — architektúra, ktorá sa tu trénuje (lekcia 4)
-- [01-adam-optimalizator.md](../03-ucenie/01-adam-optimalizator.md) — tréningová slučka a optimalizátor (rovnaké aj pre LLM)
+- [01-adam-optimalizator.md](../03-trening-modelov/01-adam-optimalizator.md) — tréningová slučka a optimalizátor (rovnaké aj pre LLM)
 - [04-llm-modely.md](04-llm-modely.md) — **druhá polovica lekcie 5**: prehľad dnešných modelov
 - [05-embeddings.md](05-embeddings.md) — tokenizácia (BPE), z ktorej pretraining vychádza (lekcia 6)
 - [07-fine-tuning-lora.md](07-fine-tuning-lora.md) — SFT v malom: LoRA/QLoRA, kedy fine-tuning áno/nie (lekcia 7)
